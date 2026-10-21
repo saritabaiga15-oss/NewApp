@@ -1,7 +1,6 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 
 interface DiscoverHeaderProps {
   storyCount?: number;
@@ -12,8 +11,8 @@ export default function DiscoverHeader({ storyCount }: DiscoverHeaderProps) {
     <View style={styles.container}>
       <View style={styles.topRow}>
         <View style={styles.badgeWrap}>
-          <Ionicons name="book-outline" size={13} color={Palette.turquoise} />
-          <Text style={styles.badgeText}>HUMAN STORIES</Text>
+          <Ionicons name="people-outline" size={13} color={Palette.turquoise} />
+          <Text style={styles.badgeText}>BECAUSE OF YOU</Text>
         </View>
         {storyCount !== undefined && (
           <View style={styles.countPill}>
@@ -23,7 +22,7 @@ export default function DiscoverHeader({ storyCount }: DiscoverHeaderProps) {
       </View>
 
       <Text style={styles.heading}>Discover</Text>
-      <Text style={styles.subtitle}>“Every life is shaped by someone.”</Text>
+      <Text style={styles.subtitle}>“Behind who we are, someone made a difference.”</Text>
     </View>
   );
 }

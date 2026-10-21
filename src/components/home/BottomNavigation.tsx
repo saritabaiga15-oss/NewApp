@@ -48,8 +48,14 @@ export default function BottomNavigation({
       onTabChange(tabKey);
     }
 
-    if (tabKey === "create" && onCreatePress) {
-      onCreatePress();
+    if (tabKey === "create") {
+      if (onCreatePress) {
+        onCreatePress();
+        return;
+      }
+      if (activeTab !== "create") {
+        router.push("/create");
+      }
       return;
     }
 
@@ -57,6 +63,8 @@ export default function BottomNavigation({
       router.push("/home");
     } else if (tabKey === "discover" && activeTab !== "discover") {
       router.push("/discover");
+    } else if (tabKey === "saved" && activeTab !== "saved") {
+      router.push("/memory-wall");
     }
   };
 

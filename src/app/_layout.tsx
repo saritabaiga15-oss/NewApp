@@ -12,6 +12,13 @@ export default function RootLayout() {
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="home" />
         <Stack.Screen name="discover" />
+        <Stack.Screen name="create" />
+        <Stack.Screen name="create-tribute" />
+        <Stack.Screen name="tribute-design" />
+        <Stack.Screen name="tribute-preview" />
+        <Stack.Screen name="memory-wall" />
+        <Stack.Screen name="memory-detail/[id]" />
+        <Stack.Screen name="mentor-profile/[id]" />
         <Stack.Screen name="stories/[id]" />
       </Stack>
     </SafeAreaProvider>
