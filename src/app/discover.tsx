@@ -40,6 +40,7 @@ import StoryCard from "@/components/Discover/StoryCard";
 import LessonHighlight from "@/components/Discover/LessonHighlight";
 import StoryDetailModal from "@/components/Discover/StoryDetailModal";
 import BottomNavigation from "@/components/home/BottomNavigation";
+import { storyBookmarkService } from "@/services/storyBookmarkService";
 
 export default function DiscoverScreen() {
   // State for search and filtering
@@ -48,8 +49,19 @@ export default function DiscoverScreen() {
   const [selectedThemeId, setSelectedThemeId] = useState<FeelingThemeId | undefined>();
 
   // Stories and wisdom bookmark states
-  const [featuredStoryState, setFeaturedStoryState] = useState<Story>(FEATURED_STORY);
-  const [stories, setStories] = useState<Story[]>(STORIES_DATA);
+  const [featuredStoryState, setFeaturedStoryState] = useState<Story>(() => ({
+    ...FEATURED_STORY,
+    isBookmarked: storyBookmarkService.getBookmark(
+      FEATURED_STORY.id,
+      FEATURED_STORY.isBookmarked
+    ),
+  }));
+  const [stories, setStories] = useState<Story[]>(() =>
+    STORIES_DATA.map((story) => ({
+      ...story,
+      isBookmarked: storyBookmarkService.getBookmark(story.id, story.isBookmarked),
+    }))
+  );
   const [wisdomLesson, setWisdomLesson] = useState<LessonQuote>(WISDOM_LESSON);
 
   // Active Story Detail Modal
@@ -65,6 +77,24 @@ export default function DiscoverScreen() {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
+
+  React.useEffect(
+    () =>
+      storyBookmarkService.subscribe((storyId, isBookmarked) => {
+        setFeaturedStoryState((story) =>
+          story.id === storyId ? { ...story, isBookmarked } : story
+        );
+        setStories((currentStories) =>
+          currentStories.map((story) =>
+            story.id === storyId ? { ...story, isBookmarked } : story
+          )
+        );
+        setSelectedStoryForModal((story) =>
+          story?.id === storyId ? { ...story, isBookmarked } : story
+        );
+      }),
+    []
+  );
 
   // Combined search and filtering logic
   const filteredStories = useMemo(() => {
@@ -131,21 +161,12 @@ export default function DiscoverScreen() {
 
   // Toggle bookmark for any story
   const handleToggleBookmark = (storyId: string) => {
-    if (storyId === featuredStoryState.id) {
-      setFeaturedStoryState((prev) => ({
-        ...prev,
-        isBookmarked: !prev.isBookmarked,
-      }));
-    }
-
-    setStories((prev) =>
-      prev.map((s) => (s.id === storyId ? { ...s, isBookmarked: !s.isBookmarked } : s))
-    );
-
-    if (selectedStoryForModal && selectedStoryForModal.id === storyId) {
-      setSelectedStoryForModal((prev) =>
-        prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null
-      );
+    const currentBookmark =
+      storyId === featuredStoryState.id
+        ? featuredStoryState.isBookmarked
+        : stories.find((story) => story.id === storyId)?.isBookmarked;
+    if (currentBookmark !== undefined) {
+      storyBookmarkService.setBookmark(storyId, !currentBookmark);
     }
   };
 

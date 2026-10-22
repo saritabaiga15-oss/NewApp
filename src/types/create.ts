@@ -32,6 +32,7 @@ export interface CreationDraft {
   lastEdited: string;
   wordCount?: number;
   dateKey?: string;
+  formData?: CreationFormState;
 }
 
 export interface CreationFormState {
@@ -51,7 +52,17 @@ export type TributeRelationship =
   | "Coach"
   | "Friend"
   | "Leader"
-  | "Other";
+  | "Other"
+  | "Grandparent"
+  | "Professor"
+  | "Colleague"
+  | "Spiritual Guide"
+  | "Other Mentor"
+  | "Literature Teacher"
+  | "Research Advisor"
+  | "Engineering Director"
+  | "Art & Design Coach"
+  | "Friend & Mentor";
 
 export interface InspirationCardItem {
   id: string;
@@ -63,6 +74,7 @@ export interface InspirationCardItem {
 }
 
 export interface TributePayload {
+  id: string;
   mentorName: string;
   relationship: TributeRelationship;
   photoUri: string | null;
@@ -70,6 +82,13 @@ export interface TributePayload {
   story: string;
   inspirationPrompt?: string;
   createdAt: string;
+}
+
+export interface TributeDraft {
+  id: string;
+  payload: TributePayload;
+  designState: TributeDesignState | null;
+  updatedAt: string;
 }
 
 export type TributeTemplateId =

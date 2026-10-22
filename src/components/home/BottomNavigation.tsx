@@ -65,6 +65,8 @@ export default function BottomNavigation({
       router.push("/discover");
     } else if (tabKey === "saved" && activeTab !== "saved") {
       router.push("/memory-wall");
+    } else if (tabKey === "profile" && activeTab !== "profile") {
+      router.push("/profile");
     }
   };
 

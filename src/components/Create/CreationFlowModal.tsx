@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -48,27 +49,50 @@ function StudioSheetContent({
   onSaveDraft,
   onPublish,
 }: StudioSheetContentProps) {
-  // Form state initialized directly from props (no cascading renders)
-  const [mentorName, setMentorName] = useState(initialDraft?.mentorName || "");
-  const [relationship, setRelationship] = useState("Teacher");
-  const [title, setTitle] = useState(
-    initialDraft?.title || (initialPrompt ? initialPrompt.question : "")
+  const [mentorName, setMentorName] = useState(
+    initialDraft?.formData?.mentorName ?? initialDraft?.mentorName ?? ""
   );
-  const [body, setBody] = useState(initialDraft?.previewText || "");
-  const [quote, setQuote] = useState("");
-  const [selectedTag, setSelectedTag] = useState("Endless Gratitude");
-  const [dateOrYear, setDateOrYear] = useState("");
+  const [relationship, setRelationship] = useState(
+    initialDraft?.formData?.relationship ?? "Teacher"
+  );
+  const [title, setTitle] = useState(
+    initialDraft?.formData?.title ??
+      initialDraft?.title ??
+      (initialPrompt ? initialPrompt.question : "")
+  );
+  const [body, setBody] = useState(
+    initialDraft?.formData?.body ?? initialDraft?.previewText ?? ""
+  );
+  const [quote, setQuote] = useState(initialDraft?.formData?.quote ?? "");
+  const [selectedTag, setSelectedTag] = useState(
+    initialDraft?.formData?.emotionalTag ?? "Endless Gratitude"
+  );
+  const [dateOrYear, setDateOrYear] = useState(
+    initialDraft?.formData?.dateOrYear ?? ""
+  );
+
+  const getFormData = (): CreationFormState => ({
+    type: creationType,
+    mentorName: mentorName.trim(),
+    relationship,
+    title: title.trim() || getDefaultTitle(creationType),
+    body: body.trim(),
+    quote: quote.trim(),
+    emotionalTag: selectedTag,
+    dateOrYear: dateOrYear.trim(),
+  });
 
   const handleSaveDraft = () => {
-    const draftTitle = title.trim() || getDefaultTitle(creationType);
+    const formData = getFormData();
     const newDraft: CreationDraft = {
       id: initialDraft?.id || `draft-${Date.now()}`,
       type: creationType,
-      title: draftTitle,
-      mentorName: mentorName.trim() || "Someone Special",
-      previewText: body.trim() || quote.trim() || "Unfinished heartfelt thoughts...",
+      title: formData.title,
+      mentorName: formData.mentorName,
+      previewText: formData.body || formData.quote || "",
       lastEdited: "Just now",
-      wordCount: (body.trim().split(/\s+/).filter(Boolean).length || 0),
+      wordCount: formData.body.split(/\s+/).filter(Boolean).length,
+      formData,
     };
 
     onSaveDraft(newDraft);
@@ -76,16 +100,15 @@ function StudioSheetContent({
   };
 
   const handlePublish = () => {
-    onPublish({
-      type: creationType,
-      mentorName: mentorName.trim(),
-      relationship,
-      title: title.trim() || getDefaultTitle(creationType),
-      body: body.trim(),
-      quote: quote.trim(),
-      emotionalTag: selectedTag,
-      dateOrYear: dateOrYear.trim(),
-    });
+    if (!mentorName.trim()) {
+      Alert.alert("Name required", "Enter the person you are celebrating.");
+      return;
+    }
+    if (!body.trim()) {
+      Alert.alert("Memory required", "Add a memory or lesson before saving.");
+      return;
+    }
+    onPublish(getFormData());
     onClose();
   };
 

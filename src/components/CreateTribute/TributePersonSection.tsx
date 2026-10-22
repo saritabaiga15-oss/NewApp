@@ -24,6 +24,10 @@ export default function TributePersonSection({
   onNameChange,
   onRelationshipChange,
 }: TributePersonSectionProps) {
+  const relationshipOptions = TRIBUTE_RELATIONSHIPS.includes(relationship)
+    ? TRIBUTE_RELATIONSHIPS
+    : [...TRIBUTE_RELATIONSHIPS, relationship];
+
   return (
     <View style={styles.container}>
       {/* Editorial Label & Heading */}
@@ -63,7 +67,7 @@ export default function TributePersonSection({
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>YOUR RELATIONSHIP</Text>
           <View style={styles.chipsContainer}>
-            {TRIBUTE_RELATIONSHIPS.map((rel) => {
+            {relationshipOptions.map((rel) => {
               const isSelected = relationship === rel;
               const iconName = getRelationshipIcon(rel);
 
@@ -109,6 +113,9 @@ export default function TributePersonSection({
 function getRelationshipIcon(rel: TributeRelationship): keyof typeof Ionicons.glyphMap {
   switch (rel) {
     case "Teacher":
+    case "Literature Teacher":
+    case "Research Advisor":
+    case "Professor":
       return "school-outline";
     case "Parent":
       return "heart-outline";
@@ -117,7 +124,15 @@ function getRelationshipIcon(rel: TributeRelationship): keyof typeof Ionicons.gl
     case "Friend":
       return "people-outline";
     case "Leader":
+    case "Engineering Director":
       return "compass-outline";
+    case "Art & Design Coach":
+      return "color-palette-outline";
+    case "Grandparent":
+    case "Friend & Mentor":
+    case "Colleague":
+    case "Spiritual Guide":
+    case "Other Mentor":
     case "Other":
       return "bulb-outline";
   }

@@ -101,6 +101,11 @@ export const MENTOR_RELATIONSHIPS = [
   "Colleague",
   "Spiritual Guide",
   "Other Mentor",
+  "Literature Teacher",
+  "Research Advisor",
+  "Engineering Director",
+  "Art & Design Coach",
+  "Friend & Mentor",
 ];
 
 export const EMOTIONAL_TAGS = [

@@ -11,12 +11,15 @@ export default function RootLayout() {
         <Stack.Screen name="register" />
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="home" />
+        <Stack.Screen name="profile" />
+        <Stack.Screen name="create-mentor" />
         <Stack.Screen name="discover" />
         <Stack.Screen name="create" />
         <Stack.Screen name="create-tribute" />
         <Stack.Screen name="tribute-design" />
         <Stack.Screen name="tribute-preview" />
         <Stack.Screen name="memory-wall" />
+        <Stack.Screen name="journey-timeline" />
         <Stack.Screen name="memory-detail/[id]" />
         <Stack.Screen name="mentor-profile/[id]" />
         <Stack.Screen name="stories/[id]" />
@@ -24,5 +27,3 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
-
-

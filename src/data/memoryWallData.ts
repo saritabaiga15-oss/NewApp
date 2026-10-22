@@ -3,6 +3,7 @@ import {
   WallItem,
   WallMentorProfile,
 } from "@/types/memoryWall";
+import type { JourneyNode } from "@/components/MemoryWall/JourneyTogether";
 
 // ─── Mentor Profiles ─────────────────────────────────────────────────────────
 
@@ -323,7 +324,59 @@ export const WALL_ITEMS: WallItem[] = [
     isPinned: false,
   },
 
+  {
+    kind: "memory",
+    id: "journey-2016",
+    mentorId: "mp1",
+    mentorName: "Mrs. Anita Sharma",
+    relationship: "Teacher",
+    title: "First meeting",
+    excerpt:
+      "Walked into honors literature hesitant to speak. She asked for my opinion first.",
+    story:
+      "Walked into honors literature hesitant to speak. She asked for my opinion first.",
+    year: "2016",
+    emotion: "Hopeful",
+    emotionColor: "#A8444F",
+    createdAt: "2016-09-01",
+    isPinned: false,
+  },
+
   // ─── Milestones ───────────────────────────────────────────────
+  {
+    kind: "milestone",
+    id: "journey-2019",
+    mentorId: "mp1",
+    mentorName: "Mrs. Anita Sharma",
+    relationship: "Teacher",
+    title: "College recommendation",
+    description:
+      "A letter that opened doors across the country and changed where I could dream of going.",
+    story:
+      "A letter that opened doors across the country and changed where I could dream of going.",
+    year: "2019",
+    type: "life-change",
+    accentColor: "#F2A03D",
+    createdAt: "2019-11-01",
+    isPinned: false,
+  },
+  {
+    kind: "milestone",
+    id: "journey-2022",
+    mentorId: "mp2",
+    mentorName: "Dr. David Mitchell",
+    relationship: "Research Advisor",
+    title: "First job offer",
+    description:
+      "He rehearsed my interview with me three times, and then told me I did not need to.",
+    story:
+      "He rehearsed my interview with me three times, and then told me I did not need to.",
+    year: "2022",
+    type: "life-change",
+    accentColor: "#9E2A2B",
+    createdAt: "2022-06-01",
+    isPinned: false,
+  },
   {
     kind: "milestone",
     id: "ms1",
@@ -391,6 +444,65 @@ export const WALL_ITEMS: WallItem[] = [
     isPinned: false,
   },
 ];
+
+export const JOURNEY_NODES: JourneyNode[] = [
+  {
+    id: "journey-2016",
+    memoryId: "journey-2016",
+    year: "2016",
+    title: "First meeting",
+    mentorName: "Mrs. Anita Sharma",
+    snippet:
+      "Walked into honors literature hesitant to speak. She asked for my opinion first.",
+  },
+  {
+    id: "journey-2019",
+    memoryId: "journey-2019",
+    year: "2019",
+    title: "College recommendation",
+    mentorName: "Mrs. Anita Sharma",
+    snippet:
+      "A letter that opened doors across the country and changed where I could dream of going.",
+    isMilestone: true,
+  },
+  {
+    id: "journey-2022",
+    memoryId: "journey-2022",
+    year: "2022",
+    title: "First job offer",
+    mentorName: "Dr. David Mitchell",
+    snippet:
+      "He rehearsed my interview with me three times, and then told me I did not need to.",
+  },
+];
+
+export function getJourneyNodes(items: WallItem[]): JourneyNode[] {
+  return JOURNEY_NODES.flatMap((node) => {
+    const item = items.find((candidate) => candidate.id === node.memoryId);
+    if (!item) return [];
+
+    const title =
+      "title" in item && item.title
+        ? item.title
+        : "lessonTitle" in item
+          ? item.lessonTitle
+          : node.title;
+    const snippet =
+      ("story" in item && item.story) ||
+      ("description" in item && item.description) ||
+      ("excerpt" in item && item.excerpt) ||
+      node.snippet;
+
+    return [{
+      ...node,
+      year: "year" in item ? item.year : node.year,
+      title,
+      mentorName: item.mentorName,
+      snippet,
+      isMilestone: item.kind === "milestone",
+    }];
+  });
+}
 
 // ─── Filter Tabs ─────────────────────────────────────────────────────────────
 

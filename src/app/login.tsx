@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
-import { GoogleLogo, AppleLogo, FacebookLogo } from "@/components/SocialLogos";
+import { AppleLogo, FacebookLogo } from "@/components/SocialLogos";
 
 export default function Login() {
   const insets = useSafeAreaInsets();
@@ -39,169 +39,166 @@ export default function Login() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
       >
-          <ScrollView
-            contentContainerStyle={[
-              styles.scrollContent,
-              {
-                paddingTop: Math.max(insets.top + 16, 32),
-                paddingBottom: Math.max(insets.bottom + 16, 32),
-              },
-            ]}
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Header / Logo Section */}
-            <View style={styles.headerSection}>
-              <View style={styles.logoContainer}>
-                <Image
-                  source={require("../../assets/images/logo_transparent.png")}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              </View>
-
-              {/* "Welcome Back" */}
-              <Text style={styles.title}>
-                <Text style={styles.welcomeText}>Welcome </Text>
-                <Text style={styles.backText}>Back</Text>
-              </Text>
-
-              {/* Subtitle */}
-              <Text style={styles.subtitle}>Sign in to honour those who shaped you</Text>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: Math.max(insets.top + 16, 32),
+              paddingBottom: Math.max(insets.bottom + 16, 32),
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header / Logo Section */}
+          <View style={styles.headerSection}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("../../assets/images/logo_transparent.png")}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
 
-            {/* Input Form Fields */}
-            <View style={styles.formContainer}>
-              {/* Username or Email Input */}
-              <View style={styles.inputCard}>
-                <Ionicons
-                  name="person"
-                  size={20}
-                  color={Palette.oceanTeal}
-                  style={styles.inputLeadingIcon}
-                />
-                <View style={styles.inputDivider} />
-                <TextInput
-                  value={usernameOrEmail}
-                  onChangeText={setUsernameOrEmail}
-                  placeholder="Username or Email"
-                  placeholderTextColor={Palette.textMuted}
-                  style={styles.textInput}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  selectionColor={Palette.oceanTeal}
-                />
-              </View>
+            {/* "Welcome Back" */}
+            <Text style={styles.title}>
+              <Text style={styles.welcomeText}>Welcome </Text>
+              <Text style={styles.backText}>Back</Text>
+            </Text>
 
-              {/* Password Input */}
-              <View style={styles.inputCard}>
-                <Ionicons
-                  name="lock-closed"
-                  size={20}
-                  color={Palette.oceanTeal}
-                  style={styles.inputLeadingIcon}
-                />
-                <View style={styles.inputDivider} />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Password"
-                  placeholderTextColor={Palette.textMuted}
-                  secureTextEntry={!showPassword}
-                  style={styles.textInput}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  selectionColor={Palette.oceanTeal}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword((prev) => !prev)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  style={styles.eyeToggle}
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye" : "eye-outline"}
-                    size={22}
-                    color={Palette.turquoise}
-                  />
-                </TouchableOpacity>
-              </View>
+            {/* Subtitle */}
+            <Text style={styles.subtitle}>Sign in to honour those who shaped you</Text>
+          </View>
 
-              {/* Password Forgot Link */}
+          {/* Input Form Fields */}
+          <View style={styles.formContainer}>
+            {/* Username or Email Input */}
+            <View style={styles.inputCard}>
+              <Ionicons
+                name="person"
+                size={20}
+                color={Palette.oceanTeal}
+                style={styles.inputLeadingIcon}
+              />
+              <View style={styles.inputDivider} />
+              <TextInput
+                value={usernameOrEmail}
+                onChangeText={setUsernameOrEmail}
+                placeholder="Username or Email"
+                placeholderTextColor={Palette.textMuted}
+                style={styles.textInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={Palette.oceanTeal}
+              />
+            </View>
+
+            {/* Password Input */}
+            <View style={styles.inputCard}>
+              <Ionicons
+                name="lock-closed"
+                size={20}
+                color={Palette.oceanTeal}
+                style={styles.inputLeadingIcon}
+              />
+              <View style={styles.inputDivider} />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor={Palette.textMuted}
+                secureTextEntry={!showPassword}
+                style={styles.textInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={Palette.oceanTeal}
+              />
               <TouchableOpacity
-                style={styles.forgotPasswordContainer}
+                onPress={() => setShowPassword((prev) => !prev)}
                 activeOpacity={0.7}
-                onPress={() => router.push("/forgot-password")}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={styles.eyeToggle}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
               >
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                <Ionicons
+                  name={showPassword ? "eye" : "eye-outline"}
+                  size={22}
+                  color={Palette.turquoise}
+                />
               </TouchableOpacity>
-
-              {/* Primary Login Button (Ocean Teal) */}
-              <TouchableOpacity
-                style={styles.loginButtonWrapper}
-                onPress={handleLogin}
-                activeOpacity={0.88}
-              >
-                <View style={styles.loginButton}>
-                  <Text style={styles.loginButtonText}>Login</Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* "or continue with" Divider */}
-              <Text style={styles.orText}>or continue with</Text>
-
-              {/* Social Login Buttons: Google, Apple, Facebook */}
-              <View style={styles.socialRow}>
-                {/* Google */}
-                <TouchableOpacity
-                  style={styles.socialCircle}
-                  activeOpacity={0.75}
-                  onPress={handleLogin}
-                  accessibilityRole="button"
-                  accessibilityLabel="Sign in with Google"
-                >
-                  <GoogleLogo size={26} />
-                </TouchableOpacity>
-
-                {/* Apple */}
-                <TouchableOpacity
-                  style={styles.socialCircle}
-                  activeOpacity={0.75}
-                  onPress={handleLogin}
-                  accessibilityRole="button"
-                  accessibilityLabel="Sign in with Apple"
-                >
-                  <AppleLogo size={26} color="#000000" />
-                </TouchableOpacity>
-
-                {/* Facebook */}
-                <TouchableOpacity
-                  style={styles.socialCircle}
-                  activeOpacity={0.75}
-                  onPress={handleLogin}
-                  accessibilityRole="button"
-                  accessibilityLabel="Sign in with Facebook"
-                >
-                  <FacebookLogo size={28} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Don't have an account link */}
-              <View style={styles.registerRow}>
-                <Text style={styles.registerPrompt}>Don&apos;t have an account? </Text>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => router.push("/register")}
-                >
-                  <Text style={styles.registerLink}>Sign up</Text>
-                </TouchableOpacity>
-              </View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+
+            {/* Password Forgot Link */}
+            <TouchableOpacity
+              style={styles.forgotPasswordContainer}
+              activeOpacity={0.7}
+              onPress={() => router.push("/forgot-password")}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Primary Login Button (Ocean Teal) */}
+            <TouchableOpacity
+              style={styles.loginButtonWrapper}
+              onPress={handleLogin}
+              activeOpacity={0.88}
+            >
+              <View style={styles.loginButton}>
+                <Text style={styles.loginButtonText}>Login</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* "or continue with" Divider */}
+            <Text style={styles.orText}>or continue with</Text>
+
+            {/* Social Login Buttons: Google, Apple, Facebook */}
+            <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialCircle}
+                activeOpacity={0.75}
+                onPress={handleLogin}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Google"
+              >
+                <AntDesign name="google" size={26} color="#4285F4" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialCircle}
+                activeOpacity={0.75}
+                onPress={handleLogin}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Apple"
+              >
+                <AppleLogo size={26} color="#000000" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialCircle}
+                activeOpacity={0.75}
+                onPress={handleLogin}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Facebook"
+              >
+                <FacebookLogo size={28} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Don't have an account link */}
+            <View style={styles.registerRow}>
+              <Text style={styles.registerPrompt}>Don&apos;t have an account? </Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => router.push("/register")}
+              >
+                <Text style={styles.registerLink}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

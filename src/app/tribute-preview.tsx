@@ -132,6 +132,7 @@ export default function TributePreviewScreen() {
   // Next Step: Add to Memory Wall
   const handleAddToMemoryWall = () => {
     tributeDraftService.saveCompletedTribute(design);
+    setIsSaved(true);
     showToast("Added to Memory Wall!");
 
     Alert.alert(
@@ -141,7 +142,7 @@ export default function TributePreviewScreen() {
         {
           text: "View Memory Wall",
           onPress: () => {
-            router.push("/home");
+            router.push("/memory-wall");
           },
         },
       ]

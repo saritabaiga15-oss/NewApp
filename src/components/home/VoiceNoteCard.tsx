@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import {
+  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,8 +23,6 @@ interface VoiceNoteCardProps {
 }
 
 export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
   return (
     <View style={styles.cardContainer}>
       <View style={styles.cardSurface}>
@@ -47,14 +46,17 @@ export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
         <View style={styles.playerRow}>
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => setIsPlaying((prev) => !prev)}
-            style={[styles.playButton, isPlaying && styles.playButtonActive]}
+            onPress={() =>
+              Alert.alert(
+                "Audio unavailable",
+                "This sample voice note has no local audio recording attached."
+              )
+            }
+            style={styles.playButton}
+            accessibilityRole="button"
+            accessibilityLabel={`Play ${voiceNote.title}`}
           >
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={18}
-              color="#FFFFFF"
-            />
+            <Ionicons name="play" size={18} color="#FFFFFF" />
           </TouchableOpacity>
 
           {/* Waveform Visualization */}
@@ -63,15 +65,10 @@ export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
               8, 16, 26, 14, 18, 30, 22, 12, 28, 32, 18, 10, 24, 28, 16, 12,
               22, 30, 18, 14, 26, 20, 12, 18, 24, 10,
             ].map((height, idx) => {
-              const isPast = isPlaying && idx < 12;
               return (
                 <View
                   key={`bar-${idx}`}
-                  style={[
-                    styles.waveformBar,
-                    { height },
-                    isPast && styles.waveformBarActive,
-                  ]}
+                  style={[styles.waveformBar, { height }]}
                 />
               );
             })}
@@ -163,9 +160,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 2,
   },
-  playButtonActive: {
-    backgroundColor: Palette.turquoise, // Turquoise active state
-  },
   waveformContainer: {
     flex: 1,
     flexDirection: "row",
@@ -179,15 +173,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(84, 0, 14, 0.22)",
     borderRadius: 2,
   },
-  waveformBarActive: {
-    backgroundColor: Palette.turquoise,
-  },
   durationText: {
     fontSize: 11.5,
     fontWeight: "700",
     color: Palette.deepTeal,
   },
 });
-
-
 

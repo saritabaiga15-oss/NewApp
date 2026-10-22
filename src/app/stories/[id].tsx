@@ -24,6 +24,7 @@ import { getAllStories, getStoryById } from "@/data/mockStories";
 
 // Shared Navigation
 import BottomNavigation from "@/components/home/BottomNavigation";
+import { storyBookmarkService } from "@/services/storyBookmarkService";
 
 export default function StoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,7 +48,9 @@ export default function StoryDetailScreen() {
   }, [story]);
 
   // Local interactive states
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(!!story.isBookmarked);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(() =>
+    storyBookmarkService.getBookmark(story.id, !!story.isBookmarked)
+  );
   const [isLessonSaved, setIsLessonSaved] = useState<boolean>(false);
   const [reflectionInput, setReflectionInput] = useState<string>("");
   const [savedReflection, setSavedReflection] = useState<string | null>(null);
@@ -61,7 +64,9 @@ export default function StoryDetailScreen() {
 
   // Toggle story bookmark
   const handleToggleBookmark = () => {
-    setIsBookmarked((prev) => !prev);
+    const nextValue = !isBookmarked;
+    setIsBookmarked(nextValue);
+    storyBookmarkService.setBookmark(story.id, nextValue);
   };
 
   // Toggle lesson saved state

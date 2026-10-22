@@ -32,6 +32,7 @@ import {
   TributeDecorationId,
   TributeDesignState,
   TributeFrameStyle,
+  TributeRelationship,
   TributeTemplateId,
   TributeTypographyStyle,
 } from "@/types/create";
@@ -41,34 +42,40 @@ import { tributeDraftService } from "@/services/tributeDraftService";
 
 export default function TributeDesignScreen() {
   const params = useLocalSearchParams<{
+    id?: string;
     name?: string;
     relationship?: string;
     story?: string;
     photoUri?: string;
   }>();
 
-  // Load existing draft/design if available
-  const existingPayload = tributeDraftService.getPayload();
-  const existingDesign = tributeDraftService.getDesignState();
+  const storedPayload = tributeDraftService.getPayload();
+  const existingPayload =
+    storedPayload && storedPayload.id === params.id ? storedPayload : null;
+  const storedDesign = tributeDraftService.getDesignState();
+  const existingDesign =
+    storedDesign && storedDesign.id === params.id ? storedDesign : null;
+  const [tributeId] = useState(
+    () => params.id || `tribute-${Date.now()}`
+  );
 
   // Design Studio States
   const [mentorName] = useState(
     existingDesign?.mentorName ||
       existingPayload?.mentorName ||
       params.name ||
-      "Dr. Evelyn Reed"
+      ""
   );
-  const [relationship] = useState(
+  const [relationship] = useState<TributeRelationship>(
     existingDesign?.relationship ||
       existingPayload?.relationship ||
-      (params.relationship as any) ||
-      "Teacher"
+      toTributeRelationship(params.relationship)
   );
   const [story] = useState(
     existingDesign?.story ||
       existingPayload?.story ||
       params.story ||
-      "Some people leave a little of themselves in everything we become."
+      ""
   );
   const [photoUri, setPhotoUri] = useState(
     existingDesign?.photoUri ||
@@ -133,10 +140,6 @@ export default function TributeDesignScreen() {
   };
 
   // Stable Tribute ID initialized once
-  const [tributeId] = useState(
-    () => existingDesign?.id || `tribute-${Date.now()}`
-  );
-
   // Build current Design State object
   const currentDesign: TributeDesignState = useMemo(
     () => ({
@@ -153,11 +156,12 @@ export default function TributeDesignScreen() {
       typographyStyle: selectedTypography,
       textAlign,
       decorations: activeDecorations,
-      createdAt: existingDesign?.createdAt || "2026-10-21",
+      createdAt: existingDesign?.createdAt || existingPayload?.createdAt || new Date().toISOString(),
     }),
     [
       tributeId,
       existingDesign?.createdAt,
+      existingPayload?.createdAt,
       mentorName,
       relationship,
       photoUri,
@@ -194,7 +198,19 @@ export default function TributeDesignScreen() {
 
   // Save Draft Action
   const handleSaveDraft = () => {
+    const payload = {
+      id: currentDesign.id,
+      mentorName: currentDesign.mentorName,
+      relationship: currentDesign.relationship,
+      photoUri: currentDesign.photoUri,
+      isCustomPhoto: currentDesign.isCustomPhoto,
+      story: currentDesign.story,
+      inspirationPrompt: existingPayload?.inspirationPrompt,
+      createdAt: currentDesign.createdAt,
+    };
+    tributeDraftService.setPayload(payload);
     tributeDraftService.setDesignState(currentDesign);
+    tributeDraftService.saveDraft(payload, currentDesign);
     showToast("Design draft safely preserved");
     Alert.alert(
       "Draft Saved",
@@ -208,6 +224,11 @@ export default function TributeDesignScreen() {
     router.push("/tribute-preview");
   };
 
+  const handleBackToDetails = () => {
+    tributeDraftService.setDesignState(currentDesign);
+    router.back();
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
@@ -219,7 +240,7 @@ export default function TributeDesignScreen() {
         <Animated.View style={[styles.mainContainer, { opacity: entranceFade }]}>
           {/* Header */}
           <TributeStudioHeader
-            onBack={() => router.back()}
+            onBack={handleBackToDetails}
             onSaveDraft={handleSaveDraft}
             onPreview={handleOpenPreview}
           />
@@ -342,6 +363,30 @@ export default function TributeDesignScreen() {
       <BottomNavigation activeTab="create" />
     </SafeAreaView>
   );
+}
+
+function toTributeRelationship(value?: string): TributeRelationship {
+  switch (value) {
+    case "Teacher":
+    case "Parent":
+    case "Coach":
+    case "Friend":
+    case "Leader":
+    case "Other":
+    case "Grandparent":
+    case "Professor":
+    case "Colleague":
+    case "Spiritual Guide":
+    case "Other Mentor":
+    case "Literature Teacher":
+    case "Research Advisor":
+    case "Engineering Director":
+    case "Art & Design Coach":
+    case "Friend & Mentor":
+      return value;
+    default:
+      return "Other";
+  }
 }
 
 const styles = StyleSheet.create({

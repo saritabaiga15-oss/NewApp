@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -77,16 +76,11 @@ export default function TributeInspirationCards({
                   {card.subtitle}
                 </Text>
 
-                {/* Interactive Action Button */}
-                <TouchableOpacity
-                  onPress={() => onSelectInspiration(card.promptText, card.id)}
-                  activeOpacity={0.75}
+                <View
                   style={[
                     styles.useActionBtn,
                     isSelected && styles.useActionBtnActive,
                   ]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Use as inspiration"
                 >
                   <Ionicons
                     name={isSelected ? "checkmark" : "bulb-outline"}
@@ -101,7 +95,7 @@ export default function TributeInspirationCards({
                   >
                     {isSelected ? "Active Prompt" : "Use as inspiration"}
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </Pressable>
           );

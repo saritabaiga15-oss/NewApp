@@ -39,7 +39,6 @@ export default function MentorCard({
       style={styles.container}
     >
       <View style={styles.cardSurface}>
-        {/* Top Header Row with Bookmark */}
         <View style={styles.topRow}>
           <View style={styles.avatarWrap}>
             <Image source={{ uri: mentor.avatar }} style={styles.avatar} />
@@ -59,7 +58,6 @@ export default function MentorCard({
           </TouchableOpacity>
         </View>
 
-        {/* Mentor Info */}
         <View style={styles.infoArea}>
           <Text style={styles.name} numberOfLines={1}>
             {mentor.name}
@@ -70,19 +68,15 @@ export default function MentorCard({
             <Text style={styles.years}>{mentor.yearsKnown}</Text>
           </View>
 
-          {/* Quote */}
           <Text style={styles.quote} numberOfLines={2}>
             &ldquo;{mentor.quote}&rdquo;
           </Text>
         </View>
 
-        {/* Card Footer */}
         <View style={styles.footer}>
           <View style={styles.memoryPill}>
             <Ionicons name="sparkles" size={12} color={Palette.oceanTeal} />
-            <Text style={styles.memoryCount}>
-              {mentor.memoriesCount} Memories
-            </Text>
+            <Text style={styles.memoryCount}>{mentor.memoriesCount} Memories</Text>
           </View>
           <Ionicons name="arrow-forward-circle" size={20} color={Palette.oceanTeal} />
         </View>
@@ -96,7 +90,7 @@ const styles = StyleSheet.create({
     width: 236,
     borderRadius: 20,
     marginRight: 14,
-    backgroundColor: Palette.pureWhite, // Pure White card surface
+    backgroundColor: Palette.pureWhite,
     borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
     shadowColor: Palette.oceanTeal,
@@ -122,7 +116,7 @@ const styles = StyleSheet.create({
     height: 58,
     borderRadius: 29,
     borderWidth: 2,
-    borderColor: Palette.oceanTeal, // Ocean Teal ring
+    borderColor: Palette.oceanTeal,
     backgroundColor: Palette.mintMist,
   },
   statusDot: {
@@ -132,7 +126,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: Palette.turquoise, // Turquoise active dot
+    backgroundColor: Palette.turquoise,
     borderWidth: 2,
     borderColor: Palette.pureWhite,
   },
@@ -150,7 +144,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16.5,
     fontWeight: "800",
-    color: Palette.deepTeal, // Deep Teal heading
+    color: Palette.deepTeal,
     letterSpacing: -0.2,
   },
   roleRow: {
@@ -161,7 +155,7 @@ const styles = StyleSheet.create({
   },
   role: {
     fontSize: 12.5,
-    color: Palette.oceanTeal, // Ocean Teal role
+    color: Palette.oceanTeal,
     fontWeight: "700",
   },
   bullet: {
@@ -198,7 +192,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: Palette.mintMist, // Mint Mist pill
+    backgroundColor: Palette.mintMist,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

@@ -18,6 +18,7 @@ import { BottomTabInset, Palette } from "@/constants/theme";
 
 // Components
 import BottomNavigation from "@/components/home/BottomNavigation";
+import JourneyTogether from "@/components/MemoryWall/JourneyTogether";
 import {
   FilterTabs,
   LetterWallCard,
@@ -32,7 +33,7 @@ import {
 
 // Services & Data
 import { memoryService } from "@/services/memoryService";
-import { WALL_FILTER_TABS } from "@/data/memoryWallData";
+import { getJourneyNodes, WALL_FILTER_TABS } from "@/data/memoryWallData";
 
 // Types
 import { WallCategory, WallItem, WallMentorProfile } from "@/types/memoryWall";
@@ -92,6 +93,25 @@ export default function MemoryWallScreen() {
   }, [items, activeFilter, searchQuery]);
 
   const pinnedCount = useMemo(() => items.filter((i) => i.isPinned).length, [items]);
+  const filterTabs = useMemo(
+    () =>
+      WALL_FILTER_TABS.map((tab) => {
+        if (tab.key === "all") return { ...tab, count: items.length };
+        const kindByCategory: Record<WallCategory, WallItem["kind"]> = {
+          all: "tribute",
+          tributes: "tribute",
+          memories: "memory",
+          letters: "letter",
+          lessons: "lesson",
+          milestones: "milestone",
+        };
+        return {
+          ...tab,
+          count: items.filter((item) => item.kind === kindByCategory[tab.key]).length,
+        };
+      }),
+    [items]
+  );
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   const handlePinToggle = useCallback((id: string) => {
@@ -192,9 +212,9 @@ export default function MemoryWallScreen() {
 
   // ─── Section label ────────────────────────────────────────────────────────
   const sectionLabel = useMemo(() => {
-    const tab = WALL_FILTER_TABS.find((t) => t.key === activeFilter);
+    const tab = filterTabs.find((t) => t.key === activeFilter);
     return tab?.label ?? "All";
-  }, [activeFilter]);
+  }, [activeFilter, filterTabs]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -239,12 +259,19 @@ export default function MemoryWallScreen() {
           onMentorPress={handleMentorPress}
         />
 
+        <JourneyTogether
+          nodes={getJourneyNodes(items)}
+          onStoryPress={(id) =>
+            router.push({ pathname: "/memory-detail/[id]", params: { id } })
+          }
+        />
+
         {/* Divider */}
         <View style={styles.divider} />
 
         {/* Filter tabs (sticky feel via placement) */}
         <FilterTabs
-          tabs={WALL_FILTER_TABS}
+          tabs={filterTabs}
           active={activeFilter}
           onSelect={setActiveFilter}
         />

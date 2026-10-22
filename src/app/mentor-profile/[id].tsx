@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Alert,
   Image,
@@ -12,6 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -46,8 +47,8 @@ export default function MentorProfileScreen() {
   const [editDescription, setEditDescription] = useState("");
   const [editQuote, setEditQuote] = useState("");
 
-  // Subscribe to service updates
-  React.useEffect(() => {
+  // Real-time synchronization with memoryService
+  useEffect(() => {
     if (!id) return;
     const sync = () => {
       const updatedMentor = memoryService.getMentorProfileById(id);
@@ -63,38 +64,48 @@ export default function MentorProfileScreen() {
     };
   }, [id]);
 
-  // Meaningful quote
+  // Meaningful quote extracted from profile or actual saved memories
   const meaningfulQuote = useMemo(() => {
     if (!mentor) return null;
-    if (mentor.meaningfulQuote) return mentor.meaningfulQuote;
-    const itemWithQuote = memories.find((m) => "quote" in m && m.quote);
-    if (itemWithQuote && "quote" in itemWithQuote) {
-      return itemWithQuote.quote;
+    if (mentor.meaningfulQuote?.trim()) return mentor.meaningfulQuote.trim();
+    const itemWithQuote = memories.find((m) => "quote" in m && m.quote?.trim());
+    if (itemWithQuote && "quote" in itemWithQuote && itemWithQuote.quote) {
+      return itemWithQuote.quote.trim();
     }
     return null;
   }, [mentor, memories]);
 
-  // Featured memory: "A Moment That Stayed" (most prominent or latest tribute/memory)
+  // Featured memory: "A Moment That Stayed" (pinned item, or item with photo, or most recent)
   const featuredMemory = useMemo(() => {
     if (memories.length === 0) return null;
-    // Prefer tribute or memory with photo
+    const pinned = memories.find((m) => m.isPinned);
+    if (pinned) return pinned;
+
     const withPhoto = memories.find(
       (m) => ("photoUri" in m && m.photoUri) || ("imageUri" in m && m.imageUri)
     );
     return withPhoto || memories[0];
   }, [memories]);
 
-  // Chronologically sorted timeline items (excluding or including all with dates)
+  // Chronologically sorted timeline items (newest to oldest, handling undated gracefully)
   const timelineItems = useMemo(() => {
     return [...memories].sort((a, b) => {
-      // Sort newest to oldest
-      const dateA = a.createdAt || ("year" in a ? a.year : "0");
-      const dateB = b.createdAt || ("year" in b ? b.year : "0");
-      return dateB.localeCompare(dateA);
+      const getTimestamp = (item: WallItem): number => {
+        if (item.createdAt) {
+          const t = new Date(item.createdAt).getTime();
+          if (!isNaN(t)) return t;
+        }
+        if ("year" in item && item.year) {
+          const y = parseInt(item.year, 10);
+          if (!isNaN(y)) return new Date(y, 0, 1).getTime();
+        }
+        return 0;
+      };
+      return getTimestamp(b) - getTimestamp(a);
     });
   }, [memories]);
 
-  // Saved lessons, quotations, or advice
+  // Saved lessons, reflections, or advice
   const lessons = useMemo(() => {
     const list: { id: string; title: string; quote: string; type: string }[] = [];
     memories.forEach((m) => {
@@ -105,47 +116,26 @@ export default function MentorProfileScreen() {
           quote: m.quote,
           type: m.category || "Life Philosophy",
         });
-      } else if (m.lessonCarried) {
+      } else if (m.lessonCarried?.trim()) {
         list.push({
           id: m.id,
-          title: ("title" in m && m.title) ? m.title : "Lesson Carried",
-          quote: m.lessonCarried,
+          title: "title" in m && m.title ? m.title : "Lesson Carried",
+          quote: m.lessonCarried.trim(),
           type: "A Lesson I Carry",
+        });
+      } else if ("quote" in m && m.quote?.trim() && m.quote.trim() !== meaningfulQuote) {
+        list.push({
+          id: m.id,
+          title: "title" in m && m.title ? m.title : "Words Remembered",
+          quote: m.quote.trim(),
+          type: "Saved Words",
         });
       }
     });
     return list;
-  }, [memories]);
+  }, [memories, meaningfulQuote]);
 
-  // Missing Mentor State
-  if (!mentor) {
-    return (
-      <SafeAreaView style={styles.safeMissing} edges={["top", "bottom"]}>
-        <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
-        <View style={styles.missingContainer}>
-          <View style={styles.missingIconCircle}>
-            <Ionicons name="person-circle-outline" size={48} color={Palette.textSecondary} />
-          </View>
-          <Text style={styles.missingTitle}>Mentor Profile Not Found</Text>
-          <Text style={styles.missingSubtitle}>
-            This mentor profile could not be located in your collection.
-          </Text>
-          <TouchableOpacity
-            style={styles.missingReturnBtn}
-            onPress={() => router.replace("/memory-wall")}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Return to Memory Wall"
-          >
-            <Ionicons name="arrow-back" size={18} color={Palette.pureWhite} />
-            <Text style={styles.missingReturnText}>Return to Memory Wall</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Navigation handlers
+  // Safe navigation handlers
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -163,10 +153,11 @@ export default function MentorProfileScreen() {
 
   const handleAddMemory = () => {
     setIsMenuVisible(false);
-    // Prefill mentor identity and relationship in Create Tribute flow
+    if (!mentor) return;
     router.push({
-      pathname: "/create-tribute",
+      pathname: "/create",
       params: {
+        type: "memory",
         mentorName: mentor.name,
         relationship: mentor.relationship,
       },
@@ -174,6 +165,8 @@ export default function MentorProfileScreen() {
   };
 
   const handleShareProfile = async () => {
+    setIsMenuVisible(false);
+    if (!mentor) return;
     try {
       let msg = `A tribute to my mentor, ${mentor.name} (${mentor.relationship}).\n\n`;
       if (mentor.description) {
@@ -195,6 +188,7 @@ export default function MentorProfileScreen() {
 
   const handleOpenEditModal = () => {
     setIsMenuVisible(false);
+    if (!mentor) return;
     setEditName(mentor.name);
     setEditRelationship(mentor.relationship);
     setEditDescription(mentor.description || "");
@@ -203,6 +197,7 @@ export default function MentorProfileScreen() {
   };
 
   const handleSaveEdit = () => {
+    if (!mentor) return;
     if (!editName.trim()) {
       Alert.alert("Required", "Mentor name is required.");
       return;
@@ -217,9 +212,9 @@ export default function MentorProfileScreen() {
     });
 
     setIsEditModalVisible(false);
-    Alert.alert("Profile Updated", "Mentor details have been preserved.");
   };
 
+  // Helper getters for timeline content
   const getTimelinePhoto = (item: WallItem): string | null => {
     if ("photoUri" in item && item.photoUri) return item.photoUri;
     if ("imageUri" in item && item.imageUri) return item.imageUri;
@@ -237,8 +232,27 @@ export default function MentorProfileScreen() {
     if ("excerpt" in item && item.excerpt) return item.excerpt;
     if ("description" in item && item.description) return item.description;
     if ("quote" in item && item.quote) return `“${item.quote}”`;
-    if ("story" in item && item.story) return item.story.slice(0, 120) + "...";
+    if ("story" in item && item.story) {
+      return item.story.length > 120 ? `${item.story.slice(0, 120)}...` : item.story;
+    }
     return "";
+  };
+
+  const formatTimelineDate = (item: WallItem): string | null => {
+    if (item.createdAt) {
+      const d = new Date(item.createdAt);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        });
+      }
+      return item.createdAt;
+    }
+    if ("year" in item && item.year) {
+      return item.year;
+    }
+    return null;
   };
 
   const getTimelineBadge = (kind: WallItem["kind"]) => {
@@ -252,15 +266,43 @@ export default function MentorProfileScreen() {
       case "lesson":
         return { label: "Lesson", icon: "bulb", color: "#9E2A2B" };
       case "milestone":
-        return { label: "Milestone", icon: "flag", color: "#54000E" };
+        return { label: "Milestone", icon: "flag", color: Palette.oceanTealDark };
     }
   };
+
+  // Missing Mentor Error Recovery State
+  if (!mentor) {
+    return (
+      <SafeAreaView style={styles.safeMissing} edges={["top", "bottom"]}>
+        <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+        <View style={styles.missingContainer}>
+          <View style={styles.missingIconCircle}>
+            <Ionicons name="person-circle-outline" size={48} color={Palette.textSecondary} />
+          </View>
+          <Text style={styles.missingTitle}>Mentor Profile Not Found</Text>
+          <Text style={styles.missingSubtitle}>
+            We could not locate this mentor profile in your collection. You can return to your Memory Wall to view all your mentors.
+          </Text>
+          <TouchableOpacity
+            style={styles.missingReturnBtn}
+            onPress={() => router.replace("/memory-wall")}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Return to Memory Wall"
+          >
+            <Ionicons name="arrow-back" size={18} color={Palette.pureWhite} />
+            <Text style={styles.missingReturnText}>Return to Memory Wall</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={Palette.deepTeal} />
 
-      {/* Navigation Bar */}
+      {/* Top Navigation Bar */}
       <View style={styles.navBar}>
         <TouchableOpacity
           onPress={handleBack}
@@ -296,46 +338,53 @@ export default function MentorProfileScreen() {
             activeOpacity={0.7}
             style={styles.navIconBtn}
             accessibilityRole="button"
-            accessibilityLabel="More actions"
+            accessibilityLabel="More options"
           >
             <Ionicons name="ellipsis-horizontal" size={20} color={Palette.pureWhite} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu Backdrop & Card */}
       {isMenuVisible && (
-        <View style={styles.menuDropdown}>
+        <>
           <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleAddMemory}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="add-circle-outline" size={18} color={Palette.turquoise} />
-            <Text style={styles.menuItemText}>Add Memory for {mentor.name.split(" ")[0]}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleOpenEditModal}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="create-outline" size={18} color={Palette.textPrimary} />
-            <Text style={styles.menuItemText}>Edit Mentor Details</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleShareProfile}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="share-social-outline" size={18} color={Palette.textPrimary} />
-            <Text style={styles.menuItemText}>Share Profile</Text>
-          </TouchableOpacity>
-        </View>
+            style={styles.menuBackdrop}
+            activeOpacity={1}
+            onPress={() => setIsMenuVisible(false)}
+          />
+          <View style={styles.menuDropdown}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleAddMemory}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add-circle-outline" size={18} color={Palette.turquoise} />
+              <Text style={styles.menuItemText}>Add Memory for {mentor.name.split(" ")[0]}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleOpenEditModal}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="create-outline" size={18} color={Palette.textPrimary} />
+              <Text style={styles.menuItemText}>Edit Mentor Details</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleShareProfile}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="share-social-outline" size={18} color={Palette.textPrimary} />
+              <Text style={styles.menuItemText}>Share Profile</Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: BottomTabInset + 70 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: BottomTabInset + 60 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* ── 1. Mentor Profile Header (Scrapbook Archive Aesthetic) ── */}
@@ -367,7 +416,7 @@ export default function MentorProfileScreen() {
             <Text style={styles.mentorDescriptionText}>{mentor.description}</Text>
           ) : null}
 
-          {/* Meaningful Quote */}
+          {/* Meaningful Quote (Real extracted quote only) */}
           {meaningfulQuote && (
             <View style={styles.headerQuoteBanner}>
               <Ionicons name="chatbubble-ellipses-outline" size={16} color={Palette.turquoise} />
@@ -377,11 +426,11 @@ export default function MentorProfileScreen() {
             </View>
           )}
 
-          {/* Action Nudge */}
+          {/* Add Memory Action Button */}
           <TouchableOpacity
             style={styles.addMemoryButton}
             onPress={handleAddMemory}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={`Add a memory for ${mentor.name}`}
           >
@@ -403,7 +452,9 @@ export default function MentorProfileScreen() {
             <TouchableOpacity
               style={styles.emptyCreateBtn}
               onPress={handleAddMemory}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Create First Memory"
             >
               <Ionicons name="add-circle" size={18} color={Palette.pureWhite} />
               <Text style={styles.emptyCreateBtnText}>Create First Memory</Text>
@@ -421,7 +472,7 @@ export default function MentorProfileScreen() {
 
                 <TouchableOpacity
                   style={styles.featuredCard}
-                  activeOpacity={0.85}
+                  activeOpacity={0.88}
                   onPress={() => handleOpenMemory(featuredMemory.id)}
                   accessibilityRole="button"
                   accessibilityLabel={`Open featured memory: ${getTimelineTitle(featuredMemory)}`}
@@ -468,15 +519,7 @@ export default function MentorProfileScreen() {
                   const excerpt = getTimelineExcerpt(entry);
                   const badge = getTimelineBadge(entry.kind);
                   const isLast = index === timelineItems.length - 1;
-                  const dateLabel =
-                    entry.createdAt
-                      ? new Date(entry.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "year" in entry
-                      ? entry.year
-                      : null;
+                  const dateLabel = formatTimelineDate(entry);
 
                   return (
                     <View key={entry.id} style={styles.timelineRow}>
@@ -492,7 +535,7 @@ export default function MentorProfileScreen() {
                       <TouchableOpacity
                         style={styles.timelineCard}
                         onPress={() => handleOpenMemory(entry.id)}
-                        activeOpacity={0.8}
+                        activeOpacity={0.85}
                         accessibilityRole="button"
                         accessibilityLabel={`Open timeline entry: ${title}`}
                       >
@@ -501,7 +544,7 @@ export default function MentorProfileScreen() {
                             <Ionicons name={badge.icon as any} size={11} color={Palette.pureWhite} />
                             <Text style={styles.timelineTypeBadgeText}>{badge.label}</Text>
                           </View>
-                          {dateLabel && <Text style={styles.timelineDateText}>{dateLabel}</Text>}
+                          {dateLabel ? <Text style={styles.timelineDateText}>{dateLabel}</Text> : null}
                         </View>
 
                         <Text style={styles.timelineCardTitle}>{title}</Text>
@@ -529,7 +572,7 @@ export default function MentorProfileScreen() {
               </View>
             </View>
 
-            {/* ── 5. Lessons & Meaningful Words (Only when available) ── */}
+            {/* ── 5. Lessons & Meaningful Words (Hidden when no lessons exist) ── */}
             {lessons.length > 0 && (
               <View style={styles.sectionWrap}>
                 <View style={styles.sectionHeaderRow}>
@@ -543,7 +586,9 @@ export default function MentorProfileScreen() {
                       key={`lesson-${idx}`}
                       style={styles.lessonCard}
                       onPress={() => handleOpenMemory(lessonItem.id)}
-                      activeOpacity={0.8}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open lesson: ${lessonItem.title}`}
                     >
                       <View style={styles.lessonCardTop}>
                         <View style={styles.lessonTagBadge}>
@@ -565,59 +610,75 @@ export default function MentorProfileScreen() {
       {/* ── Edit Mentor Details Modal ── */}
       <Modal visible={isEditModalVisible} animationType="slide" transparent>
         <SafeAreaView style={styles.editModalContainer} edges={["top", "bottom"]}>
-          <View style={styles.editModalHeader}>
-            <TouchableOpacity
-              onPress={() => setIsEditModalVisible(false)}
-              style={styles.editModalCancel}
-            >
-              <Text style={styles.editModalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.editModalTitle}>Edit Mentor Profile</Text>
-            <TouchableOpacity onPress={handleSaveEdit} style={styles.editModalSave}>
-              <Text style={styles.editModalSaveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.keyboardAvoid}
+          >
+            <View style={styles.editModalHeader}>
+              <TouchableOpacity
+                onPress={() => setIsEditModalVisible(false)}
+                style={styles.editModalCancel}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel edit"
+              >
+                <Text style={styles.editModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.editModalTitle}>Edit Mentor Profile</Text>
+              <TouchableOpacity
+                onPress={handleSaveEdit}
+                style={styles.editModalSave}
+                accessibilityRole="button"
+                accessibilityLabel="Save mentor details"
+              >
+                <Text style={styles.editModalSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView style={styles.editModalScroll} showsVerticalScrollIndicator={false}>
-            <Text style={styles.editLabel}>Mentor Name</Text>
-            <TextInput
-              style={styles.editInput}
-              value={editName}
-              onChangeText={setEditName}
-              placeholder="Mentor Full Name"
-              placeholderTextColor={Palette.textMuted}
-            />
+            <ScrollView style={styles.editModalScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.editLabel}>Mentor Name</Text>
+              <TextInput
+                style={styles.editInput}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Mentor Full Name"
+                placeholderTextColor={Palette.textMuted}
+                selectionColor={Palette.oceanTeal}
+              />
 
-            <Text style={styles.editLabel}>Relationship</Text>
-            <TextInput
-              style={styles.editInput}
-              value={editRelationship}
-              onChangeText={setEditRelationship}
-              placeholder="Teacher, Parent, Coach, etc."
-              placeholderTextColor={Palette.textMuted}
-            />
+              <Text style={styles.editLabel}>Relationship</Text>
+              <TextInput
+                style={styles.editInput}
+                value={editRelationship}
+                onChangeText={setEditRelationship}
+                placeholder="Teacher, Parent, Coach, etc."
+                placeholderTextColor={Palette.textMuted}
+                selectionColor={Palette.oceanTeal}
+              />
 
-            <Text style={styles.editLabel}>Personal Description / Note</Text>
-            <TextInput
-              style={[styles.editInput, styles.editTextArea]}
-              value={editDescription}
-              onChangeText={setEditDescription}
-              placeholder="What this person means to you..."
-              placeholderTextColor={Palette.textMuted}
-              multiline
-              textAlignVertical="top"
-            />
+              <Text style={styles.editLabel}>Personal Description / Note</Text>
+              <TextInput
+                style={[styles.editInput, styles.editTextArea]}
+                value={editDescription}
+                onChangeText={setEditDescription}
+                placeholder="What this person means to you..."
+                placeholderTextColor={Palette.textMuted}
+                selectionColor={Palette.oceanTeal}
+                multiline
+                textAlignVertical="top"
+              />
 
-            <Text style={styles.editLabel}>Guiding Quote (Optional)</Text>
-            <TextInput
-              style={[styles.editInput, styles.editTextAreaShort]}
-              value={editQuote}
-              onChangeText={setEditQuote}
-              placeholder="A quote or motto from this mentor..."
-              placeholderTextColor={Palette.textMuted}
-              multiline
-            />
-          </ScrollView>
+              <Text style={styles.editLabel}>Guiding Quote (Optional)</Text>
+              <TextInput
+                style={[styles.editInput, styles.editTextAreaShort]}
+                value={editQuote}
+                onChangeText={setEditQuote}
+                placeholder="A quote or motto from this mentor..."
+                placeholderTextColor={Palette.textMuted}
+                selectionColor={Palette.oceanTeal}
+                multiline
+              />
+            </ScrollView>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
 
@@ -672,7 +733,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.oceanTeal,
     paddingHorizontal: 22,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 24,
   },
   missingReturnText: {
     fontSize: 15,
@@ -709,7 +770,7 @@ const styles = StyleSheet.create({
   },
   navRelationship: {
     fontSize: 11,
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255,255,255,0.75)",
     fontWeight: "500",
     marginTop: 1,
   },
@@ -720,16 +781,20 @@ const styles = StyleSheet.create({
   },
 
   // Dropdown Menu
+  menuBackdrop: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 998,
+  },
   menuDropdown: {
     position: "absolute",
     top: 54,
     right: 16,
     zIndex: 999,
-    width: 210,
+    width: 220,
     backgroundColor: Palette.pureWhite,
-    borderRadius: 14,
+    borderRadius: 16,
     paddingVertical: 6,
-    shadowColor: "#000",
+    shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -764,12 +829,12 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.pureWhite,
     marginHorizontal: 16,
     marginTop: 16,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 22,
     alignItems: "center",
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    shadowColor: "#000",
+    shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -804,17 +869,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Palette.deepTeal,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Palette.oceanTeal,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
     borderColor: Palette.pureWhite,
   },
   mentorNameText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "800",
     color: Palette.deepTeal,
     marginBottom: 6,
@@ -831,7 +896,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   relationshipPillText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "700",
     color: Palette.deepTeal,
   },
@@ -840,7 +905,7 @@ const styles = StyleSheet.create({
     color: Palette.turquoise,
   },
   memoryCountText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "600",
     color: Palette.textSecondary,
   },
@@ -858,8 +923,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(236,143,62,0.08)",
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 12,
-    borderLeftWidth: 3,
+    borderRadius: 14,
+    borderLeftWidth: 3.5,
     borderLeftColor: Palette.turquoise,
     gap: 8,
     marginBottom: 18,
@@ -867,10 +932,10 @@ const styles = StyleSheet.create({
   },
   headerQuoteText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 13.5,
     fontStyle: "italic",
     color: Palette.deepTeal,
-    lineHeight: 18,
+    lineHeight: 19,
     fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
   },
   addMemoryButton: {
@@ -880,11 +945,16 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: Palette.oceanTeal,
     width: "100%",
-    paddingVertical: 13,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 28,
+    shadowColor: Palette.oceanTeal,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   addMemoryBtnText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
     color: Palette.pureWhite,
   },
@@ -894,11 +964,11 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.pureWhite,
     marginHorizontal: 16,
     marginTop: 20,
-    borderRadius: 18,
+    borderRadius: 22,
     padding: 28,
     alignItems: "center",
     borderWidth: 1.5,
-    borderColor: "rgba(236,143,62,0.3)",
+    borderColor: "rgba(236,143,62,0.35)",
     borderStyle: "dashed",
   },
   emptyIconCircle: {
@@ -911,14 +981,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "800",
     color: Palette.deepTeal,
     textAlign: "center",
     marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: 13.5,
     color: Palette.textSecondary,
     textAlign: "center",
     lineHeight: 20,
@@ -929,12 +999,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     backgroundColor: Palette.turquoise,
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 24,
+    shadowColor: Palette.turquoise,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   emptyCreateBtnText: {
-    fontSize: 14,
+    fontSize: 14.5,
     fontWeight: "700",
     color: Palette.pureWhite,
   },
@@ -951,7 +1026,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "800",
     color: Palette.deepTeal,
   },
@@ -959,19 +1034,19 @@ const styles = StyleSheet.create({
   // Featured Card
   featuredCard: {
     backgroundColor: Palette.pureWhite,
-    borderRadius: 18,
+    borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowColor: Palette.oceanTeal,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
   },
   featuredPhotoWrap: {
     width: "100%",
-    height: 180,
+    height: 190,
     position: "relative",
   },
   featuredPhoto: {
@@ -1014,7 +1089,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   featuredReadText: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: "700",
     color: Palette.turquoise,
   },
@@ -1056,14 +1131,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     backgroundColor: Palette.pureWhite,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    shadowColor: "#000",
+    shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 2,
   },
   timelineCardHeader: {
@@ -1099,8 +1174,8 @@ const styles = StyleSheet.create({
   },
   timelinePhotoFrame: {
     width: "100%",
-    height: 120,
-    borderRadius: 10,
+    height: 130,
+    borderRadius: 12,
     overflow: "hidden",
     marginVertical: 8,
     backgroundColor: "#eee",
@@ -1121,7 +1196,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   timelineCardActionText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "700",
     color: Palette.turquoise,
   },
@@ -1132,16 +1207,16 @@ const styles = StyleSheet.create({
   },
   lessonCard: {
     backgroundColor: Palette.pureWhite,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
     borderLeftWidth: 4,
     borderLeftColor: Palette.turquoise,
-    shadowColor: "#000",
+    shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
     elevation: 2,
   },
   lessonCardTop: {
@@ -1169,10 +1244,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   lessonQuoteText: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontStyle: "italic",
     color: Palette.textPrimary,
-    lineHeight: 19,
+    lineHeight: 20,
     fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
   },
 
@@ -1180,6 +1255,9 @@ const styles = StyleSheet.create({
   editModalContainer: {
     flex: 1,
     backgroundColor: Palette.iceWhite,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   editModalHeader: {
     flexDirection: "row",
@@ -1217,7 +1295,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   editLabel: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: "700",
     color: Palette.deepTeal,
     marginBottom: 6,
@@ -1227,16 +1305,16 @@ const styles = StyleSheet.create({
   },
   editInput: {
     backgroundColor: Palette.pureWhite,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 16,
+    borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
     color: Palette.textPrimary,
   },
   editTextAreaShort: {
-    minHeight: 70,
+    minHeight: 74,
   },
   editTextArea: {
     minHeight: 120,

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Alert,
   Animated,
   Image,
   Platform,
@@ -30,6 +31,10 @@ import TimelinePreview, { TimelineNode } from "../components/home/TimelinePrevie
 import QuickAction from "../components/home/QuickAction";
 import BottomNavigation, { NavTab } from "../components/home/BottomNavigation";
 import AddMemoryModal from "../components/home/AddMemoryModal";
+import { memoryService } from "@/services/memoryService";
+import { userProfileService } from "@/services/userProfileService";
+import type { UserProfile } from "@/services/userProfileService";
+import type { WallItem } from "@/types/memoryWall";
 
 // Mock Data: Mentors
 const MENTORS_DATA: MentorData[] = [
@@ -238,13 +243,83 @@ const TIMELINE_NODES: TimelineNode[] = [
   },
 ];
 
+function toWallItem(memory: MemoryData): WallItem {
+  const mentor = memoryService
+    .getAllMentorProfiles()
+    .find((profile) => profile.name.toLowerCase() === memory.mentorName.toLowerCase());
+  const parsedDate = Date.parse(memory.date);
+  const createdAt = Number.isNaN(parsedDate)
+    ? new Date().toISOString()
+    : new Date(parsedDate).toISOString();
+  const base = {
+    id: `home-${memory.id}`,
+    mentorName: memory.mentorName,
+    mentorId: mentor?.id,
+    relationship: mentor?.relationship || "Mentor",
+    createdAt,
+    isPinned: false,
+  };
+
+  if (memory.type === "achievement") {
+    return {
+      ...base,
+      kind: "milestone",
+      title: memory.title,
+      description: memory.content,
+      year: memory.date.match(/\d{4}/)?.[0] || new Date().getFullYear().toString(),
+      type: "breakthrough",
+      accentColor: Palette.oceanTeal,
+    };
+  }
+  if (memory.type === "lesson") {
+    return {
+      ...base,
+      kind: "lesson",
+      lessonTitle: memory.title,
+      quote: memory.content,
+      story: memory.content,
+      category: "Reflection",
+    };
+  }
+  if (memory.type === "tribute") {
+    return {
+      ...base,
+      kind: "tribute",
+      title: memory.title,
+      photoUri: memory.image || "",
+      quote: memory.content,
+      story: memory.content,
+      templateId: "editorial",
+    };
+  }
+
+  return {
+    ...base,
+    kind: "memory",
+    title: memory.title,
+    excerpt: memory.content,
+    story: memory.content,
+    imageUri: memory.image,
+    year: memory.date.match(/\d{4}/)?.[0] || new Date().getFullYear().toString(),
+    emotion: memory.type === "gratitude" ? "Gratitude" : "Remembered",
+    emotionColor: Palette.turquoise,
+    quote: memory.type === "gratitude" ? memory.content : undefined,
+  };
+}
+
 export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [mentorsList, setMentorsList] = useState<MentorData[]>(MENTORS_DATA);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>(() => userProfileService.getProfile());
   const [reflectionInput, setReflectionInput] = useState("");
   const [hasSubmittedReflection, setHasSubmittedReflection] = useState(false);
+
+  React.useEffect(
+    () => userProfileService.subscribe((nextProfile) => setProfile(nextProfile)),
+    []
+  );
 
   // Smooth entrance fade
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
@@ -259,8 +334,69 @@ export default function HomeScreen() {
 
   const handleBookmarkToggle = (id: string) => {
     setMentorsList((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, isBookmarked: !m.isBookmarked } : m))
+      prev.map((mentor) =>
+        mentor.id === id
+          ? { ...mentor, isBookmarked: !mentor.isBookmarked }
+          : mentor
+      )
     );
+  };
+
+  const handleOpenMentor = (mentor: MentorData) => {
+    const profile =
+      memoryService
+        .getAllMentorProfiles()
+        .find((item) => item.name.toLowerCase() === mentor.name.toLowerCase()) ??
+      memoryService.addMentor({
+        name: mentor.name,
+        relationship: mentor.role,
+      });
+    router.push({
+      pathname: "/mentor-profile/[id]",
+      params: { id: profile.id },
+    });
+  };
+
+  const handleOpenHomeMemory = (memory: MemoryData) => {
+    const fallbackItem = toWallItem(memory);
+    const itemId = memoryService.getMemoryById(fallbackItem.id)
+      ? fallbackItem.id
+      : memoryService.addMemory(fallbackItem);
+    router.push({
+      pathname: "/memory-detail/[id]",
+      params: { id: itemId },
+    });
+  };
+
+  const handleCreateFromModal = (option: string) => {
+    if (option === "tribute") {
+      router.push("/create-tribute");
+      return;
+    }
+    if (option === "memory" || option === "letter" || option === "lesson") {
+      router.push({ pathname: "/create", params: { type: option } });
+    }
+  };
+
+  const handleSaveReflection = () => {
+    const text = reflectionInput.trim();
+    if (!text) {
+      Alert.alert("Reflection required", "Write a few words before saving your reflection.");
+      return;
+    }
+    memoryService.addMemory({
+      kind: "lesson",
+      id: `reflection-${Date.now()}`,
+      mentorName: "My Mentor",
+      relationship: "Mentor",
+      lessonTitle: "Today's Reflection",
+      quote: text,
+      story: text,
+      category: "Daily Reflection",
+      createdAt: new Date().toISOString(),
+      isPinned: false,
+    });
+    setHasSubmittedReflection(true);
   };
 
   const filteredMemories = useMemo(() => {
@@ -285,7 +421,9 @@ export default function HomeScreen() {
           {/* ======================================================== */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.greetingText}>Good morning, Sarita</Text>
+              <Text style={styles.greetingText}>
+                Good morning, {profile.name.split(" ")[0]}
+              </Text>
               <Text style={styles.subGreetingText}>
                 Keep the people who shaped you close.
               </Text>
@@ -296,6 +434,11 @@ export default function HomeScreen() {
                 style={styles.headerIconBtn}
                 activeOpacity={0.75}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                onPress={() =>
+                  Alert.alert("Notifications", "You’re all caught up on your memories.")
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Notifications"
               >
                 <Ionicons name="notifications-outline" size={21} color={Palette.deepTeal} />
                 <View style={styles.notifBadgeDot} />
@@ -304,12 +447,12 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.profileAvatarBtn}
                 activeOpacity={0.8}
-                onPress={() => router.push("/login")}
+                onPress={() => router.push("/profile")}
+                accessibilityRole="button"
+                accessibilityLabel="Open your profile"
               >
                 <Image
-                  source={{
-                    uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
-                  }}
+                  source={{ uri: profile.avatarUri }}
                   style={styles.profileAvatar}
                 />
               </TouchableOpacity>
@@ -369,7 +512,7 @@ export default function HomeScreen() {
                 icon="person-add"
                 label="Add Mentor"
                 color={Palette.oceanTeal}
-                onPress={() => setIsAddModalOpen(true)}
+                onPress={() => router.push("/create-mentor")}
               />
               <QuickAction
                 icon="add-circle"
@@ -382,19 +525,32 @@ export default function HomeScreen() {
                 icon="heart"
                 label="Write Tribute"
                 color={Palette.turquoise}
-                onPress={() => setIsAddModalOpen(true)}
+                onPress={() => router.push("/create-tribute")}
               />
               <QuickAction
                 icon="mic"
                 label="Voice Note"
                 color={Palette.oceanTeal}
-                onPress={() => setIsAddModalOpen(true)}
+                onPress={() =>
+                  Alert.alert(
+                    "Voice notes",
+                    "Audio recording is not available yet. You can preserve the moment as a written memory.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Write memory",
+                        onPress: () =>
+                          router.push({ pathname: "/create", params: { type: "memory" } }),
+                      },
+                    ]
+                  )
+                }
               />
               <QuickAction
                 icon="time"
                 label="Timeline"
                 color={Palette.oceanTeal}
-                onPress={() => {}}
+                onPress={() => router.push("/memory-wall")}
               />
             </ScrollView>
           </View>
@@ -406,7 +562,7 @@ export default function HomeScreen() {
             title="People Who Shaped You"
             subtitle="The teachers, leaders, and lights in your journey"
             actionLabel="View All"
-            onActionPress={() => {}}
+            onActionPress={() => router.push("/memory-wall")}
             badge={`${mentorsList.length} Mentors`}
           />
 
@@ -420,7 +576,7 @@ export default function HomeScreen() {
                 key={mentor.id}
                 mentor={mentor}
                 onBookmarkToggle={handleBookmarkToggle}
-                onPress={() => {}}
+                onPress={() => handleOpenMentor(mentor)}
               />
             ))}
           </ScrollView>
@@ -496,7 +652,11 @@ export default function HomeScreen() {
           {/* Staggered Memory Cards */}
           <View style={styles.memoryWallContainer}>
             {filteredMemories.map((mem) => (
-              <MemoryCard key={mem.id} memory={mem} />
+              <MemoryCard
+                key={mem.id}
+                memory={mem}
+                onPress={() => handleOpenHomeMemory(mem)}
+              />
             ))}
           </View>
 
@@ -532,7 +692,10 @@ export default function HomeScreen() {
           {/* ======================================================== */}
           {/* 7. MENTOR TIMELINE PREVIEW                               */}
           {/* ======================================================== */}
-          <TimelinePreview nodes={TIMELINE_NODES} />
+          <TimelinePreview
+            nodes={TIMELINE_NODES}
+            onViewFullPress={() => router.push("/memory-wall")}
+          />
 
           {/* ======================================================== */}
           {/* 11. DAILY GRATITUDE PROMPT (Mint Mist Surface)           */}
@@ -565,11 +728,7 @@ export default function HomeScreen() {
                     style={styles.promptInput}
                   />
                   <TouchableOpacity
-                    onPress={() => {
-                      if (reflectionInput.trim()) {
-                        setHasSubmittedReflection(true);
-                      }
-                    }}
+                    onPress={handleSaveReflection}
                     activeOpacity={0.8}
                     style={styles.promptSubmitBtn}
                   >
@@ -614,7 +773,39 @@ export default function HomeScreen() {
             contentContainerStyle={styles.achievementsScroll}
           >
             {ACHIEVEMENTS_DATA.map((ach) => (
-              <AchievementCard key={ach.id} achievement={ach} />
+                <AchievementCard
+                  key={ach.id}
+                  achievement={ach}
+                  onPress={() => {
+                    const id = `home-${ach.id}`;
+                    const existing = memoryService.getMemoryById(id);
+                    const mentor = memoryService
+                      .getAllMentorProfiles()
+                      .find(
+                        (item) => item.name.toLowerCase() === ach.mentorName.toLowerCase()
+                      );
+                    const itemId =
+                      existing?.id ||
+                      memoryService.addMemory({
+                        kind: "milestone",
+                        id,
+                        mentorName: ach.mentorName,
+                        mentorId: mentor?.id,
+                        relationship: mentor?.relationship || "Mentor",
+                        title: ach.title,
+                        description: ach.story,
+                        year: ach.date.match(/\d{4}/)?.[0] || new Date().getFullYear().toString(),
+                        type: "breakthrough",
+                        accentColor: Palette.oceanTeal,
+                        createdAt: new Date().toISOString(),
+                        isPinned: false,
+                      });
+                    router.push({
+                      pathname: "/memory-detail/[id]",
+                      params: { id: itemId },
+                    });
+                  }}
+                />
             ))}
           </ScrollView>
 
@@ -628,7 +819,16 @@ export default function HomeScreen() {
           />
 
           {GRATITUDE_POSTS.map((post) => (
-            <GratitudeCard key={post.id} post={post} />
+            <GratitudeCard
+              key={post.id}
+              post={post}
+              onPress={() =>
+                Alert.alert(
+                  `Honouring ${post.mentorName}`,
+                  `${post.authorName} · ${post.location}\n\n${post.message}`
+                )
+              }
+            />
           ))}
 
           {/* Extra Bottom Padding for floating nav */}
@@ -650,7 +850,7 @@ export default function HomeScreen() {
         visible={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSelectOption={(optionKey) => {
-          // Trigger memory addition feedback
+          handleCreateFromModal(optionKey);
         }}
       />
     </SafeAreaView>
@@ -847,7 +1047,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
-  /* Mentors Scroll */
   mentorsScroll: {
     paddingLeft: 20,
     paddingRight: 6,

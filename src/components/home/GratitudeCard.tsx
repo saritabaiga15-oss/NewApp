@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Alert,
   Image,
   Share,
   StyleSheet,
@@ -43,7 +44,7 @@ export default function GratitudeCard({ post, onPress }: GratitudeCardProps) {
         message: `"${post.message}" — Dedicated to ${post.mentorName} by ${post.authorName} on Honour Your Mentor.`,
       });
     } catch {
-      // Ignored
+      Alert.alert("Share unavailable", "This gratitude post could not be shared.");
     }
   };
 
@@ -96,7 +97,18 @@ export default function GratitudeCard({ post, onPress }: GratitudeCardProps) {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity activeOpacity={0.7} style={styles.actionBtn}>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Comments unavailable",
+                  "Community comments are not available in this local-only app."
+                )
+              }
+              activeOpacity={0.7}
+              style={styles.actionBtn}
+              accessibilityRole="button"
+              accessibilityLabel={`View ${post.commentsCount} comments`}
+            >
               <Ionicons name="chatbubble-outline" size={17} color={Palette.textMuted} />
               <Text style={styles.actionCount}>{post.commentsCount}</Text>
             </TouchableOpacity>

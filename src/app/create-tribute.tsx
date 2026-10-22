@@ -42,25 +42,40 @@ export default function CreateTributeScreen() {
     mentorName?: string;
     story?: string;
     relationship?: string;
+    draftId?: string;
   }>();
+  const savedDraft = params.draftId
+    ? tributeDraftService.getDraftById(params.draftId)
+    : undefined;
+  const [tributeId] = useState(
+    () => savedDraft?.payload.id || `tribute-${Date.now()}`
+  );
 
   // Screen Form State (persisting any incoming navigation params)
-  const [mentorName, setMentorName] = useState(params.mentorName || "");
+  const [mentorName, setMentorName] = useState(
+    savedDraft?.payload.mentorName || params.mentorName || ""
+  );
   const [relationship, setRelationship] = useState<TributeRelationship>(
-    (params.relationship as TributeRelationship) || "Teacher"
+    toTributeRelationship(savedDraft?.payload.relationship || params.relationship)
   );
   const [story, setStory] = useState(
-    params.story || (params.promptQuestion ? `${params.promptQuestion}\n\n` : "")
+    savedDraft?.payload.story ||
+      params.story ||
+      (params.promptQuestion ? `${params.promptQuestion}\n\n` : "")
   );
 
   // Photo state
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [isCustomPhoto, setIsCustomPhoto] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(
+    savedDraft?.payload.photoUri || null
+  );
+  const [isCustomPhoto, setIsCustomPhoto] = useState(
+    savedDraft?.payload.isCustomPhoto ?? false
+  );
 
   // Active Inspiration Card / Prompt tracking
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [activePromptText, setActivePromptText] = useState<string | null>(
-    params.promptQuestion || null
+    savedDraft?.payload.inspirationPrompt || params.promptQuestion || null
   );
 
   // Validation Error Banner state
@@ -101,6 +116,28 @@ export default function CreateTributeScreen() {
     }
   };
 
+  const buildPayload = (): TributePayload => ({
+    id: tributeId,
+    mentorName: mentorName.trim(),
+    relationship,
+    photoUri: photoUri || DEFAULT_SAMPLE_PORTRAIT,
+    isCustomPhoto,
+    story: story.trim(),
+    inspirationPrompt: activePromptText || undefined,
+    createdAt: savedDraft?.payload.createdAt || new Date().toISOString(),
+  });
+
+  const handleSaveDraft = () => {
+    const payload = buildPayload();
+    tributeDraftService.saveDraft(
+      payload,
+      tributeDraftService.getDesignState()?.id === tributeId
+        ? tributeDraftService.getDesignState()
+        : null
+    );
+    Alert.alert("Draft Saved", "Your tribute and photo have been saved in your studio.");
+  };
+
   // Handle "Continue to Design" submission & validation
   const handleContinueToDesign = () => {
     if (!mentorName.trim()) {
@@ -115,23 +152,24 @@ export default function CreateTributeScreen() {
 
     setValidationError(null);
 
-    const payload: TributePayload = {
-      mentorName: mentorName.trim(),
-      relationship,
-      photoUri: photoUri || DEFAULT_SAMPLE_PORTRAIT,
-      isCustomPhoto,
-      story: story.trim(),
-      inspirationPrompt: activePromptText || undefined,
-      createdAt: new Date().toISOString(),
-    };
+    const payload = buildPayload();
 
     // Store safely in shared state service
     tributeDraftService.setPayload(payload);
+    if (savedDraft) {
+      tributeDraftService.saveDraft(
+        payload,
+        tributeDraftService.getDesignState()?.id === tributeId
+          ? tributeDraftService.getDesignState()
+          : null
+      );
+    }
 
     // Navigate to Tribute Design Studio screen with parameters
     router.push({
       pathname: "/tribute-design",
       params: {
+        id: payload.id,
         name: payload.mentorName,
         relationship: payload.relationship,
         photoUri: payload.photoUri || undefined,
@@ -169,7 +207,7 @@ export default function CreateTributeScreen() {
                     {
                       text: "Save as Draft",
                       onPress: () => {
-                        Alert.alert("Draft Saved", "Your tribute draft has been saved.");
+                        handleSaveDraft();
                       },
                     },
                   ]
@@ -255,6 +293,30 @@ export default function CreateTributeScreen() {
       <BottomNavigation activeTab="create" />
     </SafeAreaView>
   );
+}
+
+function toTributeRelationship(value?: string): TributeRelationship {
+  switch (value) {
+    case "Teacher":
+    case "Parent":
+    case "Coach":
+    case "Friend":
+    case "Leader":
+    case "Other":
+    case "Grandparent":
+    case "Professor":
+    case "Colleague":
+    case "Spiritual Guide":
+    case "Other Mentor":
+    case "Literature Teacher":
+    case "Research Advisor":
+    case "Engineering Director":
+    case "Art & Design Coach":
+    case "Friend & Mentor":
+      return value;
+    default:
+      return "Other";
+  }
 }
 
 const styles = StyleSheet.create({

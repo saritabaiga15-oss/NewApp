@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  Pressable,
+  TouchableOpacity,
   StyleSheet,
   StatusBar,
   KeyboardAvoidingView,
@@ -15,29 +15,33 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Palette } from "@/constants/theme";
 import {
   requestPasswordReset,
   verifyResetCode,
   updatePassword,
 } from "@/services/auth";
 
-// Exact User-Specified Colors
+// Exact Royal Crimson & Warm Cream Theme Colors (matches Login screen)
 const THEME = {
-  primary: "#4F46E5", // Soft Indigo / Purple Accent (Prominent & Vibrant)
-  primaryHover: "#4338CA", // Deep Indigo for pressed states
-  primarySoft: "#EEF2FF", // Soft Lavender / Indigo container background
-  primaryBorderSoft: "rgba(79, 70, 229, 0.22)",
-  heading: "#17213A", // Dark Navy Headings
-  textBody: "#334155",
-  textMuted: "#64748B", // Subtle Slate
-  placeholder: "#94A3B8",
-  background: "#F8FAFC", // Clean light canvas
-  card: "#FFFFFF",
-  border: "#E2E8F0", // Subtle Grey Borders
-  borderFocus: "#4F46E5", // Active Input Border
-  borderError: "#EF4444",
-  errorText: "#DC2626",
-  errorBg: "#FEF2F2",
+  primary: Palette.oceanTeal, // Deep Crimson (#54000E) - primary button & branding
+  primaryHover: Palette.oceanTealDark, // #3A0009
+  primarySoft: Palette.mintMist, // Soft warm cream (#FCEEE4)
+  primaryBorderSoft: "rgba(84, 0, 14, 0.14)",
+  accent: Palette.turquoise, // Golden Amber (#EC8F3E) - eye toggles & secondary accents
+  heading: Palette.deepTeal, // Deep Crimson (#54000E)
+  textBody: Palette.deepTeal, // #54000E
+  textSecondary: Palette.textSecondary, // #7A4040 - warm rose subtitle
+  textMuted: Palette.textMuted, // #B1A7A6 - warm taupe placeholders & captions
+  placeholder: Palette.textMuted,
+  background: Palette.iceWhite, // Warm cream (#FFF8F0)
+  card: Palette.pureWhite, // #FFFFFF
+  border: Palette.borderSubtle, // rgba(177, 167, 166, 0.35)
+  borderFocus: Palette.oceanTeal, // #54000E
+  borderActive: Palette.borderActive, // rgba(236, 143, 62, 0.45)
+  borderError: "#DC2626",
+  errorText: "#9E2A2B", // Rich Crimson
+  errorBg: "#FDF2F2",
   success: "#10B981",
   successSoft: "#ECFDF5",
   successBorder: "#A7F3D0",
@@ -50,7 +54,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets();
 
-  // Current Step in the Figma flow
+  // Current Step in the flow
   const [step, setStep] = useState<Step>("EMAIL");
 
   // Step 1: Email State
@@ -238,9 +242,9 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor={THEME.background} />
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
-      {/* Ambient Aura Gradient behind header */}
+      {/* Fresh Mint Mist Ambient Aura */}
       <View style={styles.ambientAura} />
 
       <KeyboardAvoidingView
@@ -251,27 +255,26 @@ export default function ForgotPasswordScreen() {
           contentContainerStyle={[
             styles.scrollContainer,
             {
-              paddingTop: Math.max(insets.top + 8, 20),
+              paddingTop: Math.max(insets.top + 12, 28),
               paddingBottom: Math.max(insets.bottom + 16, 28),
             },
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bounces={false}
         >
           {/* Top Bar with Back Button */}
           <View style={styles.topBar}>
-            <Pressable
+            <TouchableOpacity
               onPress={handleBack}
-              style={({ pressed }) => [
-                styles.backButton,
-                pressed && styles.backButtonPressed,
-              ]}
+              style={styles.backButton}
+              activeOpacity={0.7}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
               <Ionicons name="chevron-back" size={22} color={THEME.heading} />
-            </Pressable>
+            </TouchableOpacity>
           </View>
 
           {/* Centered Main Content Area */}
@@ -284,7 +287,7 @@ export default function ForgotPasswordScreen() {
                 {/* Hero Mail Icon Container */}
                 <View style={styles.heroSection}>
                   <View style={styles.iconContainer}>
-                    <Ionicons name="mail" size={34} color={THEME.primary} />
+                    <Ionicons name="mail" size={32} color={THEME.primary} />
                   </View>
 
                   <Text style={styles.title}>Forgot Password?</Text>
@@ -317,11 +320,12 @@ export default function ForgotPasswordScreen() {
                       ]}
                     >
                       <Ionicons
-                        name="mail-outline"
+                        name="mail"
                         size={20}
-                        color={isEmailFocused ? THEME.primary : THEME.textMuted}
+                        color={THEME.primary}
                         style={styles.inputLeadingIcon}
                       />
+                      <View style={styles.inputDivider} />
                       <TextInput
                         value={email}
                         onChangeText={(t) => {
@@ -332,6 +336,7 @@ export default function ForgotPasswordScreen() {
                         onBlur={() => setIsEmailFocused(false)}
                         placeholder="you@example.com"
                         placeholderTextColor={THEME.placeholder}
+                        selectionColor={THEME.primary}
                         style={styles.textInput}
                         keyboardType="email-address"
                         autoCapitalize="none"
@@ -343,24 +348,24 @@ export default function ForgotPasswordScreen() {
                         editable={!isLoading}
                       />
                       {email.length > 0 && !isLoading && (
-                        <Pressable
+                        <TouchableOpacity
                           onPress={() => setEmail("")}
-                          hitSlop={8}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           accessibilityLabel="Clear email"
                         >
                           <Ionicons name="close-circle" size={18} color={THEME.textMuted} />
-                        </Pressable>
+                        </TouchableOpacity>
                       )}
                     </View>
                   </View>
 
-                  {/* Primary Action Button (Always #4F46E5!) */}
-                  <Pressable
+                  {/* Primary Action Button (Deep Crimson) */}
+                  <TouchableOpacity
                     onPress={handleEmailSubmit}
                     disabled={isLoading}
-                    style={({ pressed }) => [
+                    activeOpacity={0.88}
+                    style={[
                       styles.primaryButton,
-                      pressed && !isLoading && styles.primaryButtonPressed,
                       isLoading && styles.primaryButtonLoading,
                     ]}
                     accessibilityRole="button"
@@ -374,7 +379,7 @@ export default function ForgotPasswordScreen() {
                     ) : (
                       <Text style={styles.primaryButtonText}>Send Reset Link</Text>
                     )}
-                  </Pressable>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
@@ -427,6 +432,7 @@ export default function ForgotPasswordScreen() {
                         keyboardType="number-pad"
                         maxLength={index === 0 ? 5 : 1}
                         selectTextOnFocus
+                        selectionColor={THEME.primary}
                         style={[
                           styles.otpBox,
                           digit ? styles.otpBoxFilled : undefined,
@@ -436,13 +442,13 @@ export default function ForgotPasswordScreen() {
                     ))}
                   </View>
 
-                  {/* Verify Code Button (#4F46E5) */}
-                  <Pressable
+                  {/* Verify Code Button */}
+                  <TouchableOpacity
                     onPress={handleVerifyOtp}
                     disabled={isLoading}
-                    style={({ pressed }) => [
+                    activeOpacity={0.88}
+                    style={[
                       styles.primaryButton,
-                      pressed && !isLoading && styles.primaryButtonPressed,
                       isLoading && styles.primaryButtonLoading,
                     ]}
                     accessibilityRole="button"
@@ -456,15 +462,16 @@ export default function ForgotPasswordScreen() {
                     ) : (
                       <Text style={styles.primaryButtonText}>Verify Code</Text>
                     )}
-                  </Pressable>
+                  </TouchableOpacity>
 
                   {/* Resend Code Link */}
                   <View style={styles.resendRow}>
                     <Text style={styles.resendMuted}>Haven&apos;t got the email yet? </Text>
-                    <Pressable
+                    <TouchableOpacity
                       onPress={handleResendCode}
                       disabled={isTimerActive || isLoading}
-                      hitSlop={8}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      activeOpacity={0.7}
                     >
                       <Text
                         style={[
@@ -474,7 +481,7 @@ export default function ForgotPasswordScreen() {
                       >
                         {isTimerActive ? `Resend in ${resendTimer}s` : "Resend email"}
                       </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -518,6 +525,13 @@ export default function ForgotPasswordScreen() {
                         isPasswordFocused && styles.inputCardFocused,
                       ]}
                     >
+                      <Ionicons
+                        name="lock-closed"
+                        size={20}
+                        color={THEME.primary}
+                        style={styles.inputLeadingIcon}
+                      />
+                      <View style={styles.inputDivider} />
                       <TextInput
                         value={newPassword}
                         onChangeText={(t) => {
@@ -528,21 +542,23 @@ export default function ForgotPasswordScreen() {
                         onBlur={() => setIsPasswordFocused(false)}
                         placeholder="Enter your new password"
                         placeholderTextColor={THEME.placeholder}
+                        selectionColor={THEME.primary}
                         secureTextEntry={!showPassword}
                         style={styles.textInput}
                         autoCapitalize="none"
                       />
-                      <Pressable
+                      <TouchableOpacity
                         onPress={() => setShowPassword((p) => !p)}
-                        hitSlop={10}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        activeOpacity={0.7}
                         accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                       >
                         <Ionicons
-                          name={showPassword ? "eye" : "eye-off-outline"}
-                          size={20}
-                          color={THEME.textMuted}
+                          name={showPassword ? "eye" : "eye-outline"}
+                          size={22}
+                          color={THEME.accent}
                         />
-                      </Pressable>
+                      </TouchableOpacity>
                     </View>
                   </View>
 
@@ -555,6 +571,13 @@ export default function ForgotPasswordScreen() {
                         isConfirmFocused && styles.inputCardFocused,
                       ]}
                     >
+                      <Ionicons
+                        name="lock-closed"
+                        size={20}
+                        color={THEME.primary}
+                        style={styles.inputLeadingIcon}
+                      />
+                      <View style={styles.inputDivider} />
                       <TextInput
                         value={confirmPassword}
                         onChangeText={(t) => {
@@ -565,31 +588,33 @@ export default function ForgotPasswordScreen() {
                         onBlur={() => setIsConfirmFocused(false)}
                         placeholder="Re-enter password"
                         placeholderTextColor={THEME.placeholder}
+                        selectionColor={THEME.primary}
                         secureTextEntry={!showConfirmPassword}
                         style={styles.textInput}
                         autoCapitalize="none"
                       />
-                      <Pressable
+                      <TouchableOpacity
                         onPress={() => setShowConfirmPassword((p) => !p)}
-                        hitSlop={10}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        activeOpacity={0.7}
                         accessibilityLabel={showConfirmPassword ? "Hide password" : "Show password"}
                       >
                         <Ionicons
-                          name={showConfirmPassword ? "eye" : "eye-off-outline"}
-                          size={20}
-                          color={THEME.textMuted}
+                          name={showConfirmPassword ? "eye" : "eye-outline"}
+                          size={22}
+                          color={THEME.accent}
                         />
-                      </Pressable>
+                      </TouchableOpacity>
                     </View>
                   </View>
 
-                  {/* Update Password Button (#4F46E5) */}
-                  <Pressable
+                  {/* Update Password Button */}
+                  <TouchableOpacity
                     onPress={handleUpdatePassword}
                     disabled={isLoading}
-                    style={({ pressed }) => [
+                    activeOpacity={0.88}
+                    style={[
                       styles.primaryButton,
-                      pressed && !isLoading && styles.primaryButtonPressed,
                       isLoading && styles.primaryButtonLoading,
                     ]}
                     accessibilityRole="button"
@@ -603,7 +628,7 @@ export default function ForgotPasswordScreen() {
                     ) : (
                       <Text style={styles.primaryButtonText}>Update Password</Text>
                     )}
-                  </Pressable>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
@@ -611,21 +636,22 @@ export default function ForgotPasswordScreen() {
             {/* Footer Row */}
             <View style={styles.footerRow}>
               <Text style={styles.footerMuted}>Remember your password? </Text>
-              <Pressable
+              <TouchableOpacity
                 onPress={() => router.replace("/login")}
-                hitSlop={8}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel="Back to Login"
               >
                 <Text style={styles.footerLink}>Back to Login</Text>
-              </Pressable>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* ================================================================= */}
-      {/* STEP 4: SUCCESS MODAL / DIALOG (From Figma Frame 15) */}
+      {/* STEP 4: SUCCESS MODAL / DIALOG */}
       {/* ================================================================= */}
       <Modal
         visible={isSuccessModalVisible}
@@ -644,21 +670,21 @@ export default function ForgotPasswordScreen() {
               Congratulations! Your password has been changed. Click continue to login
             </Text>
 
-            <Pressable
+            <TouchableOpacity
               onPress={() => {
                 setIsSuccessModalVisible(false);
                 router.replace("/login");
               }}
-              style={({ pressed }) => [
+              activeOpacity={0.88}
+              style={[
                 styles.primaryButton,
                 styles.modalButton,
-                pressed && styles.primaryButtonPressed,
               ]}
               accessibilityRole="button"
               accessibilityLabel="Continue to Login"
             >
               <Text style={styles.primaryButtonText}>Continue to Login</Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -669,23 +695,23 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: THEME.background,
+    backgroundColor: THEME.background, // Warm Cream #FFF8F0
   },
   ambientAura: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 260,
-    backgroundColor: THEME.primarySoft,
-    opacity: 0.65,
+    height: 320,
+    backgroundColor: THEME.primarySoft, // Mint mist soft aura
+    opacity: 0.28,
   },
   keyboardAvoid: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     justifyContent: "space-between",
   },
 
@@ -693,7 +719,7 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   backButton: {
     width: 44,
@@ -706,9 +732,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     ...Platform.select({
       ios: {
-        shadowColor: THEME.heading,
+        shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.08,
         shadowRadius: 6,
       },
       android: {
@@ -716,10 +742,6 @@ const styles = StyleSheet.create({
       },
       default: {},
     }),
-  },
-  backButtonPressed: {
-    backgroundColor: "#F1F5F9",
-    transform: [{ scale: 0.96 }],
   },
 
   /* Content Wrapper */
@@ -737,11 +759,11 @@ const styles = StyleSheet.create({
   /* Hero Section */
   heroSection: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   iconContainer: {
-    width: 74,
-    height: 74,
+    width: 76,
+    height: 76,
     borderRadius: 26,
     backgroundColor: THEME.primarySoft,
     borderWidth: 1.5,
@@ -752,12 +774,12 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: THEME.primary,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.18,
-        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
       },
       android: {
-        elevation: 4,
+        elevation: 2,
       },
       default: {},
     }),
@@ -765,19 +787,20 @@ const styles = StyleSheet.create({
 
   /* Typography */
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "800",
-    color: THEME.heading, // Dark Navy
-    letterSpacing: -0.5,
+    color: THEME.heading, // Deep Crimson
+    letterSpacing: -0.4,
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14.5,
     lineHeight: 22,
-    color: THEME.textMuted,
+    color: THEME.textSecondary, // Warm rose subtitle
     textAlign: "center",
     paddingHorizontal: 12,
+    fontWeight: "500",
   },
   highlightText: {
     color: THEME.heading,
@@ -789,9 +812,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: THEME.errorBg,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: "rgba(158, 42, 43, 0.25)",
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 16,
@@ -810,16 +833,16 @@ const styles = StyleSheet.create({
   /* Card Container */
   cardContainer: {
     backgroundColor: THEME.card,
-    borderRadius: 24,
+    borderRadius: 28,
     borderWidth: 1.2,
     borderColor: THEME.border,
-    padding: 22,
+    padding: 24,
     ...Platform.select({
       ios: {
-        shadowColor: THEME.heading,
+        shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.06,
-        shadowRadius: 16,
+        shadowRadius: 14,
       },
       android: {
         elevation: 3,
@@ -836,31 +859,43 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: "700",
-    color: THEME.heading, // Dark Navy
+    color: THEME.heading,
     marginBottom: 8,
   },
   inputCard: {
     flexDirection: "row",
     alignItems: "center",
-    height: 54,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 16,
-    borderWidth: 1.5,
+    height: 56,
+    backgroundColor: THEME.card,
+    borderRadius: 28,
+    borderWidth: 1.2,
     borderColor: THEME.border,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
+    ...Platform.select({
+      ios: {
+        shadowColor: THEME.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+      default: {},
+    }),
   },
   inputCardFocused: {
-    borderColor: THEME.borderFocus, // #4F46E5
+    borderColor: THEME.borderFocus,
     backgroundColor: THEME.card,
     ...Platform.select({
       ios: {
         shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.12,
+        shadowOpacity: 0.14,
         shadowRadius: 8,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
       default: {},
     }),
@@ -869,11 +904,17 @@ const styles = StyleSheet.create({
     borderColor: THEME.borderError,
   },
   inputLeadingIcon: {
-    marginRight: 10,
+    marginRight: 2,
+  },
+  inputDivider: {
+    width: 1,
+    height: 22,
+    backgroundColor: "rgba(84, 0, 14, 0.14)",
+    marginHorizontal: 12,
   },
   textInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 15.5,
     color: THEME.heading,
     paddingVertical: 0,
     fontWeight: "600",
@@ -889,10 +930,10 @@ const styles = StyleSheet.create({
   otpBox: {
     width: 52,
     height: 58,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1.5,
     borderColor: THEME.border,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: THEME.card,
     textAlign: "center",
     fontSize: 22,
     fontWeight: "800",
@@ -908,12 +949,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
 
-  /* Primary Button (Always Rich #4F46E5) */
+  /* Primary Button (Deep Crimson) */
   primaryButton: {
     width: "100%",
-    height: 54,
-    backgroundColor: THEME.primary, // #4F46E5
-    borderRadius: 16,
+    height: 56,
+    backgroundColor: THEME.primary,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 4,
@@ -921,7 +962,7 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: THEME.primary,
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.38,
+        shadowOpacity: 0.35,
         shadowRadius: 14,
       },
       android: {
@@ -930,17 +971,12 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  primaryButtonPressed: {
-    backgroundColor: THEME.primaryHover, // #4338CA
-    opacity: 0.95,
-    transform: [{ scale: 0.99 }],
-  },
   primaryButtonLoading: {
     opacity: 0.85,
   },
   primaryButtonText: {
     color: "#FFFFFF",
-    fontSize: 16.5,
+    fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
   },
@@ -955,17 +991,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: 18,
   },
   resendMuted: {
     fontSize: 14,
-    color: THEME.textMuted,
+    color: THEME.textSecondary,
     fontWeight: "500",
   },
   resendLink: {
     fontSize: 14,
     color: THEME.primary,
-    fontWeight: "800",
+    fontWeight: "700",
   },
   resendLinkDisabled: {
     color: THEME.textMuted,
@@ -981,19 +1017,19 @@ const styles = StyleSheet.create({
   },
   footerMuted: {
     fontSize: 14,
-    color: THEME.textMuted,
+    color: THEME.textSecondary,
     fontWeight: "500",
   },
   footerLink: {
     fontSize: 14,
-    color: THEME.primary, // #4F46E5
-    fontWeight: "800",
+    color: THEME.primary,
+    fontWeight: "700",
   },
 
   /* Success Modal */
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(23, 33, 58, 0.5)",
+    backgroundColor: "rgba(84, 0, 14, 0.45)",
     justifyContent: "flex-end",
     paddingHorizontal: 16,
     paddingBottom: 24,
@@ -1019,9 +1055,9 @@ const styles = StyleSheet.create({
     }),
   },
   modalIconCircle: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: THEME.primarySoft,
     borderWidth: 2,
     borderColor: THEME.primaryBorderSoft,
@@ -1039,7 +1075,7 @@ const styles = StyleSheet.create({
   modalSubtitle: {
     fontSize: 14.5,
     lineHeight: 22,
-    color: THEME.textMuted,
+    color: THEME.textSecondary,
     textAlign: "center",
     marginBottom: 24,
     paddingHorizontal: 8,
