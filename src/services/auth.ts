@@ -23,6 +23,24 @@ export let IS_BACKEND_CONFIGURED = false;
  */
 export let DEMO_MODE = true;
 
+export async function signOut(): Promise<void> {
+  if (!IS_BACKEND_CONFIGURED) {
+    throw new Error(
+      "Sign out is unavailable because this app has no connected authentication backend."
+    );
+  }
+  throw new Error("No authentication provider sign-out handler has been configured.");
+}
+
+export async function deleteAccount(): Promise<void> {
+  if (!IS_BACKEND_CONFIGURED) {
+    throw new Error(
+      "Account deletion is unavailable because this app has no connected authentication backend."
+    );
+  }
+  throw new Error("No authentication provider account-deletion handler has been configured.");
+}
+
 /**
  * 1. Request Password Reset / OTP Code
  */

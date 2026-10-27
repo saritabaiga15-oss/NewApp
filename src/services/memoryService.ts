@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WALL_ITEMS, WALL_MENTOR_PROFILES } from "@/data/memoryWallData";
 import { tributeDraftService } from "./tributeDraftService";
 import { WallItem, WallMentorProfile, WallTribute } from "@/types/memoryWall";
@@ -26,10 +27,23 @@ function isTributeRelationship(value: string): value is TributeRelationship {
   ].includes(value);
 }
 
+function isPinOverrideMap(value: unknown): value is Record<string, boolean> {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.values(value).every((isPinned) => typeof isPinned === "boolean")
+  );
+}
+
 class MemoryService {
   private items: WallItem[] = [...WALL_ITEMS];
   private mentors: WallMentorProfile[] = [...WALL_MENTOR_PROFILES];
+  private userItemIds = new Set<string>();
+  private pinOverrides = new Map<string, boolean>();
   private listeners: Set<Listener> = new Set();
+  private initializePromise: Promise<void> | null = null;
+  private persistenceQueue: Promise<void> = Promise.resolve();
 
   constructor() {
     this.syncKeepsakes();
@@ -37,6 +51,52 @@ class MemoryService {
       this.syncKeepsakes();
       this.notify();
     });
+  }
+
+  public initialize(): Promise<void> {
+    if (!this.initializePromise) {
+      this.initializePromise = AsyncStorage.getItem("@honour-your-mentor/memories")
+        .then((stored) => {
+          if (!stored) return;
+          const parsed: unknown = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            if (!parsed.every(isStoredWallItem)) {
+              throw new Error("The saved memory collection is invalid.");
+            }
+            this.loadUserItems(parsed);
+          } else if (parsed && typeof parsed === "object") {
+            const data = parsed as {
+              items?: unknown;
+              pinOverrides?: unknown;
+            };
+            if (
+              !Array.isArray(data.items) ||
+              !data.items.every(isStoredWallItem) ||
+              (data.pinOverrides !== undefined &&
+                !isPinOverrideMap(data.pinOverrides))
+            ) {
+              throw new Error("The saved memory collection is invalid.");
+            }
+            this.loadUserItems(data.items);
+            Object.entries(data.pinOverrides ?? {}).forEach(([id, isPinned]) => {
+              this.pinOverrides.set(id, isPinned);
+            });
+          } else {
+            throw new Error("The saved memory collection is invalid.");
+          }
+          for (const item of this.items) {
+            const isPinned = this.pinOverrides.get(item.id);
+            if (isPinned !== undefined) item.isPinned = isPinned;
+          }
+          this.updateMentorCounts();
+          this.notify();
+        })
+        .catch((error: unknown) => {
+          this.initializePromise = null;
+          throw error;
+        });
+    }
+    return this.initializePromise;
   }
 
   private notify() {
@@ -94,7 +154,8 @@ class MemoryService {
         frameStyle: keepsake.frameStyle,
         typographyStyle: keepsake.typographyStyle,
         createdAt: keepsake.createdAt || new Date().toISOString().split("T")[0],
-        isPinned: existing?.isPinned ?? false,
+        isPinned:
+          this.pinOverrides.get(keepsake.id) ?? existing?.isPinned ?? false,
         isShared: (existing as WallTribute | undefined)?.isShared ?? false,
       };
 
@@ -124,6 +185,18 @@ class MemoryService {
   public getAllMemories(): WallItem[] {
     this.syncKeepsakes();
     return [...this.items];
+  }
+
+  public getUserCreatedItems(): WallItem[] {
+    return this.items.filter((item) => this.userItemIds.has(item.id));
+  }
+
+  public getUserSavedItems(): WallItem[] {
+    return this.items.filter(
+      (item) =>
+        item.isPinned &&
+        (this.userItemIds.has(item.id) || this.pinOverrides.get(item.id) === true)
+    );
   }
 
   public getMemoryById(id: string): WallItem | undefined {
@@ -203,6 +276,7 @@ class MemoryService {
       this.items[idx] = updatedItem;
       this.updateMentorCounts();
       this.notify();
+      if (this.userItemIds.has(updatedItem.id)) this.persistUserItems();
     }
   }
 
@@ -213,9 +287,12 @@ class MemoryService {
     }
     const initialLen = this.items.length;
     this.items = this.items.filter((i) => i.id !== id);
+    this.userItemIds.delete(id);
+    this.pinOverrides.delete(id);
     if (this.items.length !== initialLen) {
       this.updateMentorCounts();
       this.notify();
+      this.persistUserItems();
       return true;
     }
     return false;
@@ -225,7 +302,9 @@ class MemoryService {
     const item = this.items.find((i) => i.id === id);
     if (item) {
       item.isPinned = !item.isPinned;
+      this.pinOverrides.set(id, item.isPinned);
       this.notify();
+      this.persistUserItems();
     }
   }
 
@@ -257,8 +336,10 @@ class MemoryService {
     } else {
       this.items.unshift(newItem);
     }
+    this.userItemIds.add(newItem.id);
     this.updateMentorCounts();
     this.notify();
+    this.persistUserItems();
     return newItem.id;
   }
 
@@ -324,6 +405,44 @@ class MemoryService {
       this.notify();
     }
   }
+
+  private persistUserItems(): void {
+    const userItems = this.items.filter((item) => this.userItemIds.has(item.id));
+    const serialized = JSON.stringify({
+      items: userItems,
+      pinOverrides: Object.fromEntries(this.pinOverrides),
+    });
+    this.persistenceQueue = this.persistenceQueue
+      .catch(() => undefined)
+      .then(() =>
+        AsyncStorage.setItem("@honour-your-mentor/memories", serialized)
+      )
+      .catch((error: unknown) => {
+        console.error("Unable to persist memories:", error);
+      });
+  }
+
+  private loadUserItems(userItems: WallItem[]): void {
+    this.userItemIds = new Set(userItems.map((item) => item.id));
+    for (const item of userItems) {
+      const index = this.items.findIndex((saved) => saved.id === item.id);
+      if (index >= 0) this.items[index] = item;
+      else this.items.unshift(item);
+    }
+  }
+}
+
+function isStoredWallItem(value: unknown): value is WallItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<WallItem>;
+  return (
+    typeof item.id === "string" &&
+    typeof item.mentorName === "string" &&
+    typeof item.createdAt === "string" &&
+    ["tribute", "memory", "letter", "lesson", "milestone"].includes(
+      String(item.kind)
+    )
+  );
 }
 
 export const memoryService = new MemoryService();

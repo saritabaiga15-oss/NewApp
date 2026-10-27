@@ -1,65 +1,79 @@
-/**
- * Design System: Royal Crimson — Warm, Regal, Timeless, Honoured
- *
- * Cream White   — #FFF8F0: Warm canvas, soft & inviting background
- * Deep Crimson  — #54000E: Primary brand color, hero action buttons & primary links
- * Rich Crimson  — #9E2A2B: Secondary accents, active highlights, badges & pins
- * Golden Amber  — #EC8F3E: Accent / CTA highlights, warm glow
- * Warm Taupe    — #B1A7A6: Borders, muted text & dividers
- */
-
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
 export const Palette = {
-  // Core Brand Tokens
-  iceWhite: '#FFF8F0',       // Warm cream background canvas & reading surfaces
-  oceanTeal: '#54000E',      // Deep Crimson — primary buttons, hero CTAs & links
-  turquoise: '#EC8F3E',      // Golden Amber — vibrant accents, pins, sparkles & badges
-  deepTeal: '#54000E',       // Deep Crimson — headings, rich text & bottom navigation
-  mintMist: '#FCEEE4',       // Soft warm cream — panels, reflections & tags
+  iceWhite: '#000000',
+  oceanTeal: '#FFFFFF',
+  turquoise: '#8FD3FF',
+  deepTeal: '#FFFFFF',
+  mintMist: '#202020',
 
-  // Surface & Paper Tokens
-  pureWhite: '#FFFFFF',
-  surfaceCard: '#FFFFFF',
-  borderSubtle: 'rgba(177, 167, 166, 0.35)',
-  borderActive: 'rgba(236, 143, 62, 0.45)',
+  pureWhite: '#171717',
+  surfaceCard: '#171717',
+  surfaceElevated: '#202020',
+  textOnPrimary: '#000000',
+  borderSubtle: '#303030',
+  borderActive: 'rgba(143, 211, 255, 0.55)',
 
-  // Typography Hierarchy
-  textPrimary: '#54000E',    // Deep Crimson for crisp readable headings & body
-  textSecondary: '#7A4040',  // Muted warm rose for subtitles
-  textMuted: '#B1A7A6',      // Warm taupe for captions & placeholders
+  textPrimary: '#FFFFFF',
+  textSecondary: '#A3A3A3',
+  textMuted: '#737373',
 
-  // Accent Helpers
-  oceanTealSoft: 'rgba(84, 0, 14, 0.10)',
-  turquoiseSoft: 'rgba(236, 143, 62, 0.15)',
-  mintMistAura: 'rgba(252, 238, 228, 0.85)',
-  oceanTealDark: '#3A0009',   // Darker crimson for pressed states
+  oceanTealSoft: 'rgba(255, 255, 255, 0.08)',
+  turquoiseSoft: 'rgba(143, 211, 255, 0.15)',
+  mintMistAura: 'rgba(32, 32, 32, 0.85)',
+  oceanTealDark: '#202020',
+
+  accentAmber: '#FFF09A',
+  accentGold: '#FFB899',
+  accentCyan: '#8FD3FF',
+  accentRose: '#FF9ECF',
+  accentEmerald: '#8FF0C6',
+  accentSky: '#8FD3FF',
+  accentPurple: '#C4A7FF',
+  accentLavender: '#C4A7FF',
+  accentLilac: '#D8B4FE',
+  accentCoral: '#FF8F91',
+  accentPeach: '#FFB899',
+  accentMint: '#8FF0C6',
+  accentPink: '#FF9ECF',
 } as const;
+
+export function getCategoryAccent(category: string): string {
+  const normalized = category.toLowerCase();
+  if (normalized.includes('parent')) return Palette.accentPink;
+  if (normalized.includes('coach')) return Palette.accentMint;
+  if (normalized.includes('friend')) return Palette.accentPeach;
+  if (normalized.includes('leader')) return Palette.accentAmber;
+  if (normalized.includes('memory')) return Palette.accentLavender;
+  if (normalized.includes('quote') || normalized.includes('tribute')) return Palette.accentCoral;
+  if (normalized.includes('saved')) return Palette.accentMint;
+  return Palette.accentSky;
+}
 
 export const Colors = {
   light: {
-    background: Palette.iceWhite,
-    text: Palette.deepTeal,
-    textSecondary: Palette.textSecondary,
-    backgroundElement: Palette.pureWhite,
-    backgroundSelected: Palette.mintMist,
-    primary: Palette.oceanTeal,
-    secondary: Palette.turquoise,
-    accent: Palette.turquoise,
-    border: Palette.borderSubtle,
+    background: '#000000',
+    text: '#FFFFFF',
+    textSecondary: '#A3A3A3',
+    backgroundElement: '#171717',
+    backgroundSelected: '#202020',
+    primary: '#FFFFFF',
+    secondary: '#8FD3FF',
+    accent: '#8FD3FF',
+    border: '#303030',
   },
   dark: {
-    background: '#1A0005',
-    text: '#FFF8F0',
-    textSecondary: '#C49090',
-    backgroundElement: '#2D0010',
-    backgroundSelected: '#3D0018',
-    primary: '#EC8F3E',
-    secondary: '#9E2A2B',
-    accent: '#EC8F3E',
-    border: 'rgba(252, 238, 228, 0.15)',
+    background: '#000000',
+    text: '#FFFFFF',
+    textSecondary: '#A3A3A3',
+    backgroundElement: '#171717',
+    backgroundSelected: '#202020',
+    primary: '#FFFFFF',
+    secondary: '#8FD3FF',
+    accent: '#8FD3FF',
+    border: '#303030',
   },
 } as const;
 

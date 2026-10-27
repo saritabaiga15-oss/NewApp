@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     shadowColor: Palette.turquoise,
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    backgroundColor: "#FFFCF9",
+    backgroundColor: Palette.surfaceCard,
   },
   cardPressed: {
     transform: [{ scale: 0.97 }],

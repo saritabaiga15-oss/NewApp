@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
 import { WallCategory, WallFilterTab } from "@/types/memoryWall";
+import { Palette } from "@/constants/theme";
 
 interface FilterTabsProps {
   tabs: WallFilterTab[];
@@ -31,25 +30,14 @@ export default function FilterTabs({ tabs, active, onSelect }: FilterTabsProps) 
               key={tab.key}
               onPress={() => onSelect(tab.key)}
               activeOpacity={0.75}
-              style={[styles.tab, isActive && styles.tabActive]}
-              accessibilityRole="button"
+              style={[styles.chip, isActive && styles.chipActive]}
+              accessibilityRole="tab"
               accessibilityLabel={`${tab.label} filter`}
               accessibilityState={{ selected: isActive }}
             >
-              <Ionicons
-                name={(isActive ? tab.icon : `${tab.icon}-outline`) as any}
-                size={14}
-                color={isActive ? "#FFF8F0" : Palette.textSecondary}
-                style={styles.tabIcon}
-              />
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
                 {tab.label}
               </Text>
-              {isActive && (
-                <View style={styles.countBubble}>
-                  <Text style={styles.countText}>{tab.count}</Text>
-                </View>
-              )}
             </TouchableOpacity>
           );
         })}
@@ -60,59 +48,43 @@ export default function FilterTabs({ tabs, active, onSelect }: FilterTabsProps) 
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: Palette.iceWhite,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Palette.borderSubtle,
+    paddingVertical: 8,
+    marginBottom: 12,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     gap: 8,
   },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Palette.pureWhite,
+  chip: {
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: Palette.surfaceCard,
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    gap: 5,
-  },
-  tabActive: {
-    backgroundColor: Palette.deepTeal,
-    borderColor: Palette.deepTeal,
-    shadowColor: Palette.deepTeal,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  tabIcon: {
-    marginRight: 1,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Palette.textSecondary,
-  },
-  tabTextActive: {
-    color: "#FFF8F0",
-  },
-  countBubble: {
-    backgroundColor: Palette.turquoise,
-    borderRadius: 8,
-    minWidth: 18,
-    height: 18,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 4,
-    marginLeft: 2,
   },
-  countText: {
-    color: "#FFF8F0",
-    fontSize: 10,
-    fontWeight: "800",
+  chipActive: {
+    backgroundColor: Palette.oceanTeal,
+    borderColor: Palette.oceanTeal,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: Palette.textPrimary,
+  },
+  chipTextActive: {
+    color: Palette.textOnPrimary,
   },
 });

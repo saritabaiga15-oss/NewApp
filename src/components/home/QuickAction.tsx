@@ -15,7 +15,7 @@ export default function QuickAction({
   icon,
   label,
   badge,
-  color = Palette.oceanTeal,
+  color = Palette.accentSky,
   onPress,
 }: QuickActionProps) {
   return (
@@ -23,8 +23,10 @@ export default function QuickAction({
       activeOpacity={0.8}
       onPress={onPress}
       style={styles.container}
+      accessibilityRole="button"
+      accessibilityLabel={label}
     >
-      <View style={[styles.iconWrap, { borderColor: Palette.borderSubtle }]}>
+      <View style={styles.iconWrap}>
         <Ionicons name={icon} size={22} color={color} />
         {badge ? (
           <View style={styles.badge}>
@@ -42,43 +44,50 @@ export default function QuickAction({
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    width: 72,
+    width: 74,
     marginRight: 10,
   },
   iconWrap: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: Palette.pureWhite, // Pure White surface
-    borderWidth: 1.5,
+    backgroundColor: Palette.surfaceCard,
+    borderWidth: 1.2,
+    borderColor: Palette.borderSubtle,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 6,
     position: "relative",
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 3,
   },
   label: {
     fontSize: 11.5,
     fontWeight: "700",
-    color: Palette.deepTeal, // Deep Teal label
+    color: Palette.textSecondary,
     textAlign: "center",
   },
   badge: {
     position: "absolute",
     top: -2,
     right: -2,
-    backgroundColor: Palette.turquoise, // Turquoise badge
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 6,
+    backgroundColor: Palette.accentMint,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: Palette.iceWhite,
   },
   badgeText: {
     color: "#FFFFFF",
-    fontSize: 9,
-    fontWeight: "800",
+    fontSize: 9.5,
+    fontWeight: "900",
+    lineHeight: 12,
   },
 });

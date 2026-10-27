@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { getCategoryAccent, Palette } from "@/constants/theme";
 import { CategoryItem, RelationshipType } from "@/types/story";
 
 interface CategoryListProps {
@@ -65,7 +65,7 @@ export default function CategoryList({
                 <Ionicons
                   name={cat.iconName as keyof typeof Ionicons.glyphMap}
                   size={15}
-                  color={isSelected ? Palette.turquoise : Palette.deepTeal}
+                  color={getCategoryAccent(cat.label)}
                 />
               </View>
 

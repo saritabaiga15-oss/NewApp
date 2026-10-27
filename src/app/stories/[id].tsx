@@ -51,7 +51,9 @@ export default function StoryDetailScreen() {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(() =>
     storyBookmarkService.getBookmark(story.id, !!story.isBookmarked)
   );
-  const [isLessonSaved, setIsLessonSaved] = useState<boolean>(false);
+  const [isLessonSaved, setIsLessonSaved] = useState<boolean>(() =>
+    storyBookmarkService.getLessonSaved(story.id)
+  );
   const [reflectionInput, setReflectionInput] = useState<string>("");
   const [savedReflection, setSavedReflection] = useState<string | null>(null);
   const [isEditingReflection, setIsEditingReflection] = useState<boolean>(false);
@@ -63,15 +65,47 @@ export default function StoryDetailScreen() {
   const [hasSentGratitude, setHasSentGratitude] = useState<boolean>(false);
 
   // Toggle story bookmark
-  const handleToggleBookmark = () => {
+  React.useEffect(() => {
+    let isMounted = true;
+    storyBookmarkService
+      .initialize()
+      .then(() => {
+        if (isMounted) {
+          setIsBookmarked(
+            storyBookmarkService.getBookmark(story.id, !!story.isBookmarked)
+          );
+          setIsLessonSaved(storyBookmarkService.getLessonSaved(story.id));
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to load story bookmark:", error);
+        Alert.alert("Saved stories unavailable", "Please reopen this story and try again.");
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [story.id, story.isBookmarked]);
+
+  const handleToggleBookmark = async () => {
     const nextValue = !isBookmarked;
-    setIsBookmarked(nextValue);
-    storyBookmarkService.setBookmark(story.id, nextValue);
+    try {
+      await storyBookmarkService.setBookmark(story.id, nextValue);
+      setIsBookmarked(nextValue);
+    } catch (error) {
+      console.error("Unable to update story bookmark:", error);
+      Alert.alert("Could not save story", "Please try again.");
+    }
   };
 
   // Toggle lesson saved state
-  const handleToggleLesson = () => {
-    setIsLessonSaved((prev) => !prev);
+  const handleToggleLesson = async () => {
+    try {
+      await storyBookmarkService.setLessonSaved(story.id, !isLessonSaved);
+      setIsLessonSaved(!isLessonSaved);
+    } catch (error) {
+      console.error("Unable to save story lesson:", error);
+      Alert.alert("Could not save lesson", "Please try again.");
+    }
   };
 
   // Save personal reflection locally
@@ -111,7 +145,7 @@ export default function StoryDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* Pure Cream White Canvas */}
       <View style={styles.paperCanvas} />

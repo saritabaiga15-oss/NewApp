@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "rgba(177, 167, 166, 0.2)",
-    backgroundColor: "#FFFCF9",
+    backgroundColor: Palette.surfaceCard,
   },
   tabButton: {
     flex: 1,
@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   customQuoteInput: {
-    backgroundColor: "#FFFDF9",
+    backgroundColor: Palette.surfaceElevated,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -676,11 +676,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    backgroundColor: "#FFECEB",
+    backgroundColor: Palette.surfaceElevated,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(158, 42, 43, 0.25)",
+    borderColor: Palette.borderSubtle,
   },
   photoRemoveBtnText: {
     fontSize: 11.5,

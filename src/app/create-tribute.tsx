@@ -127,19 +127,24 @@ export default function CreateTributeScreen() {
     createdAt: savedDraft?.payload.createdAt || new Date().toISOString(),
   });
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     const payload = buildPayload();
-    tributeDraftService.saveDraft(
-      payload,
-      tributeDraftService.getDesignState()?.id === tributeId
-        ? tributeDraftService.getDesignState()
-        : null
-    );
-    Alert.alert("Draft Saved", "Your tribute and photo have been saved in your studio.");
+    try {
+      await tributeDraftService.saveDraft(
+        payload,
+        tributeDraftService.getDesignState()?.id === tributeId
+          ? tributeDraftService.getDesignState()
+          : null
+      );
+      Alert.alert("Draft Saved", "Your tribute and photo have been saved in your studio.");
+    } catch (error) {
+      console.error("Unable to save tribute draft:", error);
+      Alert.alert("Could not save draft", "Please check device storage and try again.");
+    }
   };
 
   // Handle "Continue to Design" submission & validation
-  const handleContinueToDesign = () => {
+  const handleContinueToDesign = async () => {
     if (!mentorName.trim()) {
       setValidationError("Please enter the name of the person you are celebrating.");
       return;
@@ -157,12 +162,18 @@ export default function CreateTributeScreen() {
     // Store safely in shared state service
     tributeDraftService.setPayload(payload);
     if (savedDraft) {
-      tributeDraftService.saveDraft(
-        payload,
-        tributeDraftService.getDesignState()?.id === tributeId
-          ? tributeDraftService.getDesignState()
-          : null
-      );
+      try {
+        await tributeDraftService.saveDraft(
+          payload,
+          tributeDraftService.getDesignState()?.id === tributeId
+            ? tributeDraftService.getDesignState()
+            : null
+        );
+      } catch (error) {
+        console.error("Unable to update tribute draft:", error);
+        setValidationError("Your draft could not be saved. Please try again.");
+        return;
+      }
     }
 
     // Navigate to Tribute Design Studio screen with parameters
@@ -180,7 +191,7 @@ export default function CreateTributeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

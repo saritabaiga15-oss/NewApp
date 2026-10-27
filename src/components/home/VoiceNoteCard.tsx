@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
+import AudioPlaybackControls from "./AudioPlaybackControls";
 
 export interface VoiceNoteData {
   id: string;
@@ -16,6 +17,8 @@ export interface VoiceNoteData {
   duration: string;
   date: string;
   category: string;
+  audioUri?: string;
+  durationSeconds?: number;
 }
 
 interface VoiceNoteCardProps {
@@ -43,39 +46,45 @@ export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
         </Text>
 
         {/* Audio Player Row */}
-        <View style={styles.playerRow}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() =>
-              Alert.alert(
-                "Audio unavailable",
-                "This sample voice note has no local audio recording attached."
-              )
-            }
-            style={styles.playButton}
-            accessibilityRole="button"
-            accessibilityLabel={`Play ${voiceNote.title}`}
-          >
-            <Ionicons name="play" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
+        {voiceNote.audioUri ? (
+          <AudioPlaybackControls
+            uri={voiceNote.audioUri}
+            title={voiceNote.title}
+            durationSeconds={voiceNote.durationSeconds}
+            compact
+          />
+        ) : (
+          <View style={styles.playerRow}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() =>
+                Alert.alert(
+                  "Audio unavailable",
+                  "This sample voice note has no local audio recording attached."
+                )
+              }
+              style={styles.playButton}
+              accessibilityRole="button"
+              accessibilityLabel={`Play ${voiceNote.title}`}
+            >
+              <Ionicons name="play" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
 
-          {/* Waveform Visualization */}
-          <View style={styles.waveformContainer}>
-            {[
-              8, 16, 26, 14, 18, 30, 22, 12, 28, 32, 18, 10, 24, 28, 16, 12,
-              22, 30, 18, 14, 26, 20, 12, 18, 24, 10,
-            ].map((height, idx) => {
-              return (
+            <View style={styles.waveformContainer}>
+              {[
+                8, 16, 26, 14, 18, 30, 22, 12, 28, 32, 18, 10, 24, 28, 16, 12,
+                22, 30, 18, 14, 26, 20, 12, 18, 24, 10,
+              ].map((height, idx) => (
                 <View
                   key={`bar-${idx}`}
                   style={[styles.waveformBar, { height }]}
                 />
-              );
-            })}
-          </View>
+              ))}
+            </View>
 
-          <Text style={styles.durationText}>{voiceNote.duration}</Text>
-        </View>
+            <Text style={styles.durationText}>{voiceNote.duration}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -179,4 +188,3 @@ const styles = StyleSheet.create({
     color: Palette.deepTeal,
   },
 });
-

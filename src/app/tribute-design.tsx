@@ -197,7 +197,7 @@ export default function TributeDesignScreen() {
   };
 
   // Save Draft Action
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     const payload = {
       id: currentDesign.id,
       mentorName: currentDesign.mentorName,
@@ -210,12 +210,17 @@ export default function TributeDesignScreen() {
     };
     tributeDraftService.setPayload(payload);
     tributeDraftService.setDesignState(currentDesign);
-    tributeDraftService.saveDraft(payload, currentDesign);
-    showToast("Design draft safely preserved");
-    Alert.alert(
-      "Draft Saved",
-      `Your heirloom keepsake for ${mentorName} has been saved to your studio.`
-    );
+    try {
+      await tributeDraftService.saveDraft(payload, currentDesign);
+      showToast("Design draft safely preserved");
+      Alert.alert(
+        "Draft Saved",
+        `Your heirloom keepsake for ${mentorName} has been saved to your studio.`
+      );
+    } catch (error) {
+      console.error("Unable to save design draft:", error);
+      Alert.alert("Could not save draft", "Please check device storage and try again.");
+    }
   };
 
   // Preview Action
@@ -231,7 +236,7 @@ export default function TributeDesignScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

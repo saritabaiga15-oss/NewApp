@@ -36,7 +36,7 @@ export default function SearchBar({
         <Ionicons
           name="search-outline"
           size={19}
-          color={value ? Palette.oceanTeal : Palette.textMuted}
+          color={value ? Palette.accentSky : Palette.textMuted}
           style={styles.searchIcon}
         />
 
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceElevated,
     borderRadius: 24,
     paddingHorizontal: 14,
     height: 48,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   inputContainerActive: {
     borderColor: Palette.oceanTeal,
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceElevated,
   },
   searchIcon: {
     marginRight: 8,
@@ -157,6 +157,6 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Palette.turquoise,
+    backgroundColor: Palette.accentSky,
   },
 });

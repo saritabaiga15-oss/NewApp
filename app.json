@@ -34,7 +34,13 @@
         }
       ],
       "expo-video",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Honour Your Mentor to record voice memories."
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

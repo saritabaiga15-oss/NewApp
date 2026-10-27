@@ -50,17 +50,17 @@ export default function MemoryCard({
   const getTypeMeta = () => {
     switch (memory.type) {
       case "photo":
-        return { icon: "camera" as const, color: Palette.oceanTeal, bg: Palette.mintMist, label: "Photo Memory" };
+        return { icon: "camera" as const, color: Palette.accentSky, bg: Palette.surfaceElevated, label: "Photo Memory" };
       case "gratitude":
-        return { icon: "chatbubble-ellipses" as const, color: Palette.oceanTeal, bg: "rgba(236, 143, 62, 0.2)", label: "Gratitude" };
+        return { icon: "chatbubble-ellipses" as const, color: Palette.accentPink, bg: Palette.surfaceElevated, label: "Gratitude" };
       case "voice":
-        return { icon: "mic" as const, color: Palette.oceanTeal, bg: Palette.mintMist, label: "Voice Note" };
+        return { icon: "mic" as const, color: Palette.accentPeach, bg: Palette.surfaceElevated, label: "Voice Note" };
       case "achievement":
-        return { icon: "trophy" as const, color: Palette.oceanTeal, bg: Palette.mintMist, label: "Milestone" };
+        return { icon: "trophy" as const, color: Palette.accentAmber, bg: Palette.surfaceElevated, label: "Milestone" };
       case "lesson":
-        return { icon: "book" as const, color: Palette.oceanTeal, bg: Palette.mintMist, label: "Timeless Lesson" };
+        return { icon: "bookmark" as const, color: Palette.accentSky, bg: Palette.surfaceElevated, label: "Timeless Lesson" };
       case "tribute":
-        return { icon: "heart" as const, color: Palette.turquoise, bg: "rgba(236, 143, 62, 0.2)", label: "Tribute" };
+        return { icon: "heart" as const, color: Palette.accentCoral, bg: Palette.surfaceElevated, label: "Tribute" };
     }
   };
 
@@ -71,6 +71,8 @@ export default function MemoryCard({
       activeOpacity={0.9}
       onPress={onPress}
       style={styles.cardContainer}
+      accessibilityRole="button"
+      accessibilityLabel={`${memory.title} for ${memory.mentorName}`}
     >
       <View style={styles.cardSurface}>
         {/* Top Type & Date Header */}
@@ -82,10 +84,14 @@ export default function MemoryCard({
           <Text style={styles.dateText}>{memory.date}</Text>
         </View>
 
-        {/* Optional Image */}
+        {/* Optional image retains its natural colours */}
         {memory.image ? (
           <View style={styles.imageWrapper}>
-            <Image source={{ uri: memory.image }} style={styles.memoryImage} />
+            <Image
+              source={{ uri: memory.image }}
+              style={styles.memoryImage}
+              resizeMode="cover"
+            />
           </View>
         ) : null}
 
@@ -126,7 +132,7 @@ export default function MemoryCard({
         {/* Mentor Tag & Like Footer */}
         <View style={styles.footer}>
           <View style={styles.mentorTag}>
-            <Ionicons name="person-circle-outline" size={15} color={Palette.oceanTeal} />
+            <Ionicons name="person-circle-outline" size={15} color="#00D2D3" />
             <Text style={styles.mentorName} numberOfLines={1}>
               {memory.mentorName}
             </Text>
@@ -140,7 +146,7 @@ export default function MemoryCard({
             <Ionicons
               name={liked ? "heart" : "heart-outline"}
               size={16}
-              color={liked ? Palette.turquoise : Palette.textMuted}
+              color={liked ? Palette.accentCoral : Palette.textMuted}
             />
             <Text style={[styles.likeCount, liked && styles.likeCountActive]}>
               {likeCount}
@@ -156,12 +162,12 @@ const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 20,
     marginBottom: 14,
-    backgroundColor: Palette.pureWhite, // Pure White card surface
+    backgroundColor: Palette.surfaceCard,
     borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 3,
   },
@@ -182,16 +188,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   typeText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "800",
     letterSpacing: 0.3,
     textTransform: "uppercase",
   },
   dateText: {
     fontSize: 11,
-    color: Palette.textMuted,
+    color: "#737373",
   },
   imageWrapper: {
     width: "100%",
@@ -199,27 +207,27 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     marginBottom: 12,
+    backgroundColor: Palette.iceWhite,
   },
   memoryImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   title: {
     fontSize: 16,
     fontWeight: "800",
-    color: Palette.deepTeal, // Deep Teal heading
+    color: "#FFFFFF", // Bright white title
     letterSpacing: -0.2,
     marginBottom: 6,
   },
   bodyText: {
     fontSize: 13.5,
     lineHeight: 20,
-    color: Palette.deepTeal,
-    opacity: 0.88,
+    color: "#D1D5DB", // Soft grey
   },
   quoteBody: {
     fontStyle: "italic",
+    color: "#E5E5E5",
     fontFamily: Platform.select({
       ios: "Georgia",
       android: "serif",
@@ -230,18 +238,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "#1E1E1E",
     padding: 8,
     borderRadius: 12,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: "rgba(84, 0, 14, 0.18)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   voicePlayBtn: {
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: Palette.accentAmber,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -254,12 +262,12 @@ const styles = StyleSheet.create({
   },
   waveBar: {
     width: 3,
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
     borderRadius: 2,
   },
   durationText: {
     fontSize: 11,
-    color: Palette.oceanTeal,
+    color: "#A3A3A3",
     fontWeight: "700",
   },
   footer: {
@@ -269,7 +277,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "rgba(84, 0, 14, 0.08)",
+    borderTopColor: "rgba(255, 255, 255, 0.08)",
   },
   mentorTag: {
     flexDirection: "row",
@@ -280,7 +288,7 @@ const styles = StyleSheet.create({
   },
   mentorName: {
     fontSize: 12,
-    color: Palette.oceanTeal, // Ocean Teal detail
+    color: Palette.textOnPrimary,
     fontWeight: "700",
   },
   likeBtn: {
@@ -290,10 +298,10 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 12,
-    color: Palette.textMuted,
+    color: "#737373",
     fontWeight: "600",
   },
   likeCountActive: {
-    color: Palette.turquoise, // Turquoise active heart
+    color: "#FF4B72",
   },
 });

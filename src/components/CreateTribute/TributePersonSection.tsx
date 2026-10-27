@@ -188,10 +188,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFDF9",
+    backgroundColor: Palette.surfaceElevated,
     borderRadius: 14,
     borderWidth: 1.2,
-    borderColor: "rgba(236, 143, 62, 0.3)",
+    borderColor: Palette.borderSubtle,
     paddingHorizontal: 12,
   },
   inputIcon: {

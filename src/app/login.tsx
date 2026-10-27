@@ -30,7 +30,7 @@ export default function Login() {
 
   return (
     <View style={styles.background}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* Fresh Mint Mist Ambient Aura */}
       <View style={styles.ambientAura} />

@@ -23,6 +23,7 @@ import { BottomTabInset, Palette } from "@/constants/theme";
 
 // Shared Navigation
 import BottomNavigation from "@/components/home/BottomNavigation";
+import AudioPlaybackControls from "@/components/home/AudioPlaybackControls";
 
 // Types & Services
 import { memoryService } from "@/services/memoryService";
@@ -122,15 +123,15 @@ export default function MemoryDetailScreen() {
     }
     switch (item.kind) {
       case "tribute":
-        return { label: "Tribute Keepsake", icon: "heart", color: Palette.oceanTeal };
+        return { label: "Tribute Keepsake", icon: "heart", color: Palette.accentCoral };
       case "memory":
-        return { label: "Cherished Memory", icon: "images", color: Palette.turquoise };
+        return { label: "Cherished Memory", icon: "images", color: Palette.accentLavender };
       case "letter":
-        return { label: "Personal Letter", icon: "mail", color: "#8B4513" };
+        return { label: "Personal Letter", icon: "mail", color: Palette.accentPeach };
       case "lesson":
-        return { label: "Life Lesson", icon: "bulb", color: "#9E2A2B" };
+        return { label: "Life Lesson", icon: "bulb", color: Palette.accentSky };
       case "milestone":
-        return { label: "Milestone", icon: "flag", color: "#54000E" };
+        return { label: "Milestone", icon: "flag", color: Palette.accentAmber };
     }
   }, [item]);
 
@@ -146,7 +147,7 @@ export default function MemoryDetailScreen() {
   if (!item) {
     return (
       <SafeAreaView style={styles.safeMissing} edges={["top", "bottom"]}>
-        <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+        <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
         <View style={styles.missingContainer}>
           <View style={styles.missingIconCircle}>
             <Ionicons name="document-text-outline" size={42} color={Palette.textSecondary} />
@@ -294,7 +295,7 @@ export default function MemoryDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={Palette.deepTeal} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
 
       {/* Floating Top Navigation Bar */}
       <View style={styles.navBar}>
@@ -501,6 +502,22 @@ export default function MemoryDetailScreen() {
             </View>
           )}
         </View>
+
+        {item.kind === "memory" && item.audioUri && (
+          <View style={styles.supportingCard}>
+            <View style={styles.supportingCardHeader}>
+              <View style={styles.supportingIconWrap}>
+                <Ionicons name="mic-outline" size={18} color={Palette.turquoise} />
+              </View>
+              <Text style={styles.supportingCardTitle}>Voice memory</Text>
+            </View>
+            <AudioPlaybackControls
+              uri={item.audioUri}
+              title={displayTitle}
+              durationSeconds={item.audioDuration}
+            />
+          </View>
+        )}
 
         {/* ── 4. Supporting Content (Only when present) ── */}
         {/* A Lesson I Carry */}
@@ -839,7 +856,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: SCREEN_WIDTH * 0.72,
     position: "relative",
-    backgroundColor: "#1A0005",
+    backgroundColor: Palette.iceWhite,
   },
   coverImage: {
     width: "100%",
@@ -851,7 +868,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 90,
-    backgroundColor: "rgba(84, 0, 14, 0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   textCoverPlaceholder: {
     width: "100%",
@@ -913,7 +930,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(236,143,62,0.12)",
+    backgroundColor: "rgba(255, 184, 153, 0.14)",
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 20,
@@ -1118,7 +1135,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "rgba(236,143,62,0.12)",
+    backgroundColor: "rgba(143, 211, 255, 0.14)",
     justifyContent: "center",
     alignItems: "center",
   },

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -300,9 +300,44 @@ export default function CreateScreen() {
     );
   };
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const handlePressDrafts = () => {
+    if (allDrafts.length === 0) {
+      showToast("No unfinished drafts right now");
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+      return;
+    }
+    if (allDrafts.length === 1) {
+      handleResumeDraft(allDrafts[0]);
+      return;
+    }
+    Alert.alert(
+      "Resume Draft",
+      `You have ${allDrafts.length} unfinished drafts. Choose one to open:`,
+      [
+        ...allDrafts.slice(0, 3).map((d) => ({
+          text: d.title || d.mentorName || "Draft",
+          onPress: () => handleResumeDraft(d),
+        })),
+        {
+          text: "View All Drafts",
+          onPress: () => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          },
+        },
+        { text: "Cancel", style: "cancel" },
+      ]
+    );
+  };
+
+  const handlePressQuill = () => {
+    handleSelectOption("tribute");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
 
       {/* Warm Background Parchment Canvas */}
       <View style={styles.paperCanvas} />
@@ -310,6 +345,7 @@ export default function CreateScreen() {
       {/* Main Studio Viewport */}
       <Animated.View style={[styles.mainContainer, { opacity: entranceFade }]}>
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -317,7 +353,11 @@ export default function CreateScreen() {
           {/* ======================================================== */}
           {/* 1. DISTINCTIVE HEADER: Let's celebrate someone           */}
           {/* ======================================================== */}
-          <CreateHeader draftCount={drafts.length} />
+          <CreateHeader
+            draftCount={allDrafts.length}
+            onPressDrafts={handlePressDrafts}
+            onPressQuill={handlePressQuill}
+          />
 
           {/* Toast Notification Banner */}
           {toastMessage && (

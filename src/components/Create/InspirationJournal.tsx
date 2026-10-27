@@ -110,7 +110,7 @@ export default function InspirationJournal({
             accessibilityLabel="Start Creating with this prompt"
           >
             <Text style={styles.startBtnText}>Start Creating</Text>
-            <Ionicons name="create-outline" size={15} color={Palette.pureWhite} />
+            <Ionicons name="create-outline" size={15} color={Palette.textOnPrimary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "rgba(236, 143, 62, 0.15)",
+    backgroundColor: "rgba(255, 184, 153, 0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.22)",
+    borderColor: Palette.borderSubtle,
   },
   shuffleText: {
     fontSize: 11,
@@ -166,16 +166,16 @@ const styles = StyleSheet.create({
     color: Palette.deepTeal,
   },
   journalPaper: {
-    backgroundColor: "#FFFDF9",
+    backgroundColor: Palette.surfaceCard,
     borderRadius: 22,
     paddingTop: 18,
     paddingBottom: 16,
     paddingHorizontal: 20,
     borderWidth: 1.2,
-    borderColor: "rgba(236, 143, 62, 0.35)",
+    borderColor: Palette.borderSubtle,
     shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.12,
     shadowRadius: 14,
     elevation: 3,
     position: "relative",
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     left: -2,
     fontSize: 38,
     fontWeight: "900",
-    color: "rgba(236, 143, 62, 0.25)",
+    color: "rgba(255, 184, 153, 0.35)",
     fontFamily: "serif",
   },
   questionText: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "rgba(177, 167, 166, 0.2)",
+    borderTopColor: Palette.borderSubtle,
     paddingLeft: 4,
   },
   handwrittenHint: {
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   startBtnText: {
     fontSize: 12.5,
     fontWeight: "800",
-    color: Palette.pureWhite,
+    color: Palette.textOnPrimary,
     letterSpacing: 0.2,
   },
 });

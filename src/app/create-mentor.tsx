@@ -46,7 +46,7 @@ export default function CreateMentorScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleCancel}

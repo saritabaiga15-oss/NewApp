@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Alert,
   Animated,
   ScrollView,
   StatusBar,
@@ -62,7 +63,13 @@ export default function DiscoverScreen() {
       isBookmarked: storyBookmarkService.getBookmark(story.id, story.isBookmarked),
     }))
   );
-  const [wisdomLesson, setWisdomLesson] = useState<LessonQuote>(WISDOM_LESSON);
+  const [wisdomLesson, setWisdomLesson] = useState<LessonQuote>(() => ({
+    ...WISDOM_LESSON,
+    isSaved: storyBookmarkService.getLessonSaved(
+      WISDOM_LESSON.id,
+      !!WISDOM_LESSON.isSaved
+    ),
+  }));
 
   // Active Story Detail Modal
   const [selectedStoryForModal, setSelectedStoryForModal] = useState<Story | null>(null);
@@ -95,6 +102,55 @@ export default function DiscoverScreen() {
       }),
     []
   );
+
+  React.useEffect(
+    () =>
+      storyBookmarkService.subscribeLessons((lessonId, isSaved) => {
+        setWisdomLesson((lesson) =>
+          lesson.id === lessonId ? { ...lesson, isSaved } : lesson
+        );
+      }),
+    []
+  );
+
+  React.useEffect(() => {
+    let isMounted = true;
+    storyBookmarkService
+      .initialize()
+      .then(() => {
+        if (!isMounted) return;
+        setFeaturedStoryState((story) => ({
+          ...story,
+          isBookmarked: storyBookmarkService.getBookmark(
+            story.id,
+            !!story.isBookmarked
+          ),
+        }));
+        setStories((currentStories) =>
+          currentStories.map((story) => ({
+            ...story,
+            isBookmarked: storyBookmarkService.getBookmark(
+              story.id,
+              !!story.isBookmarked
+            ),
+          }))
+        );
+        setWisdomLesson((lesson) => ({
+          ...lesson,
+          isSaved: storyBookmarkService.getLessonSaved(
+            lesson.id,
+            !!lesson.isSaved
+          ),
+        }));
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to load saved stories:", error);
+        Alert.alert("Saved stories unavailable", "Please reopen Discover and try again.");
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Combined search and filtering logic
   const filteredStories = useMemo(() => {
@@ -160,21 +216,33 @@ export default function DiscoverScreen() {
   }, [featuredStoryState, searchQuery, selectedCategory, selectedThemeId]);
 
   // Toggle bookmark for any story
-  const handleToggleBookmark = (storyId: string) => {
+  const handleToggleBookmark = async (storyId: string) => {
     const currentBookmark =
       storyId === featuredStoryState.id
         ? featuredStoryState.isBookmarked
         : stories.find((story) => story.id === storyId)?.isBookmarked;
     if (currentBookmark !== undefined) {
-      storyBookmarkService.setBookmark(storyId, !currentBookmark);
+      try {
+        await storyBookmarkService.setBookmark(storyId, !currentBookmark);
+      } catch (error) {
+        console.error("Unable to update story bookmark:", error);
+        Alert.alert("Could not save story", "Please try again.");
+      }
     }
   };
 
   // Toggle wisdom quote save state
-  const handleToggleSaveLesson = (lessonId: string) => {
-    setWisdomLesson((prev) =>
-      prev.id === lessonId ? { ...prev, isSaved: !prev.isSaved } : prev
+  const handleToggleSaveLesson = async (lessonId: string) => {
+    const isSaved = storyBookmarkService.getLessonSaved(
+      lessonId,
+      !!wisdomLesson.isSaved
     );
+    try {
+      await storyBookmarkService.setLessonSaved(lessonId, !isSaved);
+    } catch (error) {
+      console.error("Unable to save lesson:", error);
+      Alert.alert("Could not save lesson", "Please try again.");
+    }
   };
 
   // Open story details screen
@@ -207,7 +275,7 @@ export default function DiscoverScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* Pure Cream White Canvas */}
       <View style={styles.paperCanvas} />

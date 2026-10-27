@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Palette } from "@/constants/theme";
 
 // ─── Card data ────────────────────────────────────────────────────────────────
 
@@ -21,9 +22,7 @@ interface StudioCard {
   tagline: string;
   description: string;
   icon: keyof typeof Ionicons.glyphMap;
-  /** Very subtle tint for the whole card */
   cardBg: string;
-  /** Stronger tint for the icon box */
   iconBg: string;
   /** Accent used for icon, badge text, tagline, and arrow */
   accent: string;
@@ -38,9 +37,9 @@ const STUDIO_CARDS: StudioCard[] = [
     description:
       "Create a heartfelt tribute to a person who made a difference in your life.",
     icon: "heart",
-    cardBg: "#F9E3E6",
-    iconBg: "#F0BFC9",
-    accent: "#8E1B34",
+    cardBg: Palette.surfaceCard,
+    iconBg: "rgba(255, 158, 207, 0.16)",
+    accent: Palette.accentPink,
   },
   {
     key: "memory",
@@ -50,9 +49,9 @@ const STUDIO_CARDS: StudioCard[] = [
     description:
       "Preserve a meaningful experience, photograph, or place you shared.",
     icon: "camera",
-    cardBg: "#FDE9D5",
-    iconBg: "#F5C898",
-    accent: "#D9680F",
+    cardBg: Palette.surfaceCard,
+    iconBg: "rgba(143, 211, 255, 0.16)",
+    accent: Palette.accentSky,
   },
   {
     key: "letter",
@@ -62,9 +61,9 @@ const STUDIO_CARDS: StudioCard[] = [
     description:
       "Write a personal letter expressing gratitude and appreciation.",
     icon: "mail",
-    cardBg: "#F6E2E8",
-    iconBg: "#EBBECB",
-    accent: "#B04A66",
+    cardBg: Palette.surfaceCard,
+    iconBg: "rgba(255, 184, 153, 0.16)",
+    accent: Palette.accentPeach,
   },
   {
     key: "lesson",
@@ -74,9 +73,9 @@ const STUDIO_CARDS: StudioCard[] = [
     description:
       "Capture valuable advice, meaningful quotes, and teachings.",
     icon: "bulb-outline",
-    cardBg: "#F8EBCB",
-    iconBg: "#EDCF88",
-    accent: "#9A6A00",
+    cardBg: Palette.surfaceCard,
+    iconBg: "rgba(143, 240, 198, 0.16)",
+    accent: Palette.accentMint,
   },
 ];
 
@@ -169,7 +168,7 @@ export default function AddMemoryModal({
                 accessibilityRole="button"
                 accessibilityLabel="Close"
               >
-                <Ionicons name="close" size={18} color="#7A4040" />
+                <Ionicons name="close" size={18} color={Palette.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -229,7 +228,7 @@ export default function AddMemoryModal({
                     {/* Footer */}
                     <View style={styles.cardFooter}>
                       <Text
-                        style={[styles.craftText, { color: "#1C0808" }]}
+                        style={[styles.craftText, { color: Palette.textPrimary }]}
                       >
                         Craft this
                       </Text>
@@ -262,7 +261,7 @@ export default function AddMemoryModal({
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(30, 0, 5, 0.45)",
+    backgroundColor: "rgba(0, 0, 0, 0.72)",
   },
   sheetWrapper: {
     position: "absolute",
@@ -271,14 +270,14 @@ const styles = StyleSheet.create({
     right: 0,
   },
   sheet: {
-    backgroundColor: "#FDF5EE",          // warm cream sheet
+    backgroundColor: Palette.iceWhite,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: Platform.OS === "ios" ? 44 : 28,
     maxHeight: "92%",
-    shadowColor: "#3D000A",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.16,
     shadowRadius: 18,
@@ -288,7 +287,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(84, 0, 14, 0.20)",
+    backgroundColor: Palette.borderSubtle,
     alignSelf: "center",
     marginBottom: 18,
   },
@@ -306,20 +305,20 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1C0808",
+    color: Palette.textPrimary,
     letterSpacing: -0.3,
     lineHeight: 26,
   },
   sheetSubtitle: {
     fontSize: 13,
-    color: "#9A6060",
+    color: Palette.textSecondary,
     marginTop: 3,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(84, 0, 14, 0.08)",
+    backgroundColor: Palette.surfaceElevated,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 2,
@@ -338,15 +337,13 @@ const styles = StyleSheet.create({
     width: "47.5%",
     borderRadius: 20,
     padding: 14,
-    // very light shadow so cards feel lifted off the cream background
-    shadowColor: "#3D000A",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 2,
-    // subtle border to distinguish from sheet bg
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.04)",
+    borderColor: Palette.borderSubtle,
   },
   cardTop: {
     flexDirection: "row",
@@ -362,11 +359,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   badgePill: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Palette.surfaceElevated,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    // white pill with a very soft shadow so it reads cleanly
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -383,7 +379,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1C0808",
+    color: Palette.textPrimary,
     letterSpacing: -0.3,
     marginBottom: 4,
   },
@@ -395,14 +391,13 @@ const styles = StyleSheet.create({
   },
   cardDesc: {
     fontSize: 12.5,
-    color: "#5A4040",
+    color: Palette.textSecondary,
     lineHeight: 18,
-    opacity: 0.9,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "rgba(0,0,0,0.08)",
+    backgroundColor: Palette.borderSubtle,
     marginVertical: 12,
   },
 

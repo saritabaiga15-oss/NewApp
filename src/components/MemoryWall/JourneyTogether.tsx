@@ -15,11 +15,16 @@ export const JOURNEY_COLORS = {
   panelMiddle: "#54000E",
   panelEnd: "#6B1020",
   cream: "#FFF8F0",
+  paper: "#FFF6EE",
   gold: "#EC8F3E",
   mutedText: "rgba(255, 248, 240, 0.62)",
-  card: "rgba(255, 248, 240, 0.07)",
-  cardBorder: "rgba(255, 248, 240, 0.12)",
-  milestoneCard: "rgba(236, 143, 62, 0.12)",
+  cardText: "#4A0E1A",
+  yearText: "#8E1B34",
+  mentorText: "#A8444F",
+  snippetText: "#7A5560",
+  card: "#FFF6EE",
+  cardBorder: "#F0DDD3",
+  milestoneCard: "#FFF6EE",
   milestoneBorder: "rgba(236, 143, 62, 0.35)",
 } as const;
 
@@ -180,7 +185,7 @@ export default function JourneyTogether({
                     <Ionicons
                       name="person-circle-outline"
                       size={17}
-                      color={JOURNEY_COLORS.gold}
+                      color={JOURNEY_COLORS.mentorText}
                     />
                     <Text style={styles.mentorName} numberOfLines={1}>
                       {node.mentorName}
@@ -346,7 +351,7 @@ const styles = StyleSheet.create({
   card: {
     minHeight: 188,
     padding: 16,
-    borderRadius: 26,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: JOURNEY_COLORS.cardBorder,
     backgroundColor: JOURNEY_COLORS.card,
@@ -354,6 +359,8 @@ const styles = StyleSheet.create({
   },
   milestoneCard: {
     borderColor: JOURNEY_COLORS.milestoneBorder,
+    borderTopWidth: 4,
+    borderTopColor: JOURNEY_COLORS.gold,
     backgroundColor: JOURNEY_COLORS.milestoneCard,
   },
   focused: {
@@ -371,14 +378,14 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     borderRadius: 10,
-    backgroundColor: "rgba(255, 248, 240, 0.1)",
+    backgroundColor: "rgba(142, 27, 52, 0.08)",
     marginBottom: 10,
   },
   milestoneYearBadge: {
     backgroundColor: "rgba(236, 143, 62, 0.2)",
   },
   year: {
-    color: JOURNEY_COLORS.cream,
+    color: JOURNEY_COLORS.yearText,
     fontSize: 15,
     fontWeight: "800",
   },
@@ -386,7 +393,7 @@ const styles = StyleSheet.create({
     color: JOURNEY_COLORS.gold,
   },
   cardTitle: {
-    color: JOURNEY_COLORS.cream,
+    color: JOURNEY_COLORS.cardText,
     fontSize: 19,
     fontWeight: "800",
     lineHeight: 24,
@@ -402,12 +409,12 @@ const styles = StyleSheet.create({
   },
   mentorName: {
     flex: 1,
-    color: JOURNEY_COLORS.gold,
+    color: JOURNEY_COLORS.mentorText,
     fontSize: 14,
     fontWeight: "700",
   },
   snippet: {
-    color: JOURNEY_COLORS.mutedText,
+    color: JOURNEY_COLORS.snippetText,
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 21,

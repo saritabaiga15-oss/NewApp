@@ -44,7 +44,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.background}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
@@ -57,7 +57,7 @@ export default function OnboardingScreen() {
           {/* ========================================= */}
           <View style={[styles.collageContainer, { height: collageHeight }]}>
             <View style={styles.tiltedWrapper}>
-              {/* Column 1: Team & Duo */}
+              {/* Column 1 */}
               <View style={[styles.column, { paddingTop: 24 }]}>
                 <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
                   <Image
@@ -75,7 +75,7 @@ export default function OnboardingScreen() {
                 </View>
               </View>
 
-              {/* Column 2: Classroom & Mentor */}
+              {/* Column 2 */}
               <View style={[styles.column, { paddingTop: 0 }]}>
                 <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
                   <Image
@@ -93,7 +93,7 @@ export default function OnboardingScreen() {
                 </View>
               </View>
 
-              {/* Column 3: Duo & Team */}
+              {/* Column 3 */}
               <View style={[styles.column, { paddingTop: 28 }]}>
                 <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
                   <Image
@@ -112,12 +112,12 @@ export default function OnboardingScreen() {
               </View>
             </View>
 
-            {/* Seamless Cream White fade into warm canvas */}
+            {/* Fade into canvas */}
             <LinearGradient
               colors={[
-                "rgba(255, 248, 240, 0)",
-                "rgba(255, 248, 240, 0.65)",
-                "rgba(255, 248, 240, 0.95)",
+                "rgba(0, 0, 0, 0)",
+                "rgba(0, 0, 0, 0.65)",
+                "rgba(0, 0, 0, 0.95)",
                 Palette.iceWhite,
               ]}
               locations={[0, 0.45, 0.8, 1]}
@@ -127,7 +127,7 @@ export default function OnboardingScreen() {
           </View>
 
           {/* ========================================= */}
-          {/* HONOUR YOUR MENTOR CONTENT AREA           */}
+          {/* CONTENT AREA                              */}
           {/* ========================================= */}
           <Animated.View
             style={[
@@ -138,12 +138,12 @@ export default function OnboardingScreen() {
               },
             ]}
           >
-            {/* Title: Deep Teal Heading */}
+            {/* Title */}
             <Text style={styles.title}>
               Honour Your{"\n"}Mentor
             </Text>
 
-            {/* Mint Mist Reflection Pill */}
+            {/* Description */}
             <View style={styles.descriptionBox}>
               <Text style={styles.descriptionText}>
                 Keep their memories, lessons, and impact{"\n"}
@@ -151,11 +151,13 @@ export default function OnboardingScreen() {
               </Text>
             </View>
 
-            {/* "Get Started" Primary Button (Ocean Teal) */}
+            {/* Get Started Button */}
             <TouchableOpacity
               style={styles.getStartedButtonWrapper}
               activeOpacity={0.88}
               onPress={() => router.push("/login")}
+              accessibilityRole="button"
+              accessibilityLabel="Get Started"
             >
               <View style={styles.getStartedButton}>
                 <Text style={styles.getStartedText}>Get Started</Text>
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
-    backgroundColor: Palette.iceWhite, // Ice White background
+    backgroundColor: Palette.iceWhite,
   },
   safeArea: {
     flex: 1,
@@ -222,7 +224,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: Palette.pureWhite,
     borderWidth: 1.5,
-    borderColor: "rgba(236, 143, 62, 0.22)", // Turquoise delicate border
+    borderColor: Palette.borderSubtle,
     shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
@@ -251,31 +253,31 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 38,
     fontWeight: "800",
-    color: Palette.deepTeal, // Deep Teal heading
+    color: Palette.deepTeal,
     textAlign: "center",
     lineHeight: 46,
     letterSpacing: -0.6,
     marginBottom: 16,
   },
   descriptionBox: {
-    backgroundColor: Palette.mintMist, // Mint Mist soft pill
+    backgroundColor: Palette.mintMist,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.3)",
+    borderColor: Palette.borderSubtle,
     marginBottom: 28,
     alignItems: "center",
   },
   descriptionText: {
     fontSize: 14.5,
     lineHeight: 22,
-    color: Palette.deepTeal, // Deep Teal text
+    color: Palette.deepTeal,
     textAlign: "center",
     fontWeight: "700",
   },
 
-  /* Primary "Get Started" Button */
+  /* Get Started Button */
   getStartedButtonWrapper: {
     width: "100%",
     maxWidth: 360,
@@ -289,13 +291,13 @@ const styles = StyleSheet.create({
   },
   getStartedButton: {
     height: 56,
-    backgroundColor: Palette.oceanTeal, // Ocean Teal primary button
+    backgroundColor: Palette.oceanTeal,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 28,
   },
   getStartedText: {
-    color: "#FFFFFF",
+    color: Palette.textOnPrimary,
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontSize: 14,
-    color: Palette.oceanTeal, // Ocean Teal link
+    color: Palette.accentSky,
     fontWeight: "800",
   },
 });

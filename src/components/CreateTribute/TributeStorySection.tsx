@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.3)",
+    borderColor: Palette.borderSubtle,
   },
   activePromptText: {
     flex: 1,
@@ -216,11 +216,11 @@ const styles = StyleSheet.create({
   },
   starterPanel: {
     marginTop: 12,
-    backgroundColor: "#FFFDF9",
+    backgroundColor: Palette.surfaceCard,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.28)",
+    borderColor: Palette.borderSubtle,
   },
   starterTopRow: {
     flexDirection: "row",

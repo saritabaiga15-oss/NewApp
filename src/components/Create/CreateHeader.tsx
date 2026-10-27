@@ -1,13 +1,19 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
 
 interface CreateHeaderProps {
   draftCount?: number;
+  onPressDrafts?: () => void;
+  onPressQuill?: () => void;
 }
 
-export default function CreateHeader({ draftCount = 0 }: CreateHeaderProps) {
+export default function CreateHeader({
+  draftCount = 0,
+  onPressDrafts,
+  onPressQuill,
+}: CreateHeaderProps) {
   return (
     <View style={styles.container}>
       {/* Top Studio Badge Row */}
@@ -19,25 +25,37 @@ export default function CreateHeader({ draftCount = 0 }: CreateHeaderProps) {
           <Text style={styles.studioPillText}>MEMORY STUDIO</Text>
         </View>
 
-        {/* Decorative subtle note / seal icon badge */}
-        <View style={styles.stationerySeal}>
-          <Ionicons name="journal-outline" size={14} color={Palette.oceanTeal} />
+        {/* Interactive note / seal icon badge for drafts */}
+        <TouchableOpacity
+          style={styles.stationerySeal}
+          onPress={onPressDrafts}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`Open drafts, ${draftCount} unfinished`}
+        >
+          <Ionicons name="journal-outline" size={15} color={Palette.oceanTeal} />
           {draftCount > 0 && (
             <View style={styles.sealDot}>
               <Text style={styles.sealDotText}>{draftCount}</Text>
             </View>
           )}
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Main Header Content */}
       <View style={styles.titleArea}>
         <View style={styles.headingRow}>
           <Text style={styles.heading}>Let&apos;s celebrate someone.</Text>
-          {/* Handwritten ink feather accent */}
-          <View style={styles.quillIconWrap}>
+          {/* Interactive handwritten ink feather accent */}
+          <TouchableOpacity
+            style={styles.quillIconWrap}
+            onPress={onPressQuill}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Create a new tribute or memory"
+          >
             <Ionicons name="pencil" size={16} color={Palette.turquoise} />
-          </View>
+          </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>Every memory deserves a place to live.</Text>
       </View>

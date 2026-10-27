@@ -2,6 +2,10 @@
 
 export type WallCategory =
   | "all"
+  | "school"
+  | "study"
+  | "work"
+  | "life"
   | "tributes"
   | "memories"
   | "letters"
@@ -55,6 +59,8 @@ export interface WallMemory {
   story?: string;
   imageUri?: string;
   additionalImages?: string[];
+  audioUri?: string;
+  audioDuration?: number;
   year: string;
   emotion: string;
   emotionColor: string;
@@ -151,6 +157,12 @@ export interface WallMentorProfile {
   itemCount: number;
   latestActivity: string;
   coverColor: string;
+  category?: "school" | "study" | "work" | "life";
+  duration?: string;
+  trait?: string;
+  traitIcon?: any;
+  lessonLabel?: string;
+  lastThanked?: string;
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -160,7 +172,6 @@ export interface WallMentorProfile {
 export interface WallFilterTab {
   key: WallCategory;
   label: string;
-  icon: string;
-  count: number;
+  icon?: string;
+  count?: number;
 }
-

@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Animated,
   Image,
   Platform,
   StyleSheet,
@@ -8,198 +9,554 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { getCategoryAccent, Palette } from "@/constants/theme";
 
 export interface MentorData {
   id: string;
   name: string;
   role: string;
   avatar: string;
-  quote: string;
+  quote: string;            // Short inspiring quote
   memoriesCount: number;
-  yearsKnown: string;
+  yearsKnown: string;       // e.g. "3 years together"
   isBookmarked?: boolean;
+  coverImage?: string;      // Optional separate header image
+  trait?: string;           // e.g. "Patient guide"
+  traitIcon?: string;       // Ionicons name for trait
+  lessonCarried?: string;   // The italic lesson shown on card
+  coverColor?: string;      // Optional override
 }
 
 interface MentorCardProps {
   mentor: MentorData;
+  index?: number;
+  cardWidth?: number;
+  isSelected?: boolean;
   onPress?: () => void;
   onBookmarkToggle?: (id: string) => void;
 }
 
+// Tasteful colourful stacked dots for memory count indicators
+const COLORFUL_DOTS = [
+  [Palette.accentPink, Palette.accentAmber, Palette.accentSky],
+  [Palette.accentSky, Palette.accentLavender, Palette.accentAmber],
+  [Palette.accentMint, Palette.accentSky, Palette.accentCoral],
+  [Palette.accentAmber, Palette.accentPink, Palette.accentMint],
+];
+
 export default function MentorCard({
   mentor,
+  index = 0,
+  cardWidth = 228,
+  isSelected = false,
   onPress,
   onBookmarkToggle,
 }: MentorCardProps) {
+  // Animated scale for subtle card press feedback
+  const scaleAnim = React.useMemo(() => new Animated.Value(1), []);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.975,
+      speed: 30,
+      bounciness: 0,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      speed: 25,
+      bounciness: 6,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const dots = COLORFUL_DOTS[index % COLORFUL_DOTS.length];
+
+  // Two-letter initials fallback
+  const initials = mentor.name
+    .split(" ")
+    .filter((w) => w.length > 0)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
+
+  const lessonText = mentor.lessonCarried || mentor.quote;
+  const traitLabel = mentor.trait || "Mentor";
+  const traitIconName = (mentor.traitIcon as any) || "sparkles";
+  const yearsLabel = mentor.yearsKnown;
+
+  const headerPhotoUri = mentor.coverImage || mentor.avatar;
+  const avatarUri = mentor.avatar;
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.88}
-      onPress={onPress}
-      style={styles.container}
+    <Animated.View
+      style={[
+        styles.animatedContainer,
+        {
+          width: cardWidth,
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
     >
-      <View style={styles.cardSurface}>
-        <View style={styles.topRow}>
-          <View style={styles.avatarWrap}>
-            <Image source={{ uri: mentor.avatar }} style={styles.avatar} />
-            <View style={styles.statusDot} />
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${mentor.name}'s mentor profile`}
+        style={[
+          styles.card,
+          isSelected && styles.cardSelected,
+        ]}
+      >
+        {/* ──────────────────────────────────────
+            Natural-color photo with a subtle contrast overlay
+        ────────────────────────────────────── */}
+        <View style={styles.header}>
+          {/* Mentor photo */}
+          {!!headerPhotoUri && (
+            <Image
+              source={{ uri: headerPhotoUri }}
+              style={styles.headerPhoto}
+              resizeMode="cover"
+            />
+          )}
+
+          {/* Deep charcoal gradient overlay for contrast */}
+          <View style={styles.headerOverlay} />
+
+          {/* Subtle decorative circles for depth */}
+          <View style={styles.decoCircle1} />
+          <View style={styles.decoCircle2} />
+
+          {/* "X years together" pill — top right (subtle dark grey layer) */}
+          <View style={styles.yearsPill}>
+            <View style={styles.yearsDot} />
+            <Text style={styles.yearsText}>{yearsLabel}</Text>
           </View>
 
+          {/* Bookmark — top left with vivid colourful active state */}
           <TouchableOpacity
-            onPress={() => onBookmarkToggle?.(mentor.id)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={styles.bookmarkBtn}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onBookmarkToggle?.(mentor.id);
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={[
+              styles.bookmarkBtn,
+              mentor.isBookmarked && styles.bookmarkBtnActive,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={
+              mentor.isBookmarked
+                ? `Remove bookmark for ${mentor.name}`
+                : `Bookmark ${mentor.name}`
+            }
           >
             <Ionicons
               name={mentor.isBookmarked ? "bookmark" : "bookmark-outline"}
-              size={18}
-              color={mentor.isBookmarked ? Palette.turquoise : Palette.textMuted}
+              size={15}
+              color={mentor.isBookmarked ? Palette.accentMint : "rgba(255,255,255,0.75)"}
             />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.infoArea}>
-          <Text style={styles.name} numberOfLines={1}>
-            {mentor.name}
-          </Text>
-          <View style={styles.roleRow}>
-            <Text style={styles.role}>{mentor.role}</Text>
-            <Text style={styles.bullet}>•</Text>
-            <Text style={styles.years}>{mentor.yearsKnown}</Text>
-          </View>
-
-          <Text style={styles.quote} numberOfLines={2}>
-            &ldquo;{mentor.quote}&rdquo;
-          </Text>
+        {/* ──────────────────────────────────────
+            AVATAR CIRCLE — overlapping header / body boundary
+            Natural-color portrait
+        ────────────────────────────────────── */}
+        <View style={styles.avatarWrap}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={onPress}
+            style={[
+              styles.avatarRing,
+              isSelected && styles.avatarRingSelected,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`${mentor.name}'s photograph`}
+          >
+            {avatarUri ? (
+              <Image
+                source={{ uri: avatarUri }}
+                style={styles.avatarPhoto}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.avatarInitialsBg}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <View style={styles.memoryPill}>
-            <Ionicons name="sparkles" size={12} color={Palette.oceanTeal} />
-            <Text style={styles.memoryCount}>{mentor.memoriesCount} Memories</Text>
+        {/* ──────────────────────────────────────
+            BODY — White name, grey role, colourful icon accents
+        ────────────────────────────────────── */}
+        <View style={styles.body}>
+          {/* Name — Bright white elegant italic serif */}
+          <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
+            <Text style={styles.name} numberOfLines={1}>
+              {mentor.name}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Role — Soft light grey uppercase caption */}
+          <Text style={styles.role}>{mentor.role.toUpperCase()}</Text>
+
+          {/* Trait Pill — Subtle dark surface with colourful icon */}
+          <View style={styles.traitPill}>
+            <Ionicons name={traitIconName} size={13} color={getCategoryAccent(mentor.role)} />
+            <Text style={styles.traitText}>{traitLabel}</Text>
           </View>
-          <Ionicons name="arrow-forward-circle" size={20} color={Palette.oceanTeal} />
+
+          {/* Lesson Block — Subtle dark-grey layer with amber quote glyph */}
+          <View style={styles.lessonBlock}>
+            <View style={styles.lessonHeaderRow}>
+              <Text style={styles.quoteGlyph}>{"\u201C"}</Text>
+              <Text style={styles.lessonLabel}>THE LESSON I CARRY</Text>
+            </View>
+            <Text style={styles.lessonText} numberOfLines={3}>
+              {lessonText}
+            </Text>
+          </View>
+
+          {/* Thin divider */}
+          <View style={styles.divider} />
+
+          {/* Memory count row with colourful dots & clearly visible count */}
+          <View style={styles.memoryRow}>
+            <View style={styles.dotsRow}>
+              {dots.map((col, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor: col,
+                      marginLeft: i === 0 ? 0 : -6,
+                      zIndex: dots.length - i,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+            <Text style={styles.memoryCount}>
+              {mentor.memoriesCount} memories
+            </Text>
+          </View>
+
+          {/* Action Button — Subtle dark surface with colourful heart icon */}
+          <TouchableOpacity
+            onPress={onPress}
+            activeOpacity={0.85}
+            style={styles.ctaBtn}
+          >
+            <Ionicons name="heart" size={13} color="#FF4B72" />
+            <Text style={styles.ctaText}>Send Thanks</Text>
+            <Ionicons name="chevron-forward" size={12} color="#00D2D3" />
+          </TouchableOpacity>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
+const AVATAR_SIZE = 72;
+const HEADER_HEIGHT = 112;
+const AVATAR_OVERLAP = AVATAR_SIZE / 2;
+
 const styles = StyleSheet.create({
-  container: {
-    width: 236,
-    borderRadius: 20,
+  animatedContainer: {
     marginRight: 14,
-    backgroundColor: Palette.pureWhite,
+  },
+  card: {
+    backgroundColor: Palette.surfaceCard,
+    borderRadius: 24,
     borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 6,
+    overflow: "visible",
+  },
+  cardSelected: {
+    borderColor: Palette.accentSky,
+    shadowColor: "#000000",
+    shadowOpacity: 0.2,
     shadowRadius: 10,
-    elevation: 3,
   },
-  cardSurface: {
-    padding: 16,
-    borderRadius: 20,
-  },
-  topRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  avatarWrap: {
+
+  /* ── HEADER ── */
+  header: {
+    height: HEADER_HEIGHT,
+    borderTopLeftRadius: 23,
+    borderTopRightRadius: 23,
+    overflow: "hidden",
     position: "relative",
+    backgroundColor: Palette.iceWhite,
   },
-  avatar: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 2,
-    borderColor: Palette.oceanTeal,
-    backgroundColor: Palette.mintMist,
+  headerPhoto: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.9,
   },
-  statusDot: {
+  headerOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0, 0, 0, 0.42)",
+  },
+  decoCircle1: {
     position: "absolute",
-    bottom: 0,
-    right: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Palette.turquoise,
-    borderWidth: 2,
-    borderColor: Palette.pureWhite,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    bottom: -25,
+    left: -15,
   },
+  decoCircle2: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    top: 10,
+    right: -10,
+  },
+
+  yearsPill: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
+    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+  },
+  yearsDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Palette.accentAmber,
+  },
+  yearsText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.2,
+  },
+
   bookmarkBtn: {
+    position: "absolute",
+    top: 12,
+    left: 12,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(236, 143, 62, 0.15)",
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
   },
-  infoArea: {
-    marginTop: 12,
+  bookmarkBtnActive: {
+    borderColor: "rgba(143, 240, 198, 0.5)",
+    backgroundColor: "rgba(143, 240, 198, 0.12)",
+  },
+
+  /* ── AVATAR ── */
+  avatarWrap: {
+    alignItems: "center",
+    marginTop: -AVATAR_OVERLAP,
+    zIndex: 10,
+  },
+  avatarRing: {
+    width: AVATAR_SIZE + 6,
+    height: AVATAR_SIZE + 6,
+    borderRadius: (AVATAR_SIZE + 6) / 2,
+    backgroundColor: Palette.surfaceElevated,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  avatarRingSelected: {
+    borderColor: Palette.accentSky,
+  },
+  avatarPhoto: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+  },
+  avatarInitialsBg: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    backgroundColor: "#181818",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
+  },
+  avatarInitials: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
+  },
+
+  /* ── BODY ── */
+  body: {
+    paddingHorizontal: 15,
+    paddingBottom: 16,
+    paddingTop: 8,
+    alignItems: "center",
   },
   name: {
-    fontSize: 16.5,
+    fontSize: 18.5,
     fontWeight: "800",
-    color: Palette.deepTeal,
-    letterSpacing: -0.2,
-  },
-  roleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
+    color: "#FFFFFF", // Bright white mentor name
+    letterSpacing: -0.3,
+    textAlign: "center",
+    fontFamily: Platform.select({
+      ios: "Georgia",
+      android: "serif",
+      default: "serif",
+    }),
+    fontStyle: "italic",
+    marginBottom: 3,
   },
   role: {
-    fontSize: 12.5,
-    color: Palette.oceanTeal,
+    fontSize: 10,
     fontWeight: "700",
+    color: "#9CA3AF", // Soft light grey supporting information
+    letterSpacing: 1.2,
+    textAlign: "center",
+    textTransform: "uppercase",
+    marginBottom: 10,
   },
-  bullet: {
-    fontSize: 11,
-    color: Palette.textMuted,
+  traitPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#1E1E1E", // Dark layer
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
-  years: {
+  traitText: {
     fontSize: 11.5,
-    color: Palette.textSecondary,
+    fontWeight: "700",
+    color: "#E5E5E5",
   },
-  quote: {
-    fontSize: 12.5,
+
+  /* Lesson block */
+  lessonBlock: {
+    width: "100%",
+    backgroundColor: "#1B1B1B", // Dark grey surface
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  lessonHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  quoteGlyph: {
+    fontSize: 22,
+    lineHeight: 22,
+    color: "#F59E0B", // Tasteful amber quote glyph
+    fontWeight: "900",
+  },
+  lessonLabel: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: "#A3A3A3",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  lessonText: {
+    fontSize: 12,
     lineHeight: 18,
-    color: Palette.deepTeal,
+    color: "#E5E5E5", // Elegant readable light typography
     fontStyle: "italic",
-    marginTop: 8,
-    opacity: 0.88,
     fontFamily: Platform.select({
       ios: "Georgia",
       android: "serif",
       default: "serif",
     }),
   },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(84, 0, 14, 0.08)",
+
+  /* Footer */
+  divider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.08)", // Thin divider
+    marginBottom: 10,
   },
-  memoryPill: {
+  memoryRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    backgroundColor: Palette.mintMist,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    justifyContent: "space-between",
+    marginBottom: 12,
+    width: "100%",
+  },
+  dotsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: "#141414",
   },
   memoryCount: {
-    fontSize: 11,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF", // Clearly visible against the dark background
+    letterSpacing: 0.2,
+  },
+  ctaBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    width: "100%",
+    backgroundColor: "#1F1F1F", // Subtle dark button surface
+    borderRadius: 14,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.14)",
+  },
+  ctaText: {
+    fontSize: 12.5,
     fontWeight: "800",
-    color: Palette.oceanTeal,
+    color: "#FFFFFF",
   },
 });

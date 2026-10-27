@@ -20,12 +20,14 @@ import { BottomTabInset, Palette } from "@/constants/theme";
 import BottomNavigation from "@/components/home/BottomNavigation";
 import JourneyTogether from "@/components/MemoryWall/JourneyTogether";
 import {
+  AnniversaryCard,
   FilterTabs,
   LetterWallCard,
   LessonWallCard,
   MemoryWallCard,
   MentorRoll,
   MilestoneWallCard,
+  TodaysMemory,
   TributeWallCard,
   WallEmptyState,
   WallHeader,
@@ -33,10 +35,18 @@ import {
 
 // Services & Data
 import { memoryService } from "@/services/memoryService";
-import { getJourneyNodes, WALL_FILTER_TABS } from "@/data/memoryWallData";
+import { getJourneyNodes } from "@/data/memoryWallData";
 
 // Types
-import { WallCategory, WallItem, WallMentorProfile } from "@/types/memoryWall";
+import { WallCategory, WallFilterTab, WallItem, WallMentorProfile } from "@/types/memoryWall";
+
+const CATEGORY_FILTER_TABS: WallFilterTab[] = [
+  { key: "all", label: "All" },
+  { key: "school", label: "School" },
+  { key: "study", label: "Study" },
+  { key: "work", label: "Work" },
+  { key: "life", label: "Life" },
+];
 
 export default function MemoryWallScreen() {
   const [activeFilter, setActiveFilter] = useState<WallCategory>("all");
@@ -64,15 +74,27 @@ export default function MemoryWallScreen() {
   const filteredItems = useMemo(() => {
     let result = items;
     if (activeFilter !== "all") {
-      const map: Record<WallCategory, WallItem["kind"]> = {
-        all: "tribute",
+      const kindMap: Partial<Record<WallCategory, WallItem["kind"]>> = {
         tributes: "tribute",
         memories: "memory",
         letters: "letter",
         lessons: "lesson",
         milestones: "milestone",
       };
-      result = result.filter((i) => i.kind === map[activeFilter]);
+      if (kindMap[activeFilter]) {
+        result = result.filter((i) => i.kind === kindMap[activeFilter]);
+      } else {
+        const matchingMentors = new Set(
+          mentors
+            .filter((m) => m.category === activeFilter)
+            .map((m) => m.name.toLowerCase())
+        );
+        if (matchingMentors.size > 0) {
+          result = result.filter(
+            (i) => i.mentorName && matchingMentors.has(i.mentorName.toLowerCase())
+          );
+        }
+      }
     }
 
     if (searchQuery.trim()) {
@@ -90,28 +112,9 @@ export default function MemoryWallScreen() {
     }
 
     return result;
-  }, [items, activeFilter, searchQuery]);
+  }, [items, activeFilter, searchQuery, mentors]);
 
   const pinnedCount = useMemo(() => items.filter((i) => i.isPinned).length, [items]);
-  const filterTabs = useMemo(
-    () =>
-      WALL_FILTER_TABS.map((tab) => {
-        if (tab.key === "all") return { ...tab, count: items.length };
-        const kindByCategory: Record<WallCategory, WallItem["kind"]> = {
-          all: "tribute",
-          tributes: "tribute",
-          memories: "memory",
-          letters: "letter",
-          lessons: "lesson",
-          milestones: "milestone",
-        };
-        return {
-          ...tab,
-          count: items.filter((item) => item.kind === kindByCategory[tab.key]).length,
-        };
-      }),
-    [items]
-  );
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   const handlePinToggle = useCallback((id: string) => {
@@ -210,22 +213,27 @@ export default function MemoryWallScreen() {
     }
   };
 
+  const filteredMentors = useMemo(() => {
+    if (activeFilter === "all") return mentors;
+    return mentors.filter((m) => m.category === activeFilter);
+  }, [mentors, activeFilter]);
+
   // ─── Section label ────────────────────────────────────────────────────────
   const sectionLabel = useMemo(() => {
-    const tab = filterTabs.find((t) => t.key === activeFilter);
+    const tab = CATEGORY_FILTER_TABS.find((t) => t.key === activeFilter);
     return tab?.label ?? "All";
-  }, [activeFilter, filterTabs]);
+  }, [activeFilter]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={Palette.deepTeal} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: BottomTabInset + 80 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header (Image 1) */}
         <WallHeader
           totalItems={items.length}
           pinnedCount={pinnedCount}
@@ -253,10 +261,24 @@ export default function MemoryWallScreen() {
           </View>
         )}
 
-        {/* Mentor profiles row */}
+        {/* Today's memory feature (Image 1) */}
+        <TodaysMemory />
+
+        {/* Anniversary Card (Image 2) */}
+        <AnniversaryCard onWriteThanksPress={() => router.push("/create")} />
+
+        {/* Filter chips (Image 2) */}
+        <FilterTabs
+          tabs={CATEGORY_FILTER_TABS}
+          active={activeFilter}
+          onSelect={setActiveFilter}
+        />
+
+        {/* 2-Column Portrait Mentor Cards Grid (Image 3) */}
         <MentorRoll
-          mentors={mentors}
+          mentors={filteredMentors}
           onMentorPress={handleMentorPress}
+          onAddMentorPress={() => router.push("/create")}
         />
 
         <JourneyTogether
@@ -264,16 +286,6 @@ export default function MemoryWallScreen() {
           onStoryPress={(id) =>
             router.push({ pathname: "/memory-detail/[id]", params: { id } })
           }
-        />
-
-        {/* Divider */}
-        <View style={styles.divider} />
-
-        {/* Filter tabs (sticky feel via placement) */}
-        <FilterTabs
-          tabs={filterTabs}
-          active={activeFilter}
-          onSelect={setActiveFilter}
         />
 
         {/* Section heading */}
@@ -313,7 +325,7 @@ export default function MemoryWallScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Palette.deepTeal,
+    backgroundColor: Palette.iceWhite,
   },
   scroll: {
     flex: 1,
@@ -357,9 +369,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(236,143,62,0.35)",
+    borderColor: Palette.borderSubtle,
     borderStyle: "dashed",
-    backgroundColor: "rgba(236,143,62,0.04)",
+    backgroundColor: Palette.surfaceCard,
   },
   addNudgeText: {
     fontSize: 14,

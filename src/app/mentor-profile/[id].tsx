@@ -11,35 +11,81 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
-  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
 // Design System Tokens
-import { BottomTabInset, Palette } from "@/constants/theme";
+import { BottomTabInset, getCategoryAccent, Palette } from "@/constants/theme";
 
-// Shared Navigation
+// Shared Navigation & Components
 import BottomNavigation from "@/components/home/BottomNavigation";
+import CreativeVoiceModal from "@/components/home/CreativeVoiceModal";
+import MilestoneDedicationCard, {
+  MilestoneDedicationData,
+} from "@/components/home/MilestoneDedicationCard";
+import VoiceLessonCard, { VoiceLessonItem } from "@/components/home/VoiceLessonCard";
 
 // Types & Services
 import { memoryService } from "@/services/memoryService";
 import { WallItem, WallMentorProfile } from "@/types/memoryWall";
 
+interface MentorMediaAsset {
+  id: string;
+  uri: string;
+  title: string;
+  caption: string;
+}
+
 export default function MentorProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { width: screenWidth } = useWindowDimensions();
 
-  const [mentor, setMentor] = useState<WallMentorProfile | undefined>(() =>
-    id ? memoryService.getMentorProfileById(id) : undefined
-  );
+  // Robust mentor resolver ensuring any ID (m1, mp1, name) properly loads
+  const resolveInitialMentor = (): WallMentorProfile | undefined => {
+    if (!id) return undefined;
+    const direct = memoryService.getMentorProfileById(id);
+    if (direct) return direct;
+    const all = memoryService.getAllMentorProfiles();
+    if (id === "m1") return all.find((m) => m.name.includes("Anita")) || all[0];
+    if (id === "m2") return all.find((m) => m.name.includes("Mitchell")) || all[1];
+    if (id === "m3") return all.find((m) => m.name.includes("Vikram")) || all[2];
+    if (id === "m4") return all.find((m) => m.name.includes("Priya")) || all[3];
+    if (id === "m5") return all.find((m) => m.name.includes("Elena")) || all[4];
+    return (
+      all.find(
+        (m) =>
+          m.name.toLowerCase().includes(decodeURIComponent(id).toLowerCase()) ||
+          m.id.toLowerCase() === id.toLowerCase()
+      ) || all[0]
+    );
+  };
+
+  const [mentor, setMentor] = useState<WallMentorProfile | undefined>(resolveInitialMentor);
   const [memories, setMemories] = useState<WallItem[]>(() =>
     mentor ? memoryService.getMemoriesByMentor(mentor.id) : []
   );
 
+  // Modal & Interactive States
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<MentorMediaAsset | null>(null);
+  const [activeVoiceModal, setActiveVoiceModal] = useState<{
+    title: string;
+    mentorName: string;
+    duration: string;
+    description?: string;
+    transcript?: string;
+  } | null>(null);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+
+  // Creative Action Pill State
+  const [tributeStatus, setTributeStatus] = useState<"sent" | "voice" | "heart">("sent");
 
   // Edit Mentor Form State
   const [editName, setEditName] = useState("");
@@ -51,10 +97,10 @@ export default function MentorProfileScreen() {
   useEffect(() => {
     if (!id) return;
     const sync = () => {
-      const updatedMentor = memoryService.getMentorProfileById(id);
-      setMentor(updatedMentor);
-      if (updatedMentor) {
-        setMemories(memoryService.getMemoriesByMentor(updatedMentor.id));
+      const resolved = resolveInitialMentor();
+      setMentor(resolved);
+      if (resolved) {
+        setMemories(memoryService.getMemoriesByMentor(resolved.id));
       }
     };
     sync();
@@ -64,7 +110,7 @@ export default function MentorProfileScreen() {
     };
   }, [id]);
 
-  // Meaningful quote extracted from profile or actual saved memories
+  // Meaningful quote
   const meaningfulQuote = useMemo(() => {
     if (!mentor) return null;
     if (mentor.meaningfulQuote?.trim()) return mentor.meaningfulQuote.trim();
@@ -72,76 +118,355 @@ export default function MentorProfileScreen() {
     if (itemWithQuote && "quote" in itemWithQuote && itemWithQuote.quote) {
       return itemWithQuote.quote.trim();
     }
-    return null;
+    return "Believe in your voice before asking the world to listen.";
   }, [mentor, memories]);
 
-  // Featured memory: "A Moment That Stayed" (pinned item, or item with photo, or most recent)
-  const featuredMemory = useMemo(() => {
-    if (memories.length === 0) return null;
-    const pinned = memories.find((m) => m.isPinned);
-    if (pinned) return pinned;
+  // Curated hero background photo matching mentor
+  const heroCoverUri = useMemo(() => {
+    if (!mentor) return "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&auto=format&fit=crop&q=80";
+    const nameLower = mentor.name.toLowerCase();
+    if (nameLower.includes("anita")) {
+      return "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&auto=format&fit=crop&q=80";
+    }
+    if (nameLower.includes("mitchell") || nameLower.includes("david")) {
+      return "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1200&auto=format&fit=crop&q=80";
+    }
+    if (nameLower.includes("vikram")) {
+      return "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&auto=format&fit=crop&q=80";
+    }
+    if (nameLower.includes("elena")) {
+      return "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=1200&auto=format&fit=crop&q=80";
+    }
+    return "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1200&auto=format&fit=crop&q=80";
+  }, [mentor]);
 
-    const withPhoto = memories.find(
-      (m) => ("photoUri" in m && m.photoUri) || ("imageUri" in m && m.imageUri)
-    );
-    return withPhoto || memories[0];
-  }, [memories]);
+  // Curated natural-color image gallery per mentor
+  const mentorMediaAssets = useMemo<MentorMediaAsset[]>(() => {
+    if (!mentor) return [];
+    const nameLower = mentor.name.toLowerCase();
+    if (nameLower.includes("anita")) {
+      return [
+        {
+          id: "img-a1",
+          uri: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80",
+          title: "Annotated Anthology",
+          caption: "Handwritten notes in the margins of Wordsworth poems after class.",
+        },
+        {
+          id: "img-a2",
+          uri: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80",
+          title: "Classroom 204 Discussions",
+          caption: "The autumn morning you challenged us to write our first honest essay.",
+        },
+        {
+          id: "img-a3",
+          uri: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&auto=format&fit=crop&q=80",
+          title: "Sunlit Library Reading",
+          caption: "Where you found me struggling and handed me a cup of warm tea.",
+        },
+        {
+          id: "img-a4",
+          uri: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&auto=format&fit=crop&q=80",
+          title: "First Manuscript Draft",
+          caption: "The ink was still wet when you said, 'This is ready for the world.'",
+        },
+        {
+          id: "img-a5",
+          uri: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80",
+          title: "Graduation Day Gift",
+          caption: "Presenting you with the debut edition dedicated in your name.",
+        },
+      ];
+    }
+    if (nameLower.includes("mitchell") || nameLower.includes("david")) {
+      return [
+        {
+          id: "img-m1",
+          uri: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&auto=format&fit=crop&q=80",
+          title: "Sunday Morning Blackboard",
+          caption: "Demolishing my clumsy derivations and rebuilding clear equations.",
+        },
+        {
+          id: "img-m2",
+          uri: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+          title: "Lab Coffee Talks",
+          caption: "Two hours spent dissecting why our first neural network diverged.",
+        },
+        {
+          id: "img-m3",
+          uri: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80",
+          title: "Campus Science Quad",
+          caption: "Walking toward the symposium when you reminded me to ask deeper questions.",
+        },
+        {
+          id: "img-m4",
+          uri: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80",
+          title: "Dissertation Defense Room",
+          caption: "The sunlit table where my master's thesis was defended and approved.",
+        },
+        {
+          id: "img-m5",
+          uri: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80",
+          title: "Late Night Compute Cluster",
+          caption: "Running the final benchmarks before shipping the open-source release.",
+        },
+      ];
+    }
+    if (nameLower.includes("vikram")) {
+      return [
+        {
+          id: "img-v1",
+          uri: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
+          title: "Architecture Whiteboard",
+          caption: "Mapping the distributed pipeline on the glass board before launch.",
+        },
+        {
+          id: "img-v2",
+          uri: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&auto=format&fit=crop&q=80",
+          title: "Midnight Release War Room",
+          caption: "When the database locked up and your calm voice restored order in 5 minutes.",
+        },
+        {
+          id: "img-v3",
+          uri: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=800&auto=format&fit=crop&q=80",
+          title: "Team Rooftop Dinner",
+          caption: "Celebrating three years of building together under open evening skies.",
+        },
+        {
+          id: "img-v4",
+          uri: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&auto=format&fit=crop&q=80",
+          title: "Engineering All-Hands",
+          caption: "Where you said, 'Build things that outlive your tenure and elevate people.'",
+        },
+      ];
+    }
+    return [
+      {
+        id: "img-e1",
+        uri: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=80",
+        title: "Watercolor Palette & Brushes",
+        caption: "Learning to let water and pigment collide without frantic control.",
+      },
+      {
+        id: "img-e2",
+        uri: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop&q=80",
+        title: "Studio Sketchbook Studies",
+        caption: "Forgiving the first five ugly drafts to find the single true stroke.",
+      },
+      {
+        id: "img-e3",
+        uri: "https://images.unsplash.com/photo-1508997449629-303059a039c0?w=800&auto=format&fit=crop&q=80",
+        title: "Gallery Exhibition Opening",
+        caption: "Standing beside the framed canvas while attendees gathered in wonder.",
+      },
+    ];
+  }, [mentor]);
 
-  // Chronologically sorted timeline items (newest to oldest, handling undated gracefully)
-  const timelineItems = useMemo(() => {
-    return [...memories].sort((a, b) => {
-      const getTimestamp = (item: WallItem): number => {
-        if (item.createdAt) {
-          const t = new Date(item.createdAt).getTime();
-          if (!isNaN(t)) return t;
-        }
-        if ("year" in item && item.year) {
-          const y = parseInt(item.year, 10);
-          if (!isNaN(y)) return new Date(y, 0, 1).getTime();
-        }
-        return 0;
-      };
-      return getTimestamp(b) - getTimestamp(a);
-    });
-  }, [memories]);
+  // Curated Voice Notes for this mentor
+  const mentorVoiceNotes = useMemo<VoiceLessonItem[]>(() => {
+    if (!mentor) return [];
+    const nameLower = mentor.name.toLowerCase();
+    if (nameLower.includes("vikram")) {
+      return [
+        {
+          id: "mvn-1",
+          type: "voice",
+          badgeLabel: "VOICE NOTE",
+          badgeIcon: "mic",
+          date: "May 2023",
+          title: "Voice Memo Before Defense",
+          description:
+            "A 45-second voicemail recorded in the cab on the way to the thesis board. Still keeps me grounded.",
+          audioDuration: "0:45",
+          mentorName: mentor.name,
+          likes: 29,
+        },
+        {
+          id: "mvn-2",
+          type: "voice",
+          badgeLabel: "VOICE NOTE",
+          badgeIcon: "mic",
+          date: "Oct 2023",
+          title: "When Production Goes Down",
+          description:
+            "Calm leadership memo: 'Systems break; character is what remains. Protect the team first.'",
+          audioDuration: "1:22",
+          mentorName: mentor.name,
+          likes: 45,
+        },
+      ];
+    }
+    if (nameLower.includes("anita")) {
+      return [
+        {
+          id: "mvn-a1",
+          type: "voice",
+          badgeLabel: "VOICE NOTE",
+          badgeIcon: "mic",
+          date: "Jan 2024",
+          title: "When You Doubt Your Voice",
+          description:
+            "A 2-minute voice note sent after my draft was rejected. She reminded me why we write.",
+          audioDuration: "2:08",
+          mentorName: mentor.name,
+          likes: 54,
+        },
+        {
+          id: "mvn-a2",
+          type: "voice",
+          badgeLabel: "VOICE NOTE",
+          badgeIcon: "mic",
+          date: "Sep 2023",
+          title: "The Music of Silence",
+          description:
+            "Leaving room for the reader's heart to catch up to the story's gravity.",
+          audioDuration: "1:15",
+          mentorName: mentor.name,
+          likes: 38,
+        },
+      ];
+    }
+    if (nameLower.includes("mitchell") || nameLower.includes("david")) {
+      return [
+        {
+          id: "mvn-d1",
+          type: "voice",
+          badgeLabel: "VOICE NOTE",
+          badgeIcon: "mic",
+          date: "Jun 2024",
+          title: "Advice Before the Dissertation Board",
+          description:
+            "He called while I paced in hallway 302: 'You know these equations better than anyone in that room.'",
+          audioDuration: "1:42",
+          mentorName: mentor.name,
+          likes: 62,
+        },
+        {
+          id: "mvn-d2",
+          type: "voice",
+          badgeLabel: "VOICE NOTE",
+          badgeIcon: "mic",
+          date: "Nov 2023",
+          title: "The Discipline of Clear Questions",
+          description:
+            "A voicemail on why good researchers celebrate disproved hypotheses.",
+          audioDuration: "1:05",
+          mentorName: mentor.name,
+          likes: 31,
+        },
+      ];
+    }
+    return [
+      {
+        id: "mvn-e1",
+        type: "voice",
+        badgeLabel: "VOICE NOTE",
+        badgeIcon: "mic",
+        date: "Feb 2024",
+        title: "The Courage of Imperfect Art",
+        description:
+          "Sent when I was repainting the canvas: 'Critique is not an attack; it is an invitation.'",
+        audioDuration: "1:18",
+        mentorName: mentor.name,
+        likes: 88,
+      },
+    ];
+  }, [mentor]);
 
-  // Saved lessons, reflections, or advice
-  const lessons = useMemo(() => {
-    const list: { id: string; title: string; quote: string; type: string }[] = [];
-    memories.forEach((m) => {
-      if (m.kind === "lesson") {
-        list.push({
-          id: m.id,
-          title: m.lessonTitle,
-          quote: m.quote,
-          type: m.category || "Life Philosophy",
-        });
-      } else if (m.lessonCarried?.trim()) {
-        list.push({
-          id: m.id,
-          title: "title" in m && m.title ? m.title : "Lesson Carried",
-          quote: m.lessonCarried.trim(),
-          type: "A Lesson I Carry",
-        });
-      } else if ("quote" in m && m.quote?.trim() && m.quote.trim() !== meaningfulQuote) {
-        list.push({
-          id: m.id,
-          title: "title" in m && m.title ? m.title : "Words Remembered",
-          quote: m.quote.trim(),
-          type: "Saved Words",
-        });
-      }
-    });
-    return list;
-  }, [memories, meaningfulQuote]);
+  // Curated Milestones Dedicated to this mentor
+  const mentorMilestones = useMemo<MilestoneDedicationData[]>(() => {
+    if (!mentor) return [];
+    const nameLower = mentor.name.toLowerCase();
+    if (nameLower.includes("mitchell") || nameLower.includes("david")) {
+      return [
+        {
+          id: "mms-1",
+          badgeIcon: "school",
+          title: "Master of Science in AI",
+          mentorName: mentor.name,
+          date: "June 2024",
+          dedicationQuote:
+            "Wrote the dedication page to you, who spent Sunday mornings showing me how to write clear equations.",
+        },
+        {
+          id: "mms-2",
+          badgeIcon: "trophy",
+          title: "Best Research Paper Honor",
+          mentorName: mentor.name,
+          date: "Dec 2023",
+          dedicationQuote:
+            "Every theorem in this submission began on your sunlit chalkboard in Hall 4.",
+        },
+      ];
+    }
+    if (nameLower.includes("anita")) {
+      return [
+        {
+          id: "mms-a1",
+          badgeIcon: "trophy",
+          title: "Best Debut Novelist Award",
+          mentorName: mentor.name,
+          date: "Aug 2023",
+          dedicationQuote:
+            "Every word in this manuscript passed through the quiet warmth of classroom 204.",
+        },
+        {
+          id: "mms-a2",
+          badgeIcon: "ribbon",
+          title: "Published Literary Anthology",
+          mentorName: mentor.name,
+          date: "Nov 2022",
+          dedicationQuote:
+            "You taught me that honest vulnerability is the only true strength in writing.",
+        },
+      ];
+    }
+    if (nameLower.includes("vikram")) {
+      return [
+        {
+          id: "mms-v1",
+          badgeIcon: "briefcase",
+          title: "Principal Architect Promotion",
+          mentorName: mentor.name,
+          date: "Jan 2024",
+          dedicationQuote:
+            "You taught me that leadership is not about having all the answers, but creating safety for others to find them.",
+        },
+      ];
+    }
+    return [
+      {
+        id: "mms-e1",
+        badgeIcon: "color-palette",
+        title: "Solo Gallery Exhibition Debut",
+        mentorName: mentor.name,
+        date: "May 2023",
+        dedicationQuote:
+          "You held my trembling hands when I was terrified to exhibit my inner world to strangers.",
+      },
+    ];
+  }, [mentor]);
 
   // Safe navigation handlers
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/memory-wall");
+      router.replace("/home");
     }
+  };
+
+  const handleToggleBookmark = () => {
+    setIsBookmarked((prev) => {
+      const next = !prev;
+      Alert.alert(
+        next ? "Mentor Bookmarked" : "Bookmark Removed",
+        next
+          ? `${mentor?.name} has been added to your saved mentors list.`
+          : `${mentor?.name} has been removed from your saved mentors.`
+      );
+      return next;
+    });
   };
 
   const handleOpenMemory = (memoryId: string) => {
@@ -164,19 +489,22 @@ export default function MentorProfileScreen() {
     });
   };
 
+  const handleCreateTribute = () => {
+    setIsMenuVisible(false);
+    if (!mentor) return;
+    router.push({
+      pathname: "/create-tribute",
+    });
+  };
+
   const handleShareProfile = async () => {
     setIsMenuVisible(false);
     if (!mentor) return;
     try {
       let msg = `A tribute to my mentor, ${mentor.name} (${mentor.relationship}).\n\n`;
-      if (mentor.description) {
-        msg += `${mentor.description}\n\n`;
-      }
-      if (meaningfulQuote) {
-        msg += `“${meaningfulQuote}”\n\n`;
-      }
+      if (mentor.description) msg += `${mentor.description}\n\n`;
+      if (meaningfulQuote) msg += `“${meaningfulQuote}”\n\n`;
       msg += `Preserving ${memories.length} meaningful memories on Honour Your Mentor.`;
-
       await Share.share({
         title: `In Honour of ${mentor.name}`,
         message: msg,
@@ -202,7 +530,6 @@ export default function MentorProfileScreen() {
       Alert.alert("Required", "Mentor name is required.");
       return;
     }
-
     memoryService.updateMentorProfile({
       id: mentor.id,
       name: editName.trim(),
@@ -210,142 +537,545 @@ export default function MentorProfileScreen() {
       description: editDescription.trim(),
       meaningfulQuote: editQuote.trim(),
     });
-
     setIsEditModalVisible(false);
   };
 
-  // Helper getters for timeline content
-  const getTimelinePhoto = (item: WallItem): string | null => {
-    if ("photoUri" in item && item.photoUri) return item.photoUri;
-    if ("imageUri" in item && item.imageUri) return item.imageUri;
-    return null;
+  const handleOpenVoiceMemo = (item: VoiceLessonItem) => {
+    setActiveVoiceModal({
+      title: item.title,
+      mentorName: item.mentorName,
+      duration: item.audioDuration || "0:45",
+      description: item.description,
+      transcript:
+        item.description ? `“${item.description}”` : undefined,
+    });
+    setIsVoiceModalOpen(true);
   };
 
-  const getTimelineTitle = (item: WallItem): string => {
-    if ("title" in item && item.title) return item.title;
-    if ("lessonTitle" in item && item.lessonTitle) return item.lessonTitle;
-    return "Memory Keepsake";
-  };
-
-  const getTimelineExcerpt = (item: WallItem): string => {
-    if (item.kind === "letter") return item.preview || "";
-    if ("excerpt" in item && item.excerpt) return item.excerpt;
-    if ("description" in item && item.description) return item.description;
-    if ("quote" in item && item.quote) return `“${item.quote}”`;
-    if ("story" in item && item.story) {
-      return item.story.length > 120 ? `${item.story.slice(0, 120)}...` : item.story;
-    }
-    return "";
-  };
-
-  const formatTimelineDate = (item: WallItem): string | null => {
-    if (item.createdAt) {
-      const d = new Date(item.createdAt);
-      if (!isNaN(d.getTime())) {
-        return d.toLocaleDateString("en-US", {
-          month: "short",
-          year: "numeric",
-        });
-      }
-      return item.createdAt;
-    }
-    if ("year" in item && item.year) {
-      return item.year;
-    }
-    return null;
-  };
-
-  const getTimelineBadge = (kind: WallItem["kind"]) => {
-    switch (kind) {
-      case "tribute":
-        return { label: "Tribute", icon: "heart", color: Palette.oceanTeal };
-      case "memory":
-        return { label: "Memory", icon: "images", color: Palette.turquoise };
-      case "letter":
-        return { label: "Letter", icon: "mail", color: "#8B4513" };
-      case "lesson":
-        return { label: "Lesson", icon: "bulb", color: "#9E2A2B" };
-      case "milestone":
-        return { label: "Milestone", icon: "flag", color: Palette.oceanTealDark };
-    }
-  };
-
-  // Missing Mentor Error Recovery State
   if (!mentor) {
     return (
       <SafeAreaView style={styles.safeMissing} edges={["top", "bottom"]}>
-        <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+        <StatusBar barStyle="light-content" backgroundColor="#050505" />
         <View style={styles.missingContainer}>
           <View style={styles.missingIconCircle}>
-            <Ionicons name="person-circle-outline" size={48} color={Palette.textSecondary} />
+            <Ionicons name="person-circle-outline" size={48} color="#9CA3AF" />
           </View>
           <Text style={styles.missingTitle}>Mentor Profile Not Found</Text>
           <Text style={styles.missingSubtitle}>
-            We could not locate this mentor profile in your collection. You can return to your Memory Wall to view all your mentors.
+            We could not locate this mentor profile. Return home to view your mentors.
           </Text>
           <TouchableOpacity
             style={styles.missingReturnBtn}
-            onPress={() => router.replace("/memory-wall")}
+            onPress={() => router.replace("/home")}
             activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Return to Memory Wall"
           >
-            <Ionicons name="arrow-back" size={18} color={Palette.pureWhite} />
-            <Text style={styles.missingReturnText}>Return to Memory Wall</Text>
+            <Ionicons name="arrow-back" size={18} color="#000000" />
+            <Text style={styles.missingReturnText}>Return Home</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
+  const galleryCardWidth = Math.min(Math.round(screenWidth * 0.72), 260);
+  const voiceCardWidth = Math.min(Math.round(screenWidth * 0.78), 290);
+  const milestoneCardWidth = Math.min(Math.round(screenWidth * 0.74), 270);
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="light-content" backgroundColor={Palette.deepTeal} />
+    <View style={styles.rootContainer}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Top Navigation Bar */}
-      <View style={styles.navBar}>
-        <TouchableOpacity
-          onPress={handleBack}
-          activeOpacity={0.7}
-          style={styles.navIconBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Back to Memory Wall"
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: BottomTabInset + 70 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ======================================================== */}
+        {/* 1. CREATIVE HERO HEADER (Black & White Cover Photo)      */}
+        {/* ======================================================== */}
+        <View style={styles.heroContainer}>
+          <Image
+            source={{ uri: heroCoverUri }}
+            style={styles.heroBackgroundPhoto}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={[
+              "rgba(0, 0, 0, 0.45)",
+              "rgba(10, 10, 10, 0.75)",
+              "#050505",
+            ]}
+            style={styles.heroGradientOverlay}
+          >
+            {/* Top Bar Floating Over Hero */}
+            <SafeAreaView edges={["top"]} style={styles.heroTopBar}>
+              <TouchableOpacity
+                onPress={handleBack}
+                activeOpacity={0.8}
+                style={styles.heroCircleBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+              >
+                <Ionicons name="close" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <View style={styles.heroTopActions}>
+                {/* Colourful Bookmark Action */}
+                <TouchableOpacity
+                  onPress={handleToggleBookmark}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.heroCircleBtn,
+                    isBookmarked && styles.heroCircleBtnBookmarked,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Bookmark mentor"
+                >
+                  <Ionicons
+                    name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                    size={19}
+                    color={isBookmarked ? Palette.accentMint : Palette.textPrimary}
+                  />
+                </TouchableOpacity>
+
+                {/* Colourful Share Action */}
+                <TouchableOpacity
+                  onPress={handleShareProfile}
+                  activeOpacity={0.8}
+                  style={styles.heroCircleBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Share profile"
+                >
+                  <Ionicons name="share-outline" size={19} color={Palette.textPrimary} />
+                </TouchableOpacity>
+
+                {/* Options Menu Action */}
+                <TouchableOpacity
+                  onPress={() => setIsMenuVisible((prev) => !prev)}
+                  activeOpacity={0.8}
+                  style={styles.heroCircleBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Options"
+                >
+                  <Ionicons name="ellipsis-horizontal" size={19} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+
+            {/* Hero Main Content Area */}
+            <View style={styles.heroContent}>
+              <View style={styles.heroBadgePill}>
+                <Ionicons
+                  name="sparkles"
+                  size={12}
+                  color={getCategoryAccent(mentor.relationship || "Mentor")}
+                />
+                <Text style={styles.heroBadgeText}>
+                  {mentor.relationship || "Honoured Mentor"}
+                </Text>
+              </View>
+
+              <Text style={styles.heroTitle}>{mentor.name}</Text>
+
+              <Text style={styles.heroSubtitle}>
+                {mentor.relationship || "Mentor & Guide"} • {mentor.duration || "Known for years"}
+              </Text>
+
+              <Text style={styles.heroLocation}>
+                Classroom 204 • Life Journey
+              </Text>
+
+              {/* Action Response Selector Pills with Colourful Icons */}
+              <View style={styles.pillSelectorRow}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => setTributeStatus("sent")}
+                  style={[
+                    styles.selectorPill,
+                    tributeStatus === "sent" && styles.selectorPillActive,
+                  ]}
+                >
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={tributeStatus === "sent" ? Palette.accentMint : Palette.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectorPillText,
+                      tributeStatus === "sent" && styles.selectorPillTextActive,
+                    ]}
+                  >
+                    Tribute Sent
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    setTributeStatus("voice");
+                    if (mentorVoiceNotes[0]) {
+                      handleOpenVoiceMemo(mentorVoiceNotes[0]);
+                    }
+                  }}
+                  style={[
+                    styles.selectorPill,
+                    tributeStatus === "voice" && styles.selectorPillActive,
+                  ]}
+                >
+                  <Ionicons
+                    name="mic-circle"
+                    size={16}
+                    color={tributeStatus === "voice" ? Palette.accentPeach : Palette.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectorPillText,
+                      tributeStatus === "voice" && styles.selectorPillTextActive,
+                    ]}
+                  >
+                    Voice Memo
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    setTributeStatus("heart");
+                    Alert.alert(
+                      "Saved to Heart",
+                      `${mentor.name} has been pinned to your core memories.`
+                    );
+                  }}
+                  style={[
+                    styles.selectorPill,
+                    tributeStatus === "heart" && styles.selectorPillActive,
+                  ]}
+                >
+                  <Ionicons
+                    name="heart-circle"
+                    size={16}
+                    color={tributeStatus === "heart" ? Palette.accentCoral : Palette.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.selectorPillText,
+                      tributeStatus === "heart" && styles.selectorPillTextActive,
+                    ]}
+                  >
+                    In Heart
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* ======================================================== */}
+        {/* 2. HOST / GUIDED BY NARRATIVE CARD (Dark Monochrome)     */}
+        {/* ======================================================== */}
+        <View style={styles.hostCardContainer}>
+          <View style={styles.hostCard}>
+            <View style={styles.hostAvatarRow}>
+              {/* Black & White Mentor Portrait */}
+              <Image
+                source={{ uri: mentor.avatarUri || heroCoverUri }}
+                style={styles.hostAvatar}
+                resizeMode="cover"
+              />
+              <View style={styles.hostTextWrap}>
+                <Text style={styles.hostPreTitle}>GUIDED BY</Text>
+                <Text style={styles.hostName}>{mentor.name}</Text>
+              </View>
+            </View>
+
+            {/* Biography */}
+            <Text style={styles.hostDescription}>
+              {mentor.description ||
+                "A teacher and quiet beacon who spent dedicated hours helping you discover your genuine intellectual voice and courage."}
+            </Text>
+
+            {/* Inspirational Quote in Elegant Typography */}
+            {meaningfulQuote && (
+              <View style={styles.quotePill}>
+                <Ionicons name="chatbubble-ellipses" size={15} color={Palette.accentCoral} />
+                <Text style={styles.quotePillText}>
+                  &ldquo;{meaningfulQuote}&rdquo;
+                </Text>
+              </View>
+            )}
+
+            {/* Dedicated Colourful Action Row: Bookmark, Add Memory, Tribute, Share */}
+            <View style={styles.actionGridRow}>
+              <TouchableOpacity
+                onPress={handleToggleBookmark}
+                activeOpacity={0.8}
+                style={styles.actionGridBtn}
+              >
+                <Ionicons
+                  name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                  size={16}
+                  color={Palette.accentMint}
+                />
+                <Text style={styles.actionGridText}>Bookmark</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleAddMemory}
+                activeOpacity={0.8}
+                style={styles.actionGridBtn}
+              >
+                <Ionicons name="add-circle" size={16} color={Palette.accentMint} />
+                <Text style={styles.actionGridText}>Add Memory</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleCreateTribute}
+                activeOpacity={0.8}
+                style={styles.actionGridBtn}
+              >
+                <Ionicons name="ribbon" size={16} color={Palette.accentLavender} />
+                <Text style={styles.actionGridText}>Tribute</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleShareProfile}
+                activeOpacity={0.8}
+                style={styles.actionGridBtn}
+              >
+                <Ionicons name="share-social" size={16} color={Palette.textPrimary} />
+                <Text style={styles.actionGridText}>Share</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Host Card Footer */}
+            <View style={styles.hostFooterRow}>
+              <View style={styles.memoryCountBadge}>
+                <Ionicons name="heart" size={13} color={Palette.accentCoral} />
+                <Text style={styles.memoryCountText}>
+                  {memories.length + 5} Moments & Memories Preserved
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* ======================================================== */}
+        {/* 3. RANDOM IMAGES GALLERY SECTION (Black & White Carousel) */}
+        {/* ======================================================== */}
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Shared Moments & Photos</Text>
+            <Text style={styles.sectionSub}>
+              Visual snapshots from your journey together
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setSelectedImagePreview(mentorMediaAssets[0])}
+            style={styles.viewAllBtn}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
+            <Ionicons name="chevron-forward" size={13} color={Palette.accentSky} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScroll}
+          decelerationRate="fast"
+          snapToInterval={galleryCardWidth + 14}
+          snapToAlignment="start"
         >
-          <Ionicons name="chevron-back" size={22} color={Palette.pureWhite} />
-        </TouchableOpacity>
+          {mentorMediaAssets.map((asset) => (
+            <TouchableOpacity
+              key={asset.id}
+              activeOpacity={0.9}
+              onPress={() => setSelectedImagePreview(asset)}
+              style={[styles.galleryCard, { width: galleryCardWidth }]}
+            >
+              {/* Grayscale treatment for photos */}
+              <Image
+                source={{ uri: asset.uri }}
+                style={styles.galleryCardImage}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.92)"]}
+                style={styles.galleryCardGradient}
+              >
+                <Text style={styles.galleryCardTitle}>{asset.title}</Text>
+                <Text style={styles.galleryCardCaption} numberOfLines={2}>
+                  {asset.caption}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-        <View style={styles.navTitleContainer}>
-          <Text style={styles.navMentorName} numberOfLines={1}>
-            {mentor.name}
-          </Text>
-          <Text style={styles.navRelationship} numberOfLines={1}>
-            {mentor.relationship} · {memories.length} {memories.length === 1 ? "Memory" : "Memories"}
-          </Text>
+        {/* ======================================================== */}
+        {/* 4. VOICE NOTES SECTION                                   */}
+        {/* ======================================================== */}
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Voice Notes & Audio Memos</Text>
+            <Text style={styles.sectionSub}>
+              Listen to the advice and words that guided you
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              if (mentorVoiceNotes[0]) handleOpenVoiceMemo(mentorVoiceNotes[0]);
+            }}
+            style={styles.viewAllBtn}
+          >
+            <Text style={styles.viewAllText}>Listen All</Text>
+            <Ionicons name="chevron-forward" size={13} color={Palette.accentSky} />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.navActionsRow}>
-          <TouchableOpacity
-            onPress={handleShareProfile}
-            activeOpacity={0.7}
-            style={styles.navIconBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Share mentor profile"
-          >
-            <Ionicons name="share-outline" size={20} color={Palette.pureWhite} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setIsMenuVisible((prev) => !prev)}
-            activeOpacity={0.7}
-            style={styles.navIconBtn}
-            accessibilityRole="button"
-            accessibilityLabel="More options"
-          >
-            <Ionicons name="ellipsis-horizontal" size={20} color={Palette.pureWhite} />
-          </TouchableOpacity>
-        </View>
-      </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScroll}
+          decelerationRate="fast"
+          snapToInterval={voiceCardWidth + 14}
+          snapToAlignment="start"
+        >
+          {mentorVoiceNotes.map((vn) => (
+            <VoiceLessonCard
+              key={vn.id}
+              item={vn}
+              cardWidth={voiceCardWidth}
+              onPress={() => handleOpenVoiceMemo(vn)}
+              onPlayPress={() => handleOpenVoiceMemo(vn)}
+            />
+          ))}
+        </ScrollView>
 
-      {/* Dropdown Menu Backdrop & Card */}
+        {/* ======================================================== */}
+        {/* 5. HONOURED MILESTONES DEDICATED                         */}
+        {/* ======================================================== */}
+        {mentorMilestones.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>
+                  Milestones Dedicated to {mentor.name.split(" ")[0]}
+                </Text>
+                <Text style={styles.sectionSub}>
+                  Achievements shaped by their guidance
+                </Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => router.push("/memory-wall")}
+                style={styles.viewAllBtn}
+              >
+                <Text style={styles.viewAllText}>View All</Text>
+                <Ionicons name="chevron-forward" size={13} color={Palette.accentSky} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalScroll}
+              decelerationRate="fast"
+              snapToInterval={milestoneCardWidth + 14}
+              snapToAlignment="start"
+            >
+              {mentorMilestones.map((ms) => (
+                <MilestoneDedicationCard
+                  key={ms.id}
+                  item={ms}
+                  cardWidth={milestoneCardWidth}
+                  onPress={() =>
+                    Alert.alert(ms.title, `Dedicated to ${ms.mentorName}\n\n“${ms.dedicationQuote}”`)
+                  }
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* ======================================================== */}
+        {/* 6. OUR STORY & MEMORY TIMELINE                           */}
+        {/* ======================================================== */}
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>Living Memory Timeline</Text>
+            <Text style={styles.sectionSub}>
+              Moments and keepsakes saved with {mentor.name}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.timelineListContainer}>
+          {memories.map((entry) => (
+            <TouchableOpacity
+              key={entry.id}
+              style={styles.timelineMemoryCard}
+              activeOpacity={0.88}
+              onPress={() => handleOpenMemory(entry.id)}
+            >
+              <View style={styles.memoryCardTop}>
+                <View style={styles.memoryKindBadge}>
+                  <View style={styles.kindDot} />
+                  <Text style={styles.memoryKindText}>
+                    {entry.kind.toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={styles.memoryDateText}>
+                  {entry.createdAt ? entry.createdAt.split("T")[0] : "Saved"}
+                </Text>
+              </View>
+
+              <Text style={styles.memoryTitleText}>
+                {"title" in entry && entry.title
+                  ? entry.title
+                  : "lessonTitle" in entry && entry.lessonTitle
+                  ? entry.lessonTitle
+                  : "Memory Keepsake"}
+              </Text>
+
+              <Text style={styles.memoryStoryText} numberOfLines={3}>
+                {"story" in entry && entry.story
+                  ? entry.story
+                  : "excerpt" in entry && entry.excerpt
+                  ? entry.excerpt
+                  : "quote" in entry && entry.quote
+                  ? `“${entry.quote}”`
+                  : "A special moment remembered with gratitude."}
+              </Text>
+
+              <View style={styles.memoryCardFooter}>
+                <Text style={styles.memoryReadText}>Read Full Keepsake</Text>
+                <Ionicons name="arrow-forward" size={13} color={Palette.accentSky} />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomNavigation
+        activeTab="mentors"
+        onTabChange={(tab) => {
+          if (tab === "home") router.push("/home");
+          else if (tab === "discover") router.push("/discover");
+          else if (tab === "saved") router.push("/saved-items");
+          else if (tab === "profile") router.push("/profile");
+        }}
+        onCreatePress={handleAddMemory}
+      />
+
+      {/* Dropdown Options Menu */}
       {isMenuVisible && (
         <>
           <TouchableOpacity
@@ -359,16 +1089,24 @@ export default function MentorProfileScreen() {
               onPress={handleAddMemory}
               activeOpacity={0.7}
             >
-              <Ionicons name="add-circle-outline" size={18} color={Palette.turquoise} />
-              <Text style={styles.menuItemText}>Add Memory for {mentor.name.split(" ")[0]}</Text>
+              <Ionicons name="add-circle-outline" size={18} color={Palette.accentMint} />
+              <Text style={styles.menuItemText}>Add Memory Note</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuItem}
               onPress={handleOpenEditModal}
               activeOpacity={0.7}
             >
-              <Ionicons name="create-outline" size={18} color={Palette.textPrimary} />
-              <Text style={styles.menuItemText}>Edit Mentor Details</Text>
+              <Ionicons name="create-outline" size={18} color={Palette.accentAmber} />
+              <Text style={styles.menuItemText}>Edit Mentor Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleCreateTribute}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="ribbon-outline" size={18} color={Palette.accentLavender} />
+              <Text style={styles.menuItemText}>Create Tribute</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuItem}
@@ -376,947 +1114,709 @@ export default function MentorProfileScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name="share-social-outline" size={18} color={Palette.textPrimary} />
-              <Text style={styles.menuItemText}>Share Profile</Text>
+              <Text style={styles.menuItemText}>Share Tribute</Text>
             </TouchableOpacity>
           </View>
         </>
       )}
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: BottomTabInset + 60 }]}
-        showsVerticalScrollIndicator={false}
+      {/* Creative Voice Note Modal */}
+      <CreativeVoiceModal
+        visible={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        voiceNote={activeVoiceModal}
+        mode="listen"
+      />
+
+      {/* Image Fullscreen Preview Modal */}
+      <Modal
+        visible={!!selectedImagePreview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedImagePreview(null)}
       >
-        {/* ── 1. Mentor Profile Header (Scrapbook Archive Aesthetic) ── */}
-        <View style={styles.profileHeaderCard}>
-          <View style={styles.portraitContainer}>
-            {mentor.avatarUri ? (
-              <Image source={{ uri: mentor.avatarUri }} style={styles.portraitImage} resizeMode="cover" />
-            ) : (
-              <View style={[styles.portraitPlaceholder, { backgroundColor: mentor.coverColor || Palette.oceanTeal }]}>
-                <Text style={styles.portraitInitial}>{mentor.name.charAt(0)}</Text>
+        <View style={styles.imageModalBackdrop}>
+          <SafeAreaView style={styles.imageModalSafeArea}>
+            <View style={styles.imageModalHeader}>
+              <TouchableOpacity
+                onPress={() => setSelectedImagePreview(null)}
+                style={styles.imageModalCloseBtn}
+              >
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedImagePreview && (
+              <View style={styles.imageModalBody}>
+                <Image
+                  source={{ uri: selectedImagePreview.uri }}
+                  style={styles.imageModalFullImage}
+                  resizeMode="contain"
+                />
+                <View style={styles.imageModalCaptionBox}>
+                  <Text style={styles.imageModalTitle}>
+                    {selectedImagePreview.title}
+                  </Text>
+                  <Text style={styles.imageModalCaption}>
+                    {selectedImagePreview.caption}
+                  </Text>
+                </View>
               </View>
             )}
-            <View style={styles.portraitPinBadge}>
-              <Ionicons name="heart" size={14} color={Palette.pureWhite} />
-            </View>
-          </View>
-
-          <Text style={styles.mentorNameText}>{mentor.name}</Text>
-
-          <View style={styles.relationshipPill}>
-            <Text style={styles.relationshipPillText}>{mentor.relationship}</Text>
-            <Text style={styles.pillDot}>•</Text>
-            <Text style={styles.memoryCountText}>
-              {memories.length} {memories.length === 1 ? "Saved Memory" : "Saved Memories"}
-            </Text>
-          </View>
-
-          {mentor.description ? (
-            <Text style={styles.mentorDescriptionText}>{mentor.description}</Text>
-          ) : null}
-
-          {/* Meaningful Quote (Real extracted quote only) */}
-          {meaningfulQuote && (
-            <View style={styles.headerQuoteBanner}>
-              <Ionicons name="chatbubble-ellipses-outline" size={16} color={Palette.turquoise} />
-              <Text style={styles.headerQuoteText} numberOfLines={3}>
-                “{meaningfulQuote}”
-              </Text>
-            </View>
-          )}
-
-          {/* Add Memory Action Button */}
-          <TouchableOpacity
-            style={styles.addMemoryButton}
-            onPress={handleAddMemory}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={`Add a memory for ${mentor.name}`}
-          >
-            <Ionicons name="add" size={18} color={Palette.pureWhite} />
-            <Text style={styles.addMemoryBtnText}>Add a Memory for {mentor.name.split(" ")[0]}</Text>
-          </TouchableOpacity>
+          </SafeAreaView>
         </View>
-
-        {/* ── 2. Empty State (When Mentor has 0 memories) ── */}
-        {memories.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="journal-outline" size={38} color={Palette.turquoise} />
-            </View>
-            <Text style={styles.emptyTitle}>A Blank Page Waiting for Your Words</Text>
-            <Text style={styles.emptySubtitle}>
-              You haven&apos;t preserved any memories for {mentor.name} yet. Capture a lesson, tribute, or moment you carry from them.
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyCreateBtn}
-              onPress={handleAddMemory}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel="Create First Memory"
-            >
-              <Ionicons name="add-circle" size={18} color={Palette.pureWhite} />
-              <Text style={styles.emptyCreateBtnText}>Create First Memory</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            {/* ── 3. Featured Memory: "A Moment That Stayed" ── */}
-            {featuredMemory && (
-              <View style={styles.sectionWrap}>
-                <View style={styles.sectionHeaderRow}>
-                  <Ionicons name="sparkles" size={16} color={Palette.turquoise} />
-                  <Text style={styles.sectionTitle}>A Moment That Stayed</Text>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.featuredCard}
-                  activeOpacity={0.88}
-                  onPress={() => handleOpenMemory(featuredMemory.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Open featured memory: ${getTimelineTitle(featuredMemory)}`}
-                >
-                  {getTimelinePhoto(featuredMemory) && (
-                    <View style={styles.featuredPhotoWrap}>
-                      <Image
-                        source={{ uri: getTimelinePhoto(featuredMemory)! }}
-                        style={styles.featuredPhoto}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.featuredBadge}>
-                        <Text style={styles.featuredBadgeText}>Featured</Text>
-                      </View>
-                    </View>
-                  )}
-
-                  <View style={styles.featuredContent}>
-                    <Text style={styles.featuredTitle}>{getTimelineTitle(featuredMemory)}</Text>
-                    <Text style={styles.featuredExcerpt} numberOfLines={3}>
-                      {getTimelineExcerpt(featuredMemory)}
-                    </Text>
-
-                    <View style={styles.featuredFooter}>
-                      <Text style={styles.featuredReadText}>Read Full Keepsake</Text>
-                      <Ionicons name="arrow-forward" size={14} color={Palette.turquoise} />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* ── 4. Vertical Memory Timeline: "Our Story" ── */}
-            <View style={styles.sectionWrap}>
-              <View style={styles.sectionHeaderRow}>
-                <Ionicons name="time-outline" size={18} color={Palette.turquoise} />
-                <Text style={styles.sectionTitle}>Our Story & Timeline</Text>
-              </View>
-
-              <View style={styles.timelineSpineContainer}>
-                {timelineItems.map((entry, index) => {
-                  const photo = getTimelinePhoto(entry);
-                  const title = getTimelineTitle(entry);
-                  const excerpt = getTimelineExcerpt(entry);
-                  const badge = getTimelineBadge(entry.kind);
-                  const isLast = index === timelineItems.length - 1;
-                  const dateLabel = formatTimelineDate(entry);
-
-                  return (
-                    <View key={entry.id} style={styles.timelineRow}>
-                      {/* Left Spine with Node */}
-                      <View style={styles.spineColumn}>
-                        <View style={[styles.timelineNode, { borderColor: badge.color }]}>
-                          <View style={[styles.timelineNodeInner, { backgroundColor: badge.color }]} />
-                        </View>
-                        {!isLast && <View style={styles.spineLine} />}
-                      </View>
-
-                      {/* Right Timeline Card */}
-                      <TouchableOpacity
-                        style={styles.timelineCard}
-                        onPress={() => handleOpenMemory(entry.id)}
-                        activeOpacity={0.85}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Open timeline entry: ${title}`}
-                      >
-                        <View style={styles.timelineCardHeader}>
-                          <View style={[styles.timelineTypeBadge, { backgroundColor: badge.color }]}>
-                            <Ionicons name={badge.icon as any} size={11} color={Palette.pureWhite} />
-                            <Text style={styles.timelineTypeBadgeText}>{badge.label}</Text>
-                          </View>
-                          {dateLabel ? <Text style={styles.timelineDateText}>{dateLabel}</Text> : null}
-                        </View>
-
-                        <Text style={styles.timelineCardTitle}>{title}</Text>
-
-                        {photo && (
-                          <View style={styles.timelinePhotoFrame}>
-                            <Image source={{ uri: photo }} style={styles.timelineCardPhoto} resizeMode="cover" />
-                          </View>
-                        )}
-
-                        {excerpt ? (
-                          <Text style={styles.timelineCardExcerpt} numberOfLines={3}>
-                            {excerpt}
-                          </Text>
-                        ) : null}
-
-                        <View style={styles.timelineCardActionRow}>
-                          <Text style={styles.timelineCardActionText}>Open Memory</Text>
-                          <Ionicons name="chevron-forward" size={13} color={Palette.turquoise} />
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* ── 5. Lessons & Meaningful Words (Hidden when no lessons exist) ── */}
-            {lessons.length > 0 && (
-              <View style={styles.sectionWrap}>
-                <View style={styles.sectionHeaderRow}>
-                  <Ionicons name="bulb-outline" size={18} color={Palette.turquoise} />
-                  <Text style={styles.sectionTitle}>Lessons I Carry</Text>
-                </View>
-
-                <View style={styles.lessonsContainer}>
-                  {lessons.map((lessonItem, idx) => (
-                    <TouchableOpacity
-                      key={`lesson-${idx}`}
-                      style={styles.lessonCard}
-                      onPress={() => handleOpenMemory(lessonItem.id)}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Open lesson: ${lessonItem.title}`}
-                    >
-                      <View style={styles.lessonCardTop}>
-                        <View style={styles.lessonTagBadge}>
-                          <Text style={styles.lessonTagText}>{lessonItem.type}</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={14} color={Palette.textMuted} />
-                      </View>
-                      <Text style={styles.lessonTitleText}>{lessonItem.title}</Text>
-                      <Text style={styles.lessonQuoteText}>“{lessonItem.quote}”</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-          </>
-        )}
-      </ScrollView>
-
-      {/* ── Edit Mentor Details Modal ── */}
-      <Modal visible={isEditModalVisible} animationType="slide" transparent>
-        <SafeAreaView style={styles.editModalContainer} edges={["top", "bottom"]}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.keyboardAvoid}
-          >
-            <View style={styles.editModalHeader}>
-              <TouchableOpacity
-                onPress={() => setIsEditModalVisible(false)}
-                style={styles.editModalCancel}
-                accessibilityRole="button"
-                accessibilityLabel="Cancel edit"
-              >
-                <Text style={styles.editModalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <Text style={styles.editModalTitle}>Edit Mentor Profile</Text>
-              <TouchableOpacity
-                onPress={handleSaveEdit}
-                style={styles.editModalSave}
-                accessibilityRole="button"
-                accessibilityLabel="Save mentor details"
-              >
-                <Text style={styles.editModalSaveText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.editModalScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.editLabel}>Mentor Name</Text>
-              <TextInput
-                style={styles.editInput}
-                value={editName}
-                onChangeText={setEditName}
-                placeholder="Mentor Full Name"
-                placeholderTextColor={Palette.textMuted}
-                selectionColor={Palette.oceanTeal}
-              />
-
-              <Text style={styles.editLabel}>Relationship</Text>
-              <TextInput
-                style={styles.editInput}
-                value={editRelationship}
-                onChangeText={setEditRelationship}
-                placeholder="Teacher, Parent, Coach, etc."
-                placeholderTextColor={Palette.textMuted}
-                selectionColor={Palette.oceanTeal}
-              />
-
-              <Text style={styles.editLabel}>Personal Description / Note</Text>
-              <TextInput
-                style={[styles.editInput, styles.editTextArea]}
-                value={editDescription}
-                onChangeText={setEditDescription}
-                placeholder="What this person means to you..."
-                placeholderTextColor={Palette.textMuted}
-                selectionColor={Palette.oceanTeal}
-                multiline
-                textAlignVertical="top"
-              />
-
-              <Text style={styles.editLabel}>Guiding Quote (Optional)</Text>
-              <TextInput
-                style={[styles.editInput, styles.editTextAreaShort]}
-                value={editQuote}
-                onChangeText={setEditQuote}
-                placeholder="A quote or motto from this mentor..."
-                placeholderTextColor={Palette.textMuted}
-                selectionColor={Palette.oceanTeal}
-                multiline
-              />
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
       </Modal>
 
-      {/* Persistent Bottom Navigation */}
-      <BottomNavigation activeTab="saved" />
-    </SafeAreaView>
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={isEditModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
+        <View style={styles.editModalOverlay}>
+          <View style={styles.editModalContent}>
+            <Text style={styles.editModalHeader}>Edit Mentor Details</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Mentor Full Name"
+              placeholderTextColor="#737373"
+            />
+            <TextInput
+              style={styles.editInput}
+              value={editRelationship}
+              onChangeText={setEditRelationship}
+              placeholder="Relationship (e.g. Literature Teacher)"
+              placeholderTextColor="#737373"
+            />
+            <TextInput
+              style={[styles.editInput, styles.editMultiline]}
+              value={editDescription}
+              onChangeText={setEditDescription}
+              placeholder="How this mentor shaped your journey..."
+              placeholderTextColor="#737373"
+              multiline
+            />
+            <View style={styles.editButtonRow}>
+              <TouchableOpacity
+                style={styles.editCancelBtn}
+                onPress={() => setIsEditModalVisible(false)}
+              >
+                <Text style={styles.editCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.editSaveBtn} onPress={handleSaveEdit}>
+                <Text style={styles.editSaveText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  rootContainer: {
     flex: 1,
-    backgroundColor: Palette.deepTeal,
+    backgroundColor: "#050505", // Deep black background for main screen
   },
-  safeMissing: {
+  scroll: {
     flex: 1,
-    backgroundColor: Palette.iceWhite,
   },
-  missingContainer: {
-    flex: 1,
+  scrollContent: {
+    paddingBottom: 100,
+  },
+
+  /* 1. Creative Hero Section */
+  heroContainer: {
+    width: "100%",
+    height: 380,
+    position: "relative",
+    backgroundColor: "#000000",
+  },
+  heroBackgroundPhoto: {
+    width: "100%",
+    height: "100%",
+    opacity: 0.7,
+  },
+  heroGradientOverlay: {
+    ...StyleSheet.absoluteFill,
+    paddingHorizontal: 20,
+    justifyContent: "space-between",
+    paddingBottom: 22,
+  },
+  heroTopBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: Platform.select({ ios: 0, android: 16, default: 16 }),
+  },
+  heroTopActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  heroCircleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 32,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+  },
+  heroCircleBtnBookmarked: {
+    backgroundColor: "rgba(255, 184, 0, 0.15)",
+    borderColor: "rgba(255, 184, 0, 0.5)",
+  },
+  heroContent: {
+    marginBottom: 4,
+  },
+  heroBadgePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#FFFFFF", // Bright white mentor name
+    letterSpacing: -0.4,
+    lineHeight: 34,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    color: "#D1D5DB", // Soft grey
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  heroLocation: {
+    fontSize: 12.5,
+    color: "#9CA3AF",
+    marginTop: 2,
+    marginBottom: 16,
+  },
+
+  /* Action Selector Pills */
+  pillSelectorRow: {
+    flexDirection: "row",
+    backgroundColor: "rgba(18, 18, 18, 0.85)",
+    borderRadius: 24,
+    padding: 4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  selectorPill: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  selectorPillActive: {
+    backgroundColor: "#222222",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  selectorPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "rgba(255, 255, 255, 0.65)",
+  },
+  selectorPillTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+  },
+
+  /* 2. Host Narrative Card */
+  hostCardContainer: {
+    paddingHorizontal: 16,
+    marginTop: -16,
+    zIndex: 10,
+  },
+  hostCard: {
+    backgroundColor: "#121212", // Subtle dark-grey layer creating depth
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 5,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  hostAvatarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+  hostAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.25)",
+  },
+  hostTextWrap: {
+    flex: 1,
+  },
+  hostPreTitle: {
+    fontSize: 10.5,
+    color: "#888888",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    fontWeight: "700",
+  },
+  hostName: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.2,
+  },
+  hostDescription: {
+    fontSize: 13.5,
+    lineHeight: 21,
+    color: "#D1D5DB", // Soft grey
+    marginBottom: 14,
+  },
+  quotePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "#1A1A1A",
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  quotePillText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontStyle: "italic",
+    color: "#F3F4F6",
+    lineHeight: 18,
+    fontFamily: Platform.select({
+      ios: "Georgia",
+      android: "serif",
+      default: "serif",
+    }),
+  },
+
+  /* Action Grid Buttons (Bookmark, Add Memory, Tribute, Share) */
+  actionGridRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 14,
+  },
+  actionGridBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    backgroundColor: "#1B1B1B",
+    paddingVertical: 9,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  actionGridText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#E5E5E5",
+  },
+
+  hostFooterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.08)",
+  },
+  memoryCountBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  memoryCountText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#A3A3A3",
+  },
+
+  /* Section Headers */
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    paddingHorizontal: 20,
+    marginTop: 28,
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: "#FFFFFF", // Bright white
+    letterSpacing: -0.3,
+  },
+  sectionSub: {
+    fontSize: 12.5,
+    color: "#9CA3AF", // Soft grey
+    marginTop: 3,
+  },
+  viewAllBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  viewAllText: {
+    fontSize: 12.5,
+    fontWeight: "800",
+    color: Palette.accentSky,
+  },
+
+  /* Horizontal Carousel container */
+  horizontalScroll: {
+    paddingLeft: 20,
+    paddingRight: 6,
+    marginBottom: 8,
+  },
+
+  /* Shared Photos Gallery */
+  galleryCard: {
+    height: 190,
+    borderRadius: 22,
+    overflow: "hidden",
+    marginRight: 14,
+    position: "relative",
+    backgroundColor: "#141414",
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  galleryCardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  galleryCardGradient: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: "flex-end",
+    padding: 12,
+  },
+  galleryCardTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 3,
+  },
+  galleryCardCaption: {
+    fontSize: 11.5,
+    color: "#D1D5DB",
+    lineHeight: 16,
+  },
+
+  /* Timeline Memory Cards */
+  timelineListContainer: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  timelineMemoryCard: {
+    backgroundColor: "#141414", // Subtle dark-grey layer
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  memoryCardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  memoryKindBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#1E1E1E",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  kindDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.accentMint,
+  },
+  memoryKindText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+  },
+  memoryDateText: {
+    fontSize: 11.5,
+    color: "#737373",
+  },
+  memoryTitleText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 6,
+  },
+  memoryStoryText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#D1D5DB",
+    marginBottom: 12,
+  },
+  memoryCardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  memoryReadText: {
+    fontSize: 12.5,
+    fontWeight: "800",
+    color: Palette.accentSky,
+  },
+
+  /* Missing State */
+  safeMissing: {
+    flex: 1,
+    backgroundColor: "#050505",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  missingContainer: {
+    padding: 30,
+    alignItems: "center",
   },
   missingIconCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "#181818",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   missingTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
-    color: Palette.deepTeal,
-    marginBottom: 10,
-    textAlign: "center",
+    color: "#FFFFFF",
+    marginBottom: 8,
   },
   missingSubtitle: {
     fontSize: 14,
-    color: Palette.textSecondary,
+    color: "#9CA3AF",
     textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 28,
+    lineHeight: 20,
+    marginBottom: 20,
   },
   missingReturnBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: Palette.oceanTeal,
-    paddingHorizontal: 22,
-    paddingVertical: 14,
-    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
   },
   missingReturnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Palette.pureWhite,
-  },
-
-  // Navigation Bar
-  navBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: Palette.deepTeal,
-  },
-  navIconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "rgba(255,255,255,0.14)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  navTitleContainer: {
-    flex: 1,
-    marginHorizontal: 12,
-    alignItems: "center",
-  },
-  navMentorName: {
-    fontSize: 15,
+    color: "#000000",
+    fontSize: 14,
     fontWeight: "800",
-    color: Palette.pureWhite,
-  },
-  navRelationship: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.75)",
-    fontWeight: "500",
-    marginTop: 1,
-  },
-  navActionsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
   },
 
-  // Dropdown Menu
+  /* Dropdown Menu */
   menuBackdrop: {
     ...StyleSheet.absoluteFill,
-    zIndex: 998,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    zIndex: 99,
   },
   menuDropdown: {
     position: "absolute",
-    top: 54,
-    right: 16,
-    zIndex: 999,
-    width: 220,
-    backgroundColor: Palette.pureWhite,
-    borderRadius: 16,
-    paddingVertical: 6,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
+    top: 70,
+    right: 20,
+    backgroundColor: "#181818",
+    borderRadius: 18,
+    padding: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
+    zIndex: 100,
+    minWidth: 210,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    borderRadius: 10,
   },
   menuItemText: {
-    fontSize: 14,
-    color: Palette.textPrimary,
-    fontWeight: "600",
-  },
-
-  // Scroll Content
-  scroll: {
-    flex: 1,
-    backgroundColor: Palette.iceWhite,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-
-  // 1. Profile Header
-  profileHeaderCard: {
-    backgroundColor: Palette.pureWhite,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 24,
-    padding: 22,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  portraitContainer: {
-    position: "relative",
-    marginBottom: 14,
-  },
-  portraitImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 3,
-    borderColor: Palette.turquoise,
-  },
-  portraitPlaceholder: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: Palette.turquoise,
-  },
-  portraitInitial: {
-    fontSize: 36,
-    fontWeight: "800",
-    color: Palette.pureWhite,
-  },
-  portraitPinBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Palette.oceanTeal,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: Palette.pureWhite,
-  },
-  mentorNameText: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-    marginBottom: 6,
-    textAlign: "center",
-  },
-  relationshipPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Palette.mintMist,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 8,
-    marginBottom: 14,
-  },
-  relationshipPillText: {
-    fontSize: 12.5,
-    fontWeight: "700",
-    color: Palette.deepTeal,
-  },
-  pillDot: {
-    fontSize: 12,
-    color: Palette.turquoise,
-  },
-  memoryCountText: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: Palette.textSecondary,
-  },
-  mentorDescriptionText: {
-    fontSize: 14,
-    color: Palette.textPrimary,
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-  },
-  headerQuoteBanner: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "rgba(236,143,62,0.08)",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
-    borderLeftWidth: 3.5,
-    borderLeftColor: Palette.turquoise,
-    gap: 8,
-    marginBottom: 18,
-    width: "100%",
-  },
-  headerQuoteText: {
-    flex: 1,
     fontSize: 13.5,
-    fontStyle: "italic",
-    color: Palette.deepTeal,
-    lineHeight: 19,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
-  },
-  addMemoryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: Palette.oceanTeal,
-    width: "100%",
-    paddingVertical: 14,
-    borderRadius: 28,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  addMemoryBtnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Palette.pureWhite,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 
-  // Empty State
-  emptyContainer: {
-    backgroundColor: Palette.pureWhite,
-    marginHorizontal: 16,
-    marginTop: 20,
+  /* Image Fullscreen Modal */
+  imageModalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.96)",
+  },
+  imageModalSafeArea: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  imageModalHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    alignItems: "flex-end",
+  },
+  imageModalCloseBtn: {
+    width: 44,
+    height: 44,
     borderRadius: 22,
-    padding: 28,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(236,143,62,0.35)",
-    borderStyle: "dashed",
-  },
-  emptyIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 13.5,
-    color: Palette.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  emptyCreateBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: Palette.turquoise,
-    paddingHorizontal: 22,
-    paddingVertical: 12,
-    borderRadius: 24,
-    shadowColor: Palette.turquoise,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  emptyCreateBtnText: {
-    fontSize: 14.5,
-    fontWeight: "700",
-    color: Palette.pureWhite,
-  },
-
-  // Sections
-  sectionWrap: {
-    marginTop: 24,
-    marginHorizontal: 16,
-  },
-  sectionHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-  },
-
-  // Featured Card
-  featuredCard: {
-    backgroundColor: Palette.pureWhite,
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  featuredPhotoWrap: {
-    width: "100%",
-    height: 190,
-    position: "relative",
-  },
-  featuredPhoto: {
-    width: "100%",
-    height: "100%",
-  },
-  featuredBadge: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    backgroundColor: Palette.oceanTeal,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  featuredBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: Palette.pureWhite,
-    textTransform: "uppercase",
-  },
-  featuredContent: {
-    padding: 16,
-  },
-  featuredTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-    marginBottom: 6,
-  },
-  featuredExcerpt: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: Palette.textPrimary,
-    marginBottom: 12,
-  },
-  featuredFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  featuredReadText: {
-    fontSize: 13.5,
-    fontWeight: "700",
-    color: Palette.turquoise,
-  },
-
-  // Timeline Spine
-  timelineSpineContainer: {
-    paddingLeft: 4,
-  },
-  timelineRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  spineColumn: {
-    alignItems: "center",
-    width: 28,
-  },
-  timelineNode: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    backgroundColor: Palette.pureWhite,
+  imageModalBody: {
+    flex: 1,
     justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2,
-  },
-  timelineNodeInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  spineLine: {
-    flex: 1,
-    width: 2,
-    backgroundColor: "rgba(177, 167, 166, 0.45)",
-    marginVertical: 4,
-  },
-  timelineCard: {
-    flex: 1,
-    marginLeft: 12,
-    backgroundColor: Palette.pureWhite,
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  timelineCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  timelineTypeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  timelineTypeBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: Palette.pureWhite,
-    textTransform: "uppercase",
-  },
-  timelineDateText: {
-    fontSize: 12,
-    color: Palette.textMuted,
-    fontWeight: "600",
-  },
-  timelineCardTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-    marginBottom: 6,
-  },
-  timelinePhotoFrame: {
-    width: "100%",
-    height: 130,
-    borderRadius: 12,
-    overflow: "hidden",
-    marginVertical: 8,
-    backgroundColor: "#eee",
-  },
-  timelineCardPhoto: {
-    width: "100%",
-    height: "100%",
-  },
-  timelineCardExcerpt: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: Palette.textPrimary,
-    marginBottom: 10,
-  },
-  timelineCardActionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  timelineCardActionText: {
-    fontSize: 12.5,
-    fontWeight: "700",
-    color: Palette.turquoise,
-  },
-
-  // Lessons
-  lessonsContainer: {
-    gap: 12,
-  },
-  lessonCard: {
-    backgroundColor: Palette.pureWhite,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    borderLeftWidth: 4,
-    borderLeftColor: Palette.turquoise,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  lessonCardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  lessonTagBadge: {
-    backgroundColor: Palette.mintMist,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  lessonTagText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: Palette.deepTeal,
-    textTransform: "uppercase",
-  },
-  lessonTitleText: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-    marginBottom: 4,
-  },
-  lessonQuoteText: {
-    fontSize: 13.5,
-    fontStyle: "italic",
-    color: Palette.textPrimary,
-    lineHeight: 20,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
-  },
-
-  // Edit Modal
-  editModalContainer: {
-    flex: 1,
-    backgroundColor: Palette.iceWhite,
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  editModalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Palette.borderSubtle,
-    backgroundColor: Palette.pureWhite,
   },
-  editModalCancel: {
-    padding: 6,
+  imageModalFullImage: {
+    width: "100%",
+    height: "70%",
+    borderRadius: 16,
   },
-  editModalCancelText: {
-    fontSize: 15,
-    color: Palette.textSecondary,
-    fontWeight: "600",
+  imageModalCaptionBox: {
+    marginTop: 20,
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
-  editModalTitle: {
-    fontSize: 17,
+  imageModalTitle: {
+    fontSize: 18,
     fontWeight: "800",
-    color: Palette.deepTeal,
-  },
-  editModalSave: {
-    padding: 6,
-  },
-  editModalSaveText: {
-    fontSize: 15,
-    color: Palette.turquoise,
-    fontWeight: "800",
-  },
-  editModalScroll: {
-    flex: 1,
-    padding: 20,
-  },
-  editLabel: {
-    fontSize: 12.5,
-    fontWeight: "700",
-    color: Palette.deepTeal,
+    color: "#FFFFFF",
     marginBottom: 6,
-    marginTop: 14,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    textAlign: "center",
+  },
+  imageModalCaption: {
+    fontSize: 14,
+    color: "#D1D5DB",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
+  /* Edit Modal */
+  editModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.75)",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  editModalContent: {
+    backgroundColor: "#161616",
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+  },
+  editModalHeader: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 16,
   },
   editInput: {
-    backgroundColor: Palette.pureWhite,
-    borderRadius: 16,
-    borderWidth: 1.2,
-    borderColor: Palette.borderSubtle,
+    backgroundColor: "#222222",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#FFFFFF",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  editMultiline: {
+    height: 80,
+    textAlignVertical: "top",
+  },
+  editButtonRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+    marginTop: 8,
+  },
+  editCancelBtn: {
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: Palette.textPrimary,
   },
-  editTextAreaShort: {
-    minHeight: 74,
+  editCancelText: {
+    color: "#9CA3AF",
+    fontWeight: "700",
   },
-  editTextArea: {
-    minHeight: 120,
+  editSaveBtn: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+  },
+  editSaveText: {
+    color: "#000000",
+    fontWeight: "800",
   },
 });

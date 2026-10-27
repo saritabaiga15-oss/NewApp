@@ -57,6 +57,7 @@ export default function TributePreviewScreen() {
   // Full Screen State
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Entrance animations
@@ -98,16 +99,23 @@ export default function TributePreviewScreen() {
   };
 
   // Primary Action: Save Keepsake
-  const handleSaveKeepsake = () => {
-    tributeDraftService.saveCompletedTribute(design);
-    setIsSaved(true);
-    showToast("Tribute keepsake saved to your collection!");
-
-    Alert.alert(
-      "Tribute Saved",
-      `Your tribute for ${design.mentorName} is now safely preserved in your personal collection.`,
-      [{ text: "Cherish It", style: "default" }]
-    );
+  const handleSaveKeepsake = async () => {
+    setIsSaving(true);
+    try {
+      await tributeDraftService.saveCompletedTribute(design);
+      setIsSaved(true);
+      showToast("Tribute keepsake saved to your collection!");
+      Alert.alert(
+        "Tribute Saved",
+        `Your tribute for ${design.mentorName} is now safely preserved in your personal collection.`,
+        [{ text: "Cherish It", style: "default" }]
+      );
+    } catch (error) {
+      console.error("Unable to save tribute:", error);
+      Alert.alert("Could not save tribute", "Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Secondary Action: Share Tribute
@@ -130,28 +138,35 @@ export default function TributePreviewScreen() {
   };
 
   // Next Step: Add to Memory Wall
-  const handleAddToMemoryWall = () => {
-    tributeDraftService.saveCompletedTribute(design);
-    setIsSaved(true);
-    showToast("Added to Memory Wall!");
-
-    Alert.alert(
-      "Memory Wall",
-      `Your tribute for ${design.mentorName} has been added to your Memory Wall.`,
-      [
-        {
-          text: "View Memory Wall",
-          onPress: () => {
-            router.push("/memory-wall");
+  const handleAddToMemoryWall = async () => {
+    setIsSaving(true);
+    try {
+      await tributeDraftService.saveCompletedTribute(design);
+      setIsSaved(true);
+      showToast("Added to Memory Wall!");
+      Alert.alert(
+        "Memory Wall",
+        `Your tribute for ${design.mentorName} has been added to your Memory Wall.`,
+        [
+          {
+            text: "View Memory Wall",
+            onPress: () => {
+              router.push("/memory-wall");
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error) {
+      console.error("Unable to add tribute to the Memory Wall:", error);
+      Alert.alert("Could not save tribute", "Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Palette.iceWhite} />
+      <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
 
       {/* Main Preview Container */}
       <View style={styles.mainContainer}>
@@ -257,6 +272,7 @@ export default function TributePreviewScreen() {
             {/* Primary Action — Save Keepsake */}
             <TouchableOpacity
               onPress={handleSaveKeepsake}
+              disabled={isSaving}
               activeOpacity={0.85}
               style={[
                 styles.primarySaveBtn,
@@ -311,6 +327,7 @@ export default function TributePreviewScreen() {
             {/* Next Step Action — Add to Memory Wall */}
             <TouchableOpacity
               onPress={handleAddToMemoryWall}
+              disabled={isSaving}
               activeOpacity={0.8}
               style={styles.memoryWallBtn}
               accessibilityRole="button"

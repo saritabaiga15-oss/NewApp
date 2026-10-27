@@ -1,7 +1,23 @@
+import React, { useEffect } from "react";
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { memoryService } from "@/services/memoryService";
+import { storyBookmarkService } from "@/services/storyBookmarkService";
+import { tributeDraftService } from "@/services/tributeDraftService";
+import { userProfileService } from "@/services/userProfileService";
 
 export default function RootLayout() {
+  useEffect(() => {
+    Promise.all([
+      memoryService.initialize(),
+      storyBookmarkService.initialize(),
+      tributeDraftService.initialize(),
+      userProfileService.initialize(),
+    ]).catch((error: unknown) => {
+      console.error("Unable to initialize local app data:", error);
+    });
+  }, []);
+
   return (
     <SafeAreaProvider>
       <Stack screenOptions={{ headerShown: false }}>
@@ -12,6 +28,11 @@ export default function RootLayout() {
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="home" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="profile-edit" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="tributes" />
+        <Stack.Screen name="saved-items" />
+        <Stack.Screen name="memories" />
         <Stack.Screen name="create-mentor" />
         <Stack.Screen name="discover" />
         <Stack.Screen name="create" />

@@ -26,14 +26,15 @@ interface TabItem {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   activeIcon: keyof typeof Ionicons.glyphMap;
+  activeColor: string;
 }
 
 const FIVE_TABS: TabItem[] = [
-  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home" },
-  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass" },
-  { key: "create", label: "Create", icon: "add-circle-outline", activeIcon: "add-circle" },
-  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark" },
-  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person" },
+  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home", activeColor: Palette.accentMint },
+  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass", activeColor: Palette.accentSky },
+  { key: "create", label: "Create", icon: "add", activeIcon: "add", activeColor: Palette.accentSky },
+  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: Palette.accentMint },
+  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person", activeColor: Palette.accentPink },
 ];
 
 export default function BottomNavigation({
@@ -64,7 +65,7 @@ export default function BottomNavigation({
     } else if (tabKey === "discover" && activeTab !== "discover") {
       router.push("/discover");
     } else if (tabKey === "saved" && activeTab !== "saved") {
-      router.push("/memory-wall");
+      router.push("/saved-items");
     } else if (tabKey === "profile" && activeTab !== "profile") {
       router.push("/profile");
     }
@@ -81,6 +82,7 @@ export default function BottomNavigation({
             (activeTab === "gratitude" && tab.key === "saved");
 
           const isCreate = tab.key === "create";
+          const iconColor = isActive || isCreate ? tab.activeColor : Palette.textSecondary;
 
           return (
             <TouchableOpacity
@@ -92,20 +94,24 @@ export default function BottomNavigation({
               accessibilityLabel={tab.label}
               accessibilityState={{ selected: isActive }}
             >
-              {isActive && !isCreate && <View style={styles.activePillIndicator} />}
-              <Ionicons
-                name={isActive ? tab.activeIcon : tab.icon}
-                size={isCreate ? 26 : 21}
-                color={
-                  isActive
-                    ? Palette.turquoise
-                    : "rgba(252, 238, 228, 0.65)"
-                }
-              />
+              {isActive && !isCreate && (
+                <View style={[styles.activePillIndicator, { backgroundColor: tab.activeColor }]} />
+              )}
+              {isCreate ? (
+                <View style={styles.createButtonCircle}>
+                  <Ionicons name="add" size={25} color={Palette.textOnPrimary} />
+                </View>
+              ) : (
+                <Ionicons
+                  name={isActive ? tab.activeIcon : tab.icon}
+                  size={21}
+                  color={iconColor}
+                />
+              )}
               <Text
                 style={[
                   styles.tabLabel,
-                  isActive && styles.tabLabelActive,
+                  isActive && { color: tab.activeColor, fontWeight: "800" },
                 ]}
                 numberOfLines={1}
               >
@@ -125,26 +131,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: "transparent",
+    paddingTop: 6,
+    backgroundColor: "#000000",
     zIndex: 99,
+    borderTopWidth: 1,
+    borderTopColor: Palette.borderSubtle,
   },
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Palette.deepTeal, // Deep Teal background
-    shadowColor: Palette.deepTeal,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 10,
+    height: 58,
+    backgroundColor: "#000000",
     paddingHorizontal: 6,
-    borderWidth: 1,
-    borderColor: "rgba(252, 238, 228, 0.15)",
   },
   tabButton: {
     flex: 1,
@@ -154,7 +153,15 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   createTabButton: {
-    transform: [{ scale: 1.05 }],
+    transform: [{ translateY: -5 }],
+  },
+  createButtonCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   activePillIndicator: {
     position: "absolute",
@@ -162,20 +169,11 @@ const styles = StyleSheet.create({
     width: 20,
     height: 3,
     borderRadius: 2,
-    backgroundColor: Palette.turquoise, // Turquoise indicator
-    shadowColor: Palette.turquoise,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
   },
   tabLabel: {
     fontSize: 10,
     fontWeight: "600",
-    color: "rgba(252, 238, 228, 0.65)",
+    color: Palette.textSecondary,
     marginTop: 3,
-  },
-  tabLabelActive: {
-    color: Palette.turquoise,
-    fontWeight: "800",
   },
 });

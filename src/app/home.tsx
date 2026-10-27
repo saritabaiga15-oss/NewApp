@@ -27,14 +27,18 @@ import MemoryCard, { MemoryData } from "../components/home/MemoryCard";
 import VoiceNoteCard, { VoiceNoteData } from "../components/home/VoiceNoteCard";
 import GratitudeCard, { GratitudePostData } from "../components/home/GratitudeCard";
 import AchievementCard, { AchievementData } from "../components/home/AchievementCard";
+import AchievementDetailModal from "../components/home/AchievementDetailModal";
 import TimelinePreview, { TimelineNode } from "../components/home/TimelinePreview";
 import QuickAction from "../components/home/QuickAction";
 import BottomNavigation, { NavTab } from "../components/home/BottomNavigation";
 import AddMemoryModal from "../components/home/AddMemoryModal";
+import VoiceRecorderModal, {
+  RecordedVoiceNote,
+} from "../components/home/VoiceRecorderModal";
 import { memoryService } from "@/services/memoryService";
 import { userProfileService } from "@/services/userProfileService";
 import type { UserProfile } from "@/services/userProfileService";
-import type { WallItem } from "@/types/memoryWall";
+import type { WallItem, WallMemory } from "@/types/memoryWall";
 
 // Mock Data: Mentors
 const MENTORS_DATA: MentorData[] = [
@@ -42,41 +46,71 @@ const MENTORS_DATA: MentorData[] = [
     id: "m1",
     name: "Mrs. Anita Sharma",
     role: "Literature Teacher",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80",
     quote: "Believe in your voice before asking the world to listen.",
     memoriesCount: 14,
-    yearsKnown: "12 yrs",
+    yearsKnown: "3 years together",
     isBookmarked: true,
+    trait: "Patient guide",
+    traitIcon: "flask-outline",
+    lessonCarried: "She stayed after class until fractions finally clicked.",
+    coverColor: "#7B1A28",
   },
   {
     id: "m2",
     name: "Dr. David Mitchell",
     role: "Research Advisor",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
     quote: "True mastery is quiet patience with difficult problems.",
     memoriesCount: 9,
-    yearsKnown: "8 yrs",
+    yearsKnown: "2 years together",
     isBookmarked: false,
+    trait: "Honest compass",
+    traitIcon: "compass-outline",
+    lessonCarried: "Critique is an invitation to who you can become tomorrow.",
+    coverColor: "#3D0A14",
   },
   {
     id: "m3",
     name: "Vikram Rao",
     role: "Engineering Director",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80",
     quote: "Build things that outlive your tenure and elevate people.",
     memoriesCount: 18,
-    yearsKnown: "6 yrs",
+    yearsKnown: "6 years together",
     isBookmarked: true,
+    trait: "Master craftsman",
+    traitIcon: "construct-outline",
+    lessonCarried: "Build things that outlive your tenure and elevate people around you.",
+    coverColor: "#8B2230",
   },
   {
     id: "m4",
     name: "Elena Rostova",
     role: "Art & Design Coach",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
     quote: "Do not fear the blank page; it is waiting for your courage.",
     memoriesCount: 11,
-    yearsKnown: "5 yrs",
+    yearsKnown: "5 years together",
     isBookmarked: false,
+    trait: "Creative clarity",
+    traitIcon: "sparkles-outline",
+    lessonCarried: "Forgive yourself for the first five ugly drafts to find the single true stroke.",
+    coverColor: "#5E1520",
+  },
+  {
+    id: "m5",
+    name: "Priya Nair",
+    role: "Design Lead",
+    avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&auto=format&fit=crop&q=80",
+    quote: "Trust your taste and ship the idea anyway.",
+    memoriesCount: 7,
+    yearsKnown: "4 years together",
+    isBookmarked: false,
+    trait: "Creative visionary",
+    traitIcon: "color-palette-outline",
+    lessonCarried: "She told me to trust my taste and ship the idea anyway.",
+    coverColor: "#9E2A2B",
   },
 ];
 
@@ -151,6 +185,11 @@ const VOICE_NOTES: VoiceNoteData[] = [
   },
 ];
 
+function formatAudioDuration(seconds: number) {
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
+}
+
 // Mock Data: Global Gratitude Feed
 const GRATITUDE_POSTS: GratitudePostData[] = [
   {
@@ -185,24 +224,75 @@ const ACHIEVEMENTS_DATA: AchievementData[] = [
     badgeType: "graduation",
     title: "Master of Science in AI",
     mentorName: "Dr. David Mitchell",
+    mentorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    mentorRole: "Research Advisor",
     date: "June 2024",
-    story: "Wrote the dedication page to you, who spent Sunday mornings showing me how to write clear equations.",
+    location: "Stanford Memorial Auditorium",
+    category: "Academic Milestone",
+    highlightStat: "Honors with Distinction",
+    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80",
+    story: "Wrote the dedication page to you, who spent Sunday mornings showing me how to write clear equations and never let me settle for half-baked thinking.",
+    variant: "cinematic",
   },
   {
     id: "ach2",
     badgeType: "award",
     title: "Best Debut Author Award",
     mentorName: "Mrs. Anita Sharma",
+    mentorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+    mentorRole: "Literature Teacher",
     date: "March 2024",
-    story: "Every word in that novel passed through the standards you taught in room 204.",
+    location: "National Book Guild Gala",
+    category: "Literary Honor",
+    highlightStat: "1st Place Gold Medal",
+    image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80",
+    story: "Every word in that novel passed through the standards you taught in room 204. You made me believe my voice was worth preserving.",
+    variant: "editorial",
   },
   {
     id: "ach3",
     badgeType: "job",
     title: "Promoted to Principal Engineer",
     mentorName: "Vikram Rao",
+    mentorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+    mentorRole: "Engineering Director",
     date: "January 2024",
-    story: "Remembering how you told me leadership is not a podium, but a shield for your team.",
+    location: "Cloud Systems Summit",
+    category: "Leadership Breakthrough",
+    highlightStat: "Tech Lead & Architect",
+    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
+    story: "Remembering how you told me leadership is not a podium, but a shield for your team. This milestone belongs to your patient mentorship.",
+    variant: "luxe",
+  },
+  {
+    id: "ach4",
+    badgeType: "certificate",
+    title: "Design Fellowship Grant",
+    mentorName: "Elena Rostova",
+    mentorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    mentorRole: "Art & Design Coach",
+    date: "November 2023",
+    location: "Metropolitan Design Institute",
+    category: "Creative Grant",
+    highlightStat: "Fellowship Winner",
+    image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop&q=80",
+    story: "When I was terrified of blank canvases, you placed the brush in my hand. Today our exhibition opened to hundreds of young artists.",
+    variant: "polaroid",
+  },
+  {
+    id: "ach5",
+    badgeType: "competition",
+    title: "Global AI Hackathon Champion",
+    mentorName: "Dr. David Mitchell",
+    mentorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    mentorRole: "Research Advisor",
+    date: "August 2023",
+    location: "TechHub International, SF",
+    category: "Innovation Victory",
+    highlightStat: "Grand Prize Winner",
+    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+    story: "We stayed up until dawn debugging the model. Your quiet reassurance that resilience beats talent carried our team to victory.",
+    variant: "showcase",
   },
 ];
 
@@ -312,13 +402,54 @@ export default function HomeScreen() {
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [mentorsList, setMentorsList] = useState<MentorData[]>(MENTORS_DATA);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isVoiceRecorderOpen, setIsVoiceRecorderOpen] = useState(false);
+  const [selectedAchievementModal, setSelectedAchievementModal] = useState<AchievementData | null>(null);
+  const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
+  const [wallItems, setWallItems] = useState<WallItem[]>(() =>
+    memoryService.getAllMemories()
+  );
   const [profile, setProfile] = useState<UserProfile>(() => userProfileService.getProfile());
+  const [homeSearch, setHomeSearch] = useState("");
   const [reflectionInput, setReflectionInput] = useState("");
   const [hasSubmittedReflection, setHasSubmittedReflection] = useState(false);
 
   React.useEffect(
     () => userProfileService.subscribe((nextProfile) => setProfile(nextProfile)),
     []
+  );
+
+  React.useEffect(
+    () => memoryService.subscribe(() => setWallItems(memoryService.getAllMemories())),
+    []
+  );
+
+  const recordedVoiceNotes = useMemo<VoiceNoteData[]>(
+    () =>
+      wallItems
+        .filter(
+          (item): item is WallMemory & { audioUri: string } =>
+            item.kind === "memory" && typeof item.audioUri === "string"
+        )
+        .map((item) => ({
+          id: item.id,
+          title: item.title,
+          mentorName: item.mentorName,
+          duration: formatAudioDuration(item.audioDuration ?? 0),
+          date: new Date(item.createdAt).toLocaleDateString("en-US", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          category: "Voice Memory",
+          audioUri: item.audioUri,
+          durationSeconds: item.audioDuration,
+        })),
+    [wallItems]
+  );
+
+  const voiceNotes = useMemo(
+    () => [...recordedVoiceNotes, ...VOICE_NOTES],
+    [recordedVoiceNotes]
   );
 
   // Smooth entrance fade
@@ -378,6 +509,28 @@ export default function HomeScreen() {
     }
   };
 
+  const handleSaveVoiceRecording = (recording: RecordedVoiceNote) => {
+    const now = new Date();
+    const itemId = memoryService.addMemory({
+      kind: "memory",
+      id: `voice-${Date.now()}`,
+      mentorName: recording.mentorName,
+      relationship: "Mentor",
+      title: recording.title,
+      excerpt: `Voice memory recorded on ${now.toLocaleDateString()}.`,
+      story: `A voice memory recorded on ${now.toLocaleDateString()}.`,
+      audioUri: recording.uri,
+      audioDuration: recording.durationSeconds,
+      year: String(now.getFullYear()),
+      emotion: "Gratitude",
+      emotionColor: Palette.oceanTeal,
+      createdAt: now.toISOString(),
+      isPinned: false,
+    });
+    setIsVoiceRecorderOpen(false);
+    router.push({ pathname: "/memory-detail/[id]", params: { id: itemId } });
+  };
+
   const handleSaveReflection = () => {
     const text = reflectionInput.trim();
     if (!text) {
@@ -404,9 +557,21 @@ export default function HomeScreen() {
     return MEMORIES_DATA.filter((m) => m.type === selectedTag);
   }, [selectedTag]);
 
+  const filteredMentors = useMemo(() => {
+    const query = homeSearch.trim().toLowerCase();
+    if (!query) return mentorsList;
+    return mentorsList.filter((mentor) =>
+      [mentor.name, mentor.role, mentor.quote]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [homeSearch, mentorsList]);
+
+  const featuredMentor = mentorsList[0];
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* Pure Cloud Canvas */}
       <View style={styles.paperCanvas} />
@@ -416,92 +581,168 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* ======================================================== */}
-          {/* 1. TOP HEADER                                            */}
-          {/* ======================================================== */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.greetingText}>
-                Good morning, {profile.name.split(" ")[0]}
+          <View style={styles.welcomeRow}>
+            <View style={styles.welcomeCopy}>
+              <Text style={styles.welcomeTitle}>
+                Good morning,{"\n"}
+                {profile.name.split(" ")[0]}
               </Text>
-              <Text style={styles.subGreetingText}>
+              <Text style={styles.welcomeSubtitle}>
                 Keep the people who shaped you close.
               </Text>
             </View>
-
-            <View style={styles.headerRight}>
+            <View style={styles.headerActions}>
               <TouchableOpacity
-                style={styles.headerIconBtn}
+                style={styles.notificationButton}
                 activeOpacity={0.75}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 onPress={() =>
-                  Alert.alert("Notifications", "You’re all caught up on your memories.")
+                  Alert.alert(
+                    "Notifications",
+                    "You’re all caught up on your memories."
+                  )
                 }
                 accessibilityRole="button"
                 accessibilityLabel="Notifications"
               >
-                <Ionicons name="notifications-outline" size={21} color={Palette.deepTeal} />
-                <View style={styles.notifBadgeDot} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.profileAvatarBtn}
-                activeOpacity={0.8}
-                onPress={() => router.push("/profile")}
-                accessibilityRole="button"
-                accessibilityLabel="Open your profile"
-              >
-                <Image
-                  source={{ uri: profile.avatarUri }}
-                  style={styles.profileAvatar}
+                <Ionicons
+                  name="notifications-outline"
+                  size={22}
+                  color={Palette.textPrimary}
                 />
+                <View style={styles.notificationDot} />
               </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.profileAvatarBtn}
+              activeOpacity={0.8}
+              onPress={() => router.push("/profile")}
+              accessibilityRole="button"
+              accessibilityLabel="Open your profile"
+            >
+              <Image
+                source={{ uri: profile.avatarUri }}
+                style={styles.profileAvatar}
+              />
+            </TouchableOpacity>
             </View>
           </View>
 
-          {/* ======================================================== */}
-          {/* 2. HERO / EMOTIONAL INTRO (Royal Crimson Gradient)       */}
-          {/* ======================================================== */}
-          <View style={styles.heroSection}>
-            <LinearGradient
-              colors={["#3D000A", "#5E0B1B", "#7E1528"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroGradient}
-            >
-              {/* Luminous Warm Light Spot */}
-              <View style={styles.heroAmbientLight} />
-
-              <View style={styles.heroBadgeRow}>
-                <View style={styles.heroBadge}>
-                  <Ionicons name="sparkles" size={13} color={Palette.turquoise} />
-                  <Text style={styles.heroBadgeText}>A Living Wall of Gratitude</Text>
-                </View>
-              </View>
-
-              <Text style={styles.heroQuoteHeadline}>
-                Someone believed in you.{"\n"}
-                Now it&apos;s your turn to remember them.
-              </Text>
-
-              <Text style={styles.heroSupportingText}>
-                Celebrate the mentors, teachers, and guides who helped you become who you are.
-              </Text>
-
-              {/* Floating Pure White Memory Note */}
-              <View style={styles.floatingMemoryNote}>
-                <View style={styles.pinDot} />
-                <Text style={styles.floatingNoteQuote}>
-                  &ldquo;Because of you, I did not quit when the path got steep.&rdquo;
-                </Text>
-                <Text style={styles.floatingNoteAuthor}>— Memory added 3 days ago</Text>
-              </View>
-            </LinearGradient>
+          <View style={styles.homeSearch}>
+            <Ionicons
+              name="search-outline"
+              size={17}
+              color={Palette.textSecondary}
+            />
+            <TextInput
+              value={homeSearch}
+              onChangeText={setHomeSearch}
+              placeholder="Search mentors, stories, lessons"
+              placeholderTextColor={Palette.textSecondary}
+              style={styles.homeSearchInput}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+              accessibilityRole="search"
+              accessibilityLabel="Search mentors, stories, and lessons"
+            />
+            {homeSearch.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setHomeSearch("")}
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={Palette.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
+          {featuredMentor && (
+            <View style={styles.featuredStory}>
+              <Image
+                source={{ uri: featuredMentor.avatar }}
+                style={styles.featuredStoryImage}
+                resizeMode="cover"
+                accessibilityLabel={`Portrait of ${featuredMentor.name}`}
+              />
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.28)", "rgba(0,0,0,0.96)"]}
+                locations={[0, 0.38, 1]}
+                style={styles.featuredStoryOverlay}
+              />
+              <View style={styles.featuredStoryContent}>
+                <View style={styles.featuredStoryBadge}>
+                  <Text style={styles.featuredStoryBadgeText}>Featured story</Text>
+                </View>
+                <Text style={styles.featuredStoryQuote} numberOfLines={3}>
+                  &ldquo;{featuredMentor.quote}&rdquo;
+                </Text>
+                <Text style={styles.featuredStoryMentor} numberOfLines={1}>
+                  {featuredMentor.name} · {featuredMentor.role}
+                </Text>
+                <TouchableOpacity
+                  style={styles.watchStoryButton}
+                  activeOpacity={0.85}
+                  onPress={() => handleOpenMentor(featuredMentor)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Watch ${featuredMentor.name}'s story`}
+                >
+                  <Text style={styles.watchStoryText}>Watch story</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={Palette.textOnPrimary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* ======================================================== */}
-          {/* 12. QUICK ACTIONS BAR                                    */}
+          {/* PEOPLE WHO SHAPED YOU                                   */}
           {/* ======================================================== */}
+          <View style={styles.mentorsDarkSection}>
+            <View style={styles.mentorSectionHeader}>
+              <Text style={styles.mentorSectionTitle}>People who made a difference</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/memory-wall")}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel="See all mentors"
+              >
+                <Text style={styles.mentorSectionAction}>See all</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.mentorsScroll}
+              decelerationRate="fast"
+              snapToInterval={244}
+              snapToAlignment="start"
+            >
+              {filteredMentors.map((mentor, idx) => (
+                <MentorCard
+                  key={mentor.id}
+                  mentor={mentor}
+                  index={idx}
+                  cardWidth={230}
+                  onBookmarkToggle={handleBookmarkToggle}
+                  onPress={() => handleOpenMentor(mentor)}
+                />
+              ))}
+              {filteredMentors.length === 0 && (
+                <Text style={styles.noMentorsText}>
+                  No mentors match “{homeSearch.trim()}”.
+                </Text>
+              )}
+            </ScrollView>
+          </View>
+
           <View style={styles.quickActionsContainer}>
             <ScrollView
               horizontal
@@ -511,83 +752,44 @@ export default function HomeScreen() {
               <QuickAction
                 icon="person-add"
                 label="Add Mentor"
-                color={Palette.oceanTeal}
+                color={Palette.accentSky}
                 onPress={() => router.push("/create-mentor")}
               />
               <QuickAction
                 icon="add-circle"
                 label="Add Memory"
-                color={Palette.turquoise}
+                color={Palette.accentMint}
                 badge="+"
                 onPress={() => setIsAddModalOpen(true)}
               />
               <QuickAction
                 icon="heart"
                 label="Write Tribute"
-                color={Palette.turquoise}
+                color={Palette.accentCoral}
                 onPress={() => router.push("/create-tribute")}
               />
               <QuickAction
                 icon="mic"
                 label="Voice Note"
-                color={Palette.oceanTeal}
-                onPress={() =>
-                  Alert.alert(
-                    "Voice notes",
-                    "Audio recording is not available yet. You can preserve the moment as a written memory.",
-                    [
-                      { text: "Cancel", style: "cancel" },
-                      {
-                        text: "Write memory",
-                        onPress: () =>
-                          router.push({ pathname: "/create", params: { type: "memory" } }),
-                      },
-                    ]
-                  )
-                }
+                color={Palette.accentAmber}
+                onPress={() => setIsVoiceRecorderOpen(true)}
               />
               <QuickAction
                 icon="time"
                 label="Timeline"
-                color={Palette.oceanTeal}
+                color={Palette.accentSky}
                 onPress={() => router.push("/memory-wall")}
               />
             </ScrollView>
           </View>
 
           {/* ======================================================== */}
-          {/* 3. YOUR MENTORS SECTION                                  */}
-          {/* ======================================================== */}
-          <SectionHeader
-            title="People Who Shaped You"
-            subtitle="The teachers, leaders, and lights in your journey"
-            actionLabel="View All"
-            onActionPress={() => router.push("/memory-wall")}
-            badge={`${mentorsList.length} Mentors`}
-          />
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.mentorsScroll}
-          >
-            {mentorsList.map((mentor) => (
-              <MentorCard
-                key={mentor.id}
-                mentor={mentor}
-                onBookmarkToggle={handleBookmarkToggle}
-                onPress={() => handleOpenMentor(mentor)}
-              />
-            ))}
-          </ScrollView>
-
-          {/* ======================================================== */}
-          {/* 6. A LESSON I CARRY (Mint Mist Fresh Card)                */}
+          {/* 6. A LESSON I CARRY                                      */}
           {/* ======================================================== */}
           <View style={styles.lessonSection}>
             <View style={styles.lessonCard}>
               <View style={styles.lessonWaxSeal}>
-                <Ionicons name="bookmark" size={16} color={Palette.turquoise} />
+                <Ionicons name="bookmark" size={16} color={Palette.accentAmber} />
               </View>
 
               <Text style={styles.lessonHeaderLabel}>A LESSON I CARRY</Text>
@@ -612,6 +814,7 @@ export default function HomeScreen() {
             title="Your Memory Wall"
             subtitle="Little moments. Lifelong impact."
             badge="Living Wall"
+            isDark
           />
 
           {/* Filter Pills */}
@@ -661,7 +864,7 @@ export default function HomeScreen() {
           </View>
 
           {/* ======================================================== */}
-          {/* 5. ADD A MEMORY FEATURED CALLOUT (Golden Amber CTA)      */}
+          {/* 5. ADD A MEMORY FEATURED CALLOUT                         */}
           {/* ======================================================== */}
           <View style={styles.addCalloutWrapper}>
             <TouchableOpacity
@@ -670,13 +873,13 @@ export default function HomeScreen() {
               style={styles.addCalloutBtn}
             >
               <LinearGradient
-                colors={["#B84E0E", "#D6671A", "#EC8F3E"]}
+                colors={["#1C1C1C", "#141414", "#0F0F0F"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.addCalloutGradient}
               >
                 <View style={styles.addCalloutIconWrap}>
-                  <Ionicons name="sparkles" size={20} color="#FFFFFF" />
+                  <Ionicons name="sparkles" size={20} color={Palette.accentAmber} />
                 </View>
                 <View style={styles.addCalloutTextWrap}>
                   <Text style={styles.addCalloutTitle}>Add to Your Memory Wall</Text>
@@ -684,7 +887,7 @@ export default function HomeScreen() {
                     Record a voice note, photo, or handwritten lesson
                   </Text>
                 </View>
-                <Ionicons name="add-circle" size={28} color="#FFFFFF" />
+                <Ionicons name="add-circle" size={28} color={Palette.accentMint} />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -698,12 +901,12 @@ export default function HomeScreen() {
           />
 
           {/* ======================================================== */}
-          {/* 11. DAILY GRATITUDE PROMPT (Mint Mist Surface)           */}
+          {/* 11. DAILY GRATITUDE PROMPT                               */}
           {/* ======================================================== */}
           <View style={styles.promptSection}>
             <View style={styles.promptCard}>
               <View style={styles.promptHeader}>
-                <Ionicons name="bulb-outline" size={18} color={Palette.oceanTeal} />
+                <Ionicons name="bulb-outline" size={18} color={Palette.accentAmber} />
                 <Text style={styles.promptTag}>TODAY&apos;S REFLECTION</Text>
               </View>
 
@@ -713,7 +916,7 @@ export default function HomeScreen() {
 
               {hasSubmittedReflection ? (
                 <View style={styles.promptSuccessBox}>
-                  <Ionicons name="checkmark-circle" size={18} color={Palette.oceanTeal} />
+                  <Ionicons name="checkmark-circle" size={18} color={Palette.accentMint} />
                   <Text style={styles.promptSuccessText}>
                     Reflection saved to your memory album!
                   </Text>
@@ -724,7 +927,7 @@ export default function HomeScreen() {
                     value={reflectionInput}
                     onChangeText={setReflectionInput}
                     placeholder="Write your answer..."
-                    placeholderTextColor={Palette.textMuted}
+                    placeholderTextColor="#737373"
                     style={styles.promptInput}
                   />
                   <TouchableOpacity
@@ -732,7 +935,7 @@ export default function HomeScreen() {
                     activeOpacity={0.8}
                     style={styles.promptSubmitBtn}
                   >
-                    <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                    <Ionicons name="arrow-forward" size={16} color="#000000" />
                   </TouchableOpacity>
                 </View>
               )}
@@ -746,6 +949,7 @@ export default function HomeScreen() {
             title="Words They Should Hear"
             subtitle="Spoken gratitude and audio keepsakes"
             badge="Voice Vault"
+            isDark
           />
 
           <ScrollView
@@ -753,7 +957,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.voiceScroll}
           >
-            {VOICE_NOTES.map((vn) => (
+            {voiceNotes.map((vn) => (
               <VoiceNoteCard key={vn.id} voiceNote={vn} />
             ))}
           </ScrollView>
@@ -765,6 +969,7 @@ export default function HomeScreen() {
             title="Achievements Inspired By Them"
             subtitle="Milestones made possible by their faith in you"
             badge="Milestones"
+            isDark
           />
 
           <ScrollView
@@ -772,11 +977,16 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.achievementsScroll}
           >
-            {ACHIEVEMENTS_DATA.map((ach) => (
+            {ACHIEVEMENTS_DATA.map((ach, idx) => (
                 <AchievementCard
                   key={ach.id}
                   achievement={ach}
+                  index={idx}
                   onPress={() => {
+                    setSelectedAchievementModal(ach);
+                    setIsAchievementModalOpen(true);
+
+                    // Sync to memoryService so memory details are ready
                     const id = `home-${ach.id}`;
                     const existing = memoryService.getMemoryById(id);
                     const mentor = memoryService
@@ -784,8 +994,7 @@ export default function HomeScreen() {
                       .find(
                         (item) => item.name.toLowerCase() === ach.mentorName.toLowerCase()
                       );
-                    const itemId =
-                      existing?.id ||
+                    if (!existing) {
                       memoryService.addMemory({
                         kind: "milestone",
                         id,
@@ -797,13 +1006,11 @@ export default function HomeScreen() {
                         year: ach.date.match(/\d{4}/)?.[0] || new Date().getFullYear().toString(),
                         type: "breakthrough",
                         accentColor: Palette.oceanTeal,
+                        imageUri: ach.image,
                         createdAt: new Date().toISOString(),
                         isPinned: false,
                       });
-                    router.push({
-                      pathname: "/memory-detail/[id]",
-                      params: { id: itemId },
-                    });
+                    }
                   }}
                 />
             ))}
@@ -816,6 +1023,7 @@ export default function HomeScreen() {
             title="Gratitude From Around the World"
             subtitle="Heartfelt stories shared by the global community"
             badge="Community"
+            isDark
           />
 
           {GRATITUDE_POSTS.map((post) => (
@@ -853,6 +1061,27 @@ export default function HomeScreen() {
           handleCreateFromModal(optionKey);
         }}
       />
+      <VoiceRecorderModal
+        visible={isVoiceRecorderOpen}
+        onClose={() => setIsVoiceRecorderOpen(false)}
+        onSave={handleSaveVoiceRecording}
+      />
+      <AchievementDetailModal
+        visible={isAchievementModalOpen}
+        achievement={selectedAchievementModal}
+        onClose={() => setIsAchievementModalOpen(false)}
+        onViewMentor={(mentorName) => {
+          setIsAchievementModalOpen(false);
+          const found = mentorsList.find(
+            (m) => m.name.toLowerCase() === mentorName.toLowerCase()
+          );
+          if (found) {
+            handleOpenMentor(found);
+          } else {
+            router.push("/memory-wall");
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -873,170 +1102,179 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
 
-  /* 1. Header */
-  header: {
+  welcomeRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 18,
   },
-  headerLeft: {
+  welcomeCopy: {
     flex: 1,
-    paddingRight: 12,
+    paddingRight: 10,
   },
-  greetingText: {
-    fontSize: 23,
+  welcomeTitle: {
+    color: Palette.textPrimary,
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: -0.7,
     fontWeight: "800",
-    color: Palette.deepTeal, // Deep Teal heading
-    letterSpacing: -0.4,
   },
-  subGreetingText: {
-    fontSize: 13,
+  welcomeSubtitle: {
     color: Palette.textSecondary,
-    marginTop: 3,
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 7,
   },
-  headerRight: {
+  headerActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
-  headerIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Palette.pureWhite,
-    justifyContent: "center",
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
-    borderWidth: 1.2,
+    justifyContent: "center",
+    backgroundColor: Palette.surfaceCard,
+    borderWidth: 1,
     borderColor: Palette.borderSubtle,
     position: "relative",
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
   },
-  notifBadgeDot: {
+  notificationDot: {
     position: "absolute",
     top: 9,
-    right: 10,
+    right: 9,
     width: 7,
     height: 7,
-    borderRadius: 3.5,
-    backgroundColor: Palette.turquoise, // Turquoise notification dot
+    borderRadius: 4,
+    backgroundColor: Palette.accentSky,
   },
   profileAvatarBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2,
-    borderColor: Palette.oceanTeal, // Ocean Teal ring
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: Palette.borderSubtle,
     overflow: "hidden",
+    marginLeft: 12,
   },
   profileAvatar: {
     width: "100%",
     height: "100%",
   },
-
-  /* 2. Hero Section */
-  heroSection: {
-    marginHorizontal: 20,
-    borderRadius: 24,
-    overflow: "hidden",
-    shadowColor: "#3D000A",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 6,
-    marginBottom: 22,
-  },
-  heroGradient: {
-    padding: 22,
-    position: "relative",
-  },
-  heroAmbientLight: {
-    position: "absolute",
-    top: -30,
-    right: -30,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "rgba(236, 143, 62, 0.16)",
-  },
-  heroBadgeRow: {
-    flexDirection: "row",
-    marginBottom: 12,
-  },
-  heroBadge: {
+  homeSearch: {
+    height: 43,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(252, 238, 228, 0.16)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.45)",
+    gap: 9,
+    marginHorizontal: 20,
+    paddingHorizontal: 14,
+    backgroundColor: Palette.surfaceElevated,
+    borderRadius: 17,
+    marginBottom: 13,
   },
-  heroBadgeText: {
-    fontSize: 11,
+  homeSearchInput: {
+    flex: 1,
+    paddingVertical: 0,
+    fontSize: 12,
+    color: Palette.textPrimary,
+  },
+  featuredStory: {
+    height: 332,
+    marginHorizontal: 20,
+    marginBottom: 5,
+    borderRadius: 23,
+    overflow: "hidden",
+    backgroundColor: Palette.surfaceCard,
+  },
+  featuredStoryImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  featuredStoryOverlay: {
+    ...StyleSheet.absoluteFill,
+  },
+  featuredStoryContent: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    alignItems: "flex-start",
+  },
+  featuredStoryBadge: {
+    backgroundColor: Palette.accentPink,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  featuredStoryBadgeText: {
+    color: Palette.textOnPrimary,
+    fontSize: 8,
     fontWeight: "800",
-    color: "#FFF8F0",
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  heroQuoteHeadline: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#FFF8F0",
-    lineHeight: 30,
-    letterSpacing: -0.3,
-  },
-  heroSupportingText: {
-    fontSize: 13.5,
-    lineHeight: 20,
-    color: "rgba(255, 248, 240, 0.92)",
-    marginTop: 8,
-    marginBottom: 18,
-  },
-  floatingMemoryNote: {
-    backgroundColor: Palette.pureWhite, // Pure White card
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.5)",
-    position: "relative",
-    shadowColor: Palette.deepTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-  },
-  pinDot: {
-    position: "absolute",
-    top: 6,
-    right: 12,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Palette.turquoise, // Turquoise pin detail
-  },
-  floatingNoteQuote: {
-    fontSize: 13,
-    fontStyle: "italic",
-    color: Palette.deepTeal,
-    lineHeight: 18,
+  featuredStoryQuote: {
+    color: Palette.textPrimary,
+    fontSize: 23,
+    lineHeight: 26,
+    fontWeight: "700",
     fontFamily: Platform.select({
       ios: "Georgia",
       android: "serif",
       default: "serif",
     }),
+    marginBottom: 5,
   },
-  floatingNoteAuthor: {
-    fontSize: 11,
+  featuredStoryMentor: {
+    fontSize: 10,
     color: Palette.textSecondary,
-    marginTop: 6,
-    textAlign: "right",
+  },
+  watchStoryButton: {
+    minHeight: 39,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    marginTop: 13,
+    borderRadius: 22,
+    backgroundColor: Palette.textPrimary,
+  },
+  watchStoryText: {
+    color: Palette.textOnPrimary,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  mentorSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 17,
+    marginBottom: 12,
+  },
+  mentorSectionTitle: {
+    color: Palette.textPrimary,
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  mentorSectionAction: {
+    color: Palette.accentSky,
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  noMentorsText: {
+    color: Palette.textSecondary,
+    fontSize: 13,
+    paddingHorizontal: 20,
   },
 
   /* Quick Actions Bar */
@@ -1047,10 +1285,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
+  mentorsDarkSection: {
+    marginBottom: 8,
+  },
   mentorsScroll: {
     paddingLeft: 20,
     paddingRight: 6,
-    marginBottom: 10,
+    marginBottom: 4,
   },
 
   /* 6. A Lesson I Carry (Mint Mist) */

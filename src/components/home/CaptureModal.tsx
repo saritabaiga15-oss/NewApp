@@ -50,7 +50,7 @@ const KIND_OPTIONS: KindOption[] = [
     label: "Their Words",
     icon: "chatbubble-ellipses",
     placeholder: "Something they said that you never forgot…",
-    color: Palette.turquoise,
+    color: Palette.accentCoral,
     description: "A quote or saying that stayed with you",
   },
   {
@@ -58,7 +58,7 @@ const KIND_OPTIONS: KindOption[] = [
     label: "Life Lesson",
     icon: "bulb",
     placeholder: "A lesson they taught you, directly or by example…",
-    color: "#9E2A2B",
+    color: Palette.accentSky,
     description: "Wisdom you still carry today",
   },
   {
@@ -66,7 +66,7 @@ const KIND_OPTIONS: KindOption[] = [
     label: "Memory",
     icon: "images",
     placeholder: "A moment with them you want to remember…",
-    color: Palette.oceanTeal,
+    color: Palette.accentLavender,
     description: "A scene, a feeling, a turning point",
   },
   {
@@ -74,7 +74,7 @@ const KIND_OPTIONS: KindOption[] = [
     label: "Milestone",
     icon: "flag",
     placeholder: "An achievement or milestone they helped you reach…",
-    color: "#7A4040",
+    color: Palette.accentAmber,
     description: "Something they helped you accomplish",
   },
 ];
@@ -93,28 +93,30 @@ export default function CaptureModal({ visible, onClose, onSave }: CaptureModalP
 
   const textRef = useRef<TextInput>(null);
 
+  const handleShow = () => {
+    setIsSaved(false);
+    setText("");
+    setMentorName("");
+    setSelectedKind("quote");
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 60,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      textRef.current?.focus();
+    });
+  };
+
   React.useEffect(() => {
-    if (visible) {
-      setIsSaved(false);
-      setText("");
-      setMentorName("");
-      setSelectedKind("quote");
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          tension: 60,
-          friction: 10,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        textRef.current?.focus();
-      });
-    } else {
+    if (!visible) {
       slideAnim.setValue(400);
       fadeAnim.setValue(0);
     }
@@ -164,7 +166,13 @@ export default function CaptureModal({ visible, onClose, onSave }: CaptureModalP
   const canSave = text.trim().length > 0;
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onShow={handleShow}
+      onRequestClose={handleClose}
+    >
       <TouchableWithoutFeedback onPress={handleClose}>
         <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
       </TouchableWithoutFeedback>
@@ -229,9 +237,14 @@ export default function CaptureModal({ visible, onClose, onSave }: CaptureModalP
                     <Ionicons
                       name={opt.icon}
                       size={14}
-                      color={isActive ? "#FFFFFF" : Palette.textSecondary}
+                      color={isActive ? Palette.textOnPrimary : Palette.textSecondary}
                     />
-                    <Text style={[styles.kindChipText, isActive && styles.kindChipTextActive]}>
+                    <Text
+                      style={[
+                        styles.kindChipText,
+                        isActive && styles.kindChipTextActive,
+                      ]}
+                    >
                       {opt.label}
                     </Text>
                   </TouchableOpacity>
@@ -246,11 +259,11 @@ export default function CaptureModal({ visible, onClose, onSave }: CaptureModalP
             {isSaved ? (
               <Animated.View style={[styles.successBox, { transform: [{ scale: successScale }] }]}>
                 <View style={[styles.successIconCircle, { backgroundColor: activeOption.color }]}>
-                  <Ionicons name="checkmark" size={28} color="#FFFFFF" />
+                  <Ionicons name="checkmark" size={28} color={Palette.textOnPrimary} />
                 </View>
                 <Text style={styles.successTitle}>Saved to your collection</Text>
                 <Text style={styles.successSub}>
-                  "{text.trim().slice(0, 60)}{text.trim().length > 60 ? "…" : ""}"
+                  &quot;{text.trim().slice(0, 60)}{text.trim().length > 60 ? "…" : ""}&quot;
                 </Text>
               </Animated.View>
             ) : (
@@ -304,13 +317,28 @@ export default function CaptureModal({ visible, onClose, onSave }: CaptureModalP
                   activeOpacity={0.85}
                   style={[
                     styles.saveBtn,
-                    { backgroundColor: canSave ? activeOption.color : Palette.borderSubtle },
+                    {
+                      backgroundColor: canSave
+                        ? Palette.oceanTeal
+                        : Palette.surfaceElevated,
+                    },
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel="Save this moment"
                 >
-                  <Ionicons name="bookmark" size={17} color="#FFFFFF" />
-                  <Text style={styles.saveBtnText}>Save This Moment</Text>
+                  <Ionicons
+                    name="bookmark"
+                    size={17}
+                    color={canSave ? Palette.textOnPrimary : Palette.textMuted}
+                  />
+                  <Text
+                    style={[
+                      styles.saveBtnText,
+                      !canSave && styles.saveBtnTextDisabled,
+                    ]}
+                  >
+                    Save This Moment
+                  </Text>
                 </TouchableOpacity>
 
                 {/* Helper text */}
@@ -329,7 +357,7 @@ export default function CaptureModal({ visible, onClose, onSave }: CaptureModalP
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(84, 0, 14, 0.42)",
+    backgroundColor: "rgba(0, 0, 0, 0.72)",
   },
   keyboardAvoid: {
     flex: 1,
@@ -342,11 +370,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: Platform.OS === "ios" ? 36 : 24,
     maxHeight: "85%",
-    shadowColor: Palette.oceanTeal,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
   },
   handleBar: {
     width: 36,
@@ -374,14 +402,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "800",
-    color: Palette.deepTeal,
+    color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Palette.mintMist,
+    backgroundColor: Palette.surfaceElevated,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -400,7 +428,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceElevated,
     borderWidth: 1.5,
     borderColor: Palette.borderSubtle,
   },
@@ -410,7 +438,7 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
   },
   kindChipTextActive: {
-    color: "#FFFFFF",
+    color: Palette.textOnPrimary,
     fontWeight: "700",
   },
   kindDescription: {
@@ -420,19 +448,19 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   textAreaWrap: {
-    backgroundColor: Palette.mintMist,
+    backgroundColor: Palette.surfaceElevated,
     borderRadius: 20,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1.2,
-    borderColor: "rgba(84, 0, 14, 0.12)",
+    borderColor: Palette.borderSubtle,
     minHeight: 130,
     position: "relative",
   },
   textArea: {
     fontSize: 16,
     lineHeight: 24,
-    color: Palette.deepTeal,
+    color: Palette.textPrimary,
     fontWeight: "500",
     minHeight: 100,
     paddingVertical: 0,
@@ -448,7 +476,7 @@ const styles = StyleSheet.create({
   mentorInputWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceElevated,
     borderRadius: 14,
     borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
@@ -463,7 +491,7 @@ const styles = StyleSheet.create({
   mentorInput: {
     flex: 1,
     fontSize: 14.5,
-    color: Palette.deepTeal,
+    color: Palette.textPrimary,
     fontWeight: "500",
     paddingVertical: 0,
   },
@@ -475,17 +503,20 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 28,
     marginBottom: 10,
-    shadowColor: Palette.oceanTeal,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
   },
   saveBtnText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: Palette.textOnPrimary,
     letterSpacing: 0.2,
+  },
+  saveBtnTextDisabled: {
+    color: Palette.textMuted,
   },
   helperText: {
     fontSize: 12,
@@ -505,16 +536,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
-    shadowColor: Palette.oceanTeal,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
   },
   successTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: Palette.deepTeal,
+    color: Palette.textPrimary,
     marginBottom: 8,
   },
   successSub: {

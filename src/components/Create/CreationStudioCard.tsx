@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import {
   Animated,
   Pressable,
@@ -22,23 +22,45 @@ export default function CreationStudioCard({
   onPress,
 }: CreationStudioCardProps) {
   const scaleAnim = useMemo(() => new Animated.Value(1), []);
+  const liftAnim = useMemo(() => new Animated.Value(0), []);
+  const isHovered = useRef(false);
+  const isPressed = useRef(false);
+
+  const animateCard = (hovered: boolean, pressed: boolean) => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: pressed ? 0.96 : hovered ? 1.025 : 1,
+        useNativeDriver: true,
+        speed: pressed ? 30 : 20,
+        bounciness: pressed ? 3 : 5,
+      }),
+      Animated.spring(liftAnim, {
+        toValue: pressed ? -5 : hovered ? -3 : 0,
+        useNativeDriver: true,
+        speed: pressed ? 30 : 20,
+        bounciness: pressed ? 3 : 5,
+      }),
+    ]).start();
+  };
+
+  const handleHoverIn = () => {
+    isHovered.current = true;
+    animateCard(true, isPressed.current);
+  };
+
+  const handleHoverOut = () => {
+    isHovered.current = false;
+    animateCard(false, isPressed.current);
+  };
 
   const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.96,
-      useNativeDriver: true,
-      speed: 25,
-      bounciness: 4,
-    }).start();
+    isPressed.current = true;
+    animateCard(isHovered.current, true);
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 20,
-      bounciness: 6,
-    }).start();
+    isPressed.current = false;
+    animateCard(isHovered.current, false);
   };
 
   // Render specific decorative detail per creation type
@@ -104,13 +126,15 @@ export default function CreationStudioCard({
     <Animated.View
       style={[
         styles.cardOuter,
-        { transform: [{ scale: scaleAnim }] },
+        { transform: [{ translateY: liftAnim }, { scale: scaleAnim }] },
       ]}
     >
       <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        onHoverIn={handleHoverIn}
+        onHoverOut={handleHoverOut}
         style={({ pressed }) => [
           styles.cardInner,
           getSpecificCardStyle(item.id),
@@ -183,13 +207,13 @@ function getSpecificCardStyle(type: string) {
 function getIconWrapperStyle(type: string) {
   switch (type) {
     case "tribute":
-      return { backgroundColor: "rgba(84, 0, 14, 0.08)" };
+      return { backgroundColor: "rgba(255, 158, 207, 0.14)" };
     case "memory":
-      return { backgroundColor: "rgba(236, 143, 62, 0.15)" };
+      return { backgroundColor: "rgba(143, 211, 255, 0.14)" };
     case "letter":
-      return { backgroundColor: "rgba(158, 42, 43, 0.10)" };
+      return { backgroundColor: "rgba(255, 184, 153, 0.14)" };
     case "lesson":
-      return { backgroundColor: "rgba(184, 98, 27, 0.14)" };
+      return { backgroundColor: "rgba(255, 240, 154, 0.14)" };
     default:
       return { backgroundColor: Palette.mintMist };
   }
@@ -198,13 +222,13 @@ function getIconWrapperStyle(type: string) {
 function getIconColor(type: string) {
   switch (type) {
     case "tribute":
-      return Palette.oceanTeal;
+      return Palette.accentPink;
     case "memory":
-      return Palette.turquoise;
+      return Palette.accentSky;
     case "letter":
-      return "#9E2A2B";
+      return Palette.accentPeach;
     case "lesson":
-      return "#B8621B";
+      return Palette.accentAmber;
     default:
       return Palette.deepTeal;
   }
@@ -216,14 +240,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   cardInner: {
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceCard,
     borderRadius: 20,
     padding: 14,
     borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.16,
     shadowRadius: 10,
     elevation: 3,
     position: "relative",
@@ -232,34 +256,35 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   cardActiveState: {
-    borderColor: Palette.turquoise,
-    shadowColor: Palette.turquoise,
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 5,
-    backgroundColor: "#FFFCF9",
+    borderColor: Palette.accentSky,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+    backgroundColor: Palette.surfaceCard,
   },
 
   // Bespoke styles per card
   tributeCard: {
-    backgroundColor: "#FFF9F5",
+    backgroundColor: Palette.surfaceCard,
     borderTopLeftRadius: 24,
-    borderColor: "rgba(84, 0, 14, 0.15)",
+    borderColor: Palette.borderSubtle,
   },
   memoryCard: {
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceCard,
     borderTopRightRadius: 24,
-    borderColor: "rgba(236, 143, 62, 0.25)",
+    borderColor: Palette.borderSubtle,
   },
   letterCard: {
-    backgroundColor: "#FFFDF9",
+    backgroundColor: Palette.surfaceCard,
     borderBottomLeftRadius: 24,
-    borderColor: "rgba(158, 42, 43, 0.16)",
+    borderColor: Palette.borderSubtle,
   },
   lessonCard: {
-    backgroundColor: "#FFFAF2",
+    backgroundColor: Palette.surfaceCard,
     borderBottomRightRadius: 24,
-    borderColor: "rgba(184, 98, 27, 0.22)",
+    borderColor: Palette.borderSubtle,
   },
 
   // Visual Accents per Card Type
@@ -269,7 +294,7 @@ const styles = StyleSheet.create({
     left: 20,
     width: 14,
     height: 8,
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: Palette.accentPink,
     borderBottomLeftRadius: 3,
     borderBottomRightRadius: 3,
   },
@@ -288,7 +313,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(236, 143, 62, 0.14)",
+    backgroundColor: "rgba(255, 158, 207, 0.14)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -299,7 +324,7 @@ const styles = StyleSheet.create({
     right: 8,
     width: 32,
     height: 9,
-    backgroundColor: "rgba(236, 143, 62, 0.28)",
+    backgroundColor: "rgba(143, 211, 255, 0.14)",
     transform: [{ rotate: "14deg" }],
     borderRadius: 1,
   },
@@ -311,7 +336,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderBottomWidth: 1.5,
     borderRightWidth: 1.5,
-    borderColor: "rgba(236, 143, 62, 0.4)",
+    borderColor: "rgba(143, 211, 255, 0.45)",
   },
 
   postageStamp: {
@@ -323,8 +348,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: "rgba(158, 42, 43, 0.35)",
-    backgroundColor: "rgba(252, 238, 228, 0.6)",
+    borderColor: "rgba(255, 184, 153, 0.45)",
+    backgroundColor: "rgba(255, 184, 153, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -347,7 +372,7 @@ const styles = StyleSheet.create({
     right: 22,
     width: 12,
     height: 7,
-    backgroundColor: Palette.turquoise,
+    backgroundColor: Palette.accentAmber,
     borderTopLeftRadius: 2,
     borderTopRightRadius: 2,
   },
@@ -357,7 +382,7 @@ const styles = StyleSheet.create({
     right: 6,
     fontSize: 52,
     fontWeight: "900",
-    color: "rgba(236, 143, 62, 0.10)",
+    color: "rgba(255, 240, 154, 0.10)",
     fontFamily: "serif",
   },
 
@@ -377,7 +402,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pillBadge: {
-    backgroundColor: "rgba(84, 0, 14, 0.05)",
+    backgroundColor: Palette.surfaceElevated,
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 8,
@@ -385,7 +410,7 @@ const styles = StyleSheet.create({
   pillBadgeText: {
     fontSize: 8.5,
     fontWeight: "800",
-    color: Palette.oceanTeal,
+    color: Palette.textSecondary,
     letterSpacing: 0.8,
   },
 
@@ -422,7 +447,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "rgba(177, 167, 166, 0.18)",
+    borderTopColor: Palette.borderSubtle,
     zIndex: 2,
   },
   startActionText: {
