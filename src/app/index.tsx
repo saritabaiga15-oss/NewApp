@@ -3,7 +3,6 @@ import {
   Animated,
   Easing,
   Image,
-  Platform,
   StatusBar,
   StyleSheet,
   Text,

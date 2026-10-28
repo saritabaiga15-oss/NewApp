@@ -134,7 +134,7 @@ export default function MemoryCard({
             <Ionicons
               name="person-circle-outline"
               size={15}
-              color="#00D2D3"
+              color={Palette.accentSky}
             />
             <Text style={styles.mentorName} numberOfLines={1}>
               {memory.mentorName}
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   mentorName: {
     fontSize: 13,
-    color: Palette.accentAmber,
+    color: Palette.accentSky,
     fontWeight: "700",
     fontFamily: AppFonts.body,
   },

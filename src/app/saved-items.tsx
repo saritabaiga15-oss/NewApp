@@ -18,7 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import { AppFonts, Fonts, MaxContentWidth, Palette } from "@/constants/theme";
+import { AppFonts, MaxContentWidth, Palette } from "@/constants/theme";
 import { getAllStories, WISDOM_LESSON } from "@/data/mockStories";
 import { memoryService } from "@/services/memoryService";
 import { storyBookmarkService } from "@/services/storyBookmarkService";
@@ -296,24 +296,36 @@ export default function SavedItemsScreen() {
           >
             {(
               [
-                { id: "all", label: "All" },
-                { id: "memories", label: "Memories" },
-                { id: "lessons", label: "Lessons" },
-                { id: "stories", label: "Stories" },
+                { id: "all", label: "All", icon: "sparkles", iconColor: Palette.accentGold },
+                { id: "memories", label: "Memories", icon: "camera-outline", iconColor: Palette.accentPink },
+                { id: "lessons", label: "Lessons", icon: "bulb-outline", iconColor: Palette.accentSky },
+                { id: "stories", label: "Stories", icon: "bookmark-outline", iconColor: Palette.accentMint },
               ] as const
             ).map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <TouchableOpacity
                   key={tab.id}
-                  style={[styles.pill, isActive && styles.pillActive]}
+                  style={[styles.pill, isActive ? styles.pillActive : styles.pillInactive]}
                   onPress={() => setActiveTab(tab.id)}
                   activeOpacity={0.8}
                 >
+                  <View
+                    style={[
+                      styles.pillIconBadge,
+                      isActive ? styles.pillIconBadgeActive : styles.pillIconBadgeInactive,
+                    ]}
+                  >
+                    <Ionicons
+                      name={tab.icon as any}
+                      size={14}
+                      color={isActive ? "#3B0B14" : tab.iconColor}
+                    />
+                  </View>
                   <Text
                     style={[
                       styles.pillText,
-                      isActive && styles.pillTextActive,
+                      isActive ? styles.pillTextActive : styles.pillTextInactive,
                     ]}
                   >
                     {tab.label}
@@ -332,8 +344,8 @@ export default function SavedItemsScreen() {
           >
             <Ionicons
               name={sortAscending ? "arrow-up" : "swap-vertical"}
-              size={18}
-              color={Palette.textPrimary}
+              size={17}
+              color={Palette.accentSky}
             />
           </TouchableOpacity>
         </View>
@@ -817,7 +829,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   headerTitle: {
-    fontFamily: Fonts.serif,
+    fontFamily: AppFonts.displaySans,
     fontSize: 24,
     fontWeight: "800",
     color: Palette.textPrimary,
@@ -911,33 +923,67 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    paddingVertical: 2,
   },
   pill: {
-    backgroundColor: Palette.surfaceCard,
-    borderRadius: 22,
-    paddingHorizontal: 20,
-    paddingVertical: 9,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 6,
+    paddingRight: 15,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  pillInactive: {
+    backgroundColor: "#1A0A0F",
     borderWidth: 1,
-    borderColor: Palette.borderSubtle,
+    borderColor: "rgba(239, 162, 91, 0.16)",
   },
   pillActive: {
-    backgroundColor: Palette.oceanTeal,
-    borderColor: Palette.oceanTeal,
+    backgroundColor: Palette.amberBtn,
+    borderWidth: 1,
+    borderColor: Palette.amberBtn,
+    shadowColor: Palette.accentAmber,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  pillText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Palette.textPrimary,
-  },
-  pillTextActive: {
-    color: Palette.textOnPrimary,
-    fontWeight: "700",
-  },
-  sortButton: {
-    paddingLeft: 10,
-    paddingVertical: 8,
+  pillIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 7,
+  },
+  pillIconBadgeInactive: {
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+  },
+  pillIconBadgeActive: {
+    backgroundColor: "rgba(255, 255, 255, 0.28)",
+  },
+  pillText: {
+    fontSize: 13.5,
+    fontFamily: AppFonts.body,
+  },
+  pillTextInactive: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  pillTextActive: {
+    color: "#3B0B14",
+    fontWeight: "800",
+  },
+  sortButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#1A0A0F",
+    borderWidth: 1,
+    borderColor: "rgba(239, 162, 91, 0.16)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
   },
 
   // Section Headers
@@ -951,7 +997,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontFamily: Fonts.serif,
+    fontFamily: AppFonts.displaySans,
     fontSize: 21,
     fontWeight: "800",
     color: Palette.textPrimary,
@@ -982,12 +1028,68 @@ const styles = StyleSheet.create({
     borderColor: Palette.borderSubtle,
     alignItems: "center",
   },
+  memoryKeepsakeCard: {
+    overflow: "hidden",
+    position: "relative",
+    borderColor: "rgba(239, 162, 91, 0.28)",
+  },
+  memoryGridBackground: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.95,
+  },
+  memoryGridRow: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  bgMemoryTile: {
+    flex: 1,
+    height: "100%",
+    opacity: 0.25,
+  },
+  keepsakePhotoCard: {
+    width: 68,
+    height: 82,
+    borderRadius: 14,
+    backgroundColor: "#202020",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    overflow: "hidden",
+    position: "relative",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  keepsakePhotoImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  keepsakePin: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
+  },
   cardHeading: {
     fontSize: 16.5,
     fontWeight: "800",
     color: Palette.textPrimary,
     marginTop: 18,
     textAlign: "center",
+    fontFamily: AppFonts.displaySans,
   },
   cardDescription: {
     fontSize: 12.5,
@@ -996,9 +1098,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 18,
     maxWidth: 270,
+    fontFamily: AppFonts.body,
   },
   cardButton: {
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: Palette.amberBtn,
     borderRadius: 24,
     paddingVertical: 12,
     paddingHorizontal: 22,
@@ -1008,9 +1111,10 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   cardButtonText: {
-    color: Palette.textOnPrimary,
+    color: "#3B0B14",
     fontSize: 13.5,
-    fontWeight: "700",
+    fontWeight: "800",
+    fontFamily: AppFonts.body,
   },
 
   // Keepsake placeholders
@@ -1049,7 +1153,7 @@ const styles = StyleSheet.create({
     color: Palette.accentSky,
   },
   sampleQuote: {
-    fontFamily: Fonts.serif,
+    fontFamily: AppFonts.body,
     fontSize: 18,
     fontWeight: "800",
     color: Palette.textPrimary,

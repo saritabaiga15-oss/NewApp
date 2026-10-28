@@ -197,6 +197,16 @@ export default function SettingsScreen() {
   );
 }
 
+function getSettingBadge(icon: string, danger?: boolean) {
+  if (danger) return { bg: "rgba(255, 75, 114, 0.15)", color: "#FF4B72" };
+  if (icon.includes("person")) return { bg: Palette.accentSky, color: "#1A0409" };
+  if (icon.includes("key") || icon.includes("shield")) return { bg: Palette.accentMint, color: "#1A0409" };
+  if (icon.includes("notification")) return { bg: Palette.accentLavender, color: "#1A0409" };
+  if (icon.includes("lock")) return { bg: Palette.accentPeach, color: "#1A0409" };
+  if (icon.includes("help") || icon.includes("info")) return { bg: Palette.accentPink, color: "#1A0409" };
+  return { bg: Palette.accentSky, color: "#1A0409" };
+}
+
 function SettingsRow({
   icon,
   title,
@@ -212,6 +222,8 @@ function SettingsRow({
   danger?: boolean;
   last?: boolean;
 }) {
+  const badge = getSettingBadge(icon, danger);
+
   return (
     <TouchableOpacity
       style={[styles.row, last && styles.lastRow]}
@@ -220,11 +232,11 @@ function SettingsRow({
       accessibilityRole="button"
       accessibilityLabel={`${title}. ${subtitle}`}
     >
-      <View style={[styles.rowIcon, danger && styles.dangerIcon]}>
+      <View style={[styles.rowIcon, { backgroundColor: badge.bg }]}>
         <Ionicons
           name={icon}
           size={19}
-          color={danger ? "#9E2A2B" : Palette.oceanTeal}
+          color={badge.color}
         />
       </View>
       <View style={styles.rowCopy}>

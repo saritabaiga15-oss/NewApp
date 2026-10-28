@@ -66,12 +66,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(239, 162, 91, 0.28)",
+    borderColor: "rgba(143, 211, 255, 0.28)",
   },
   studioPillText: {
     fontSize: 10.5,
     fontWeight: "800",
-    color: Palette.accentAmber,
+    color: Palette.accentSky,
     letterSpacing: 1.2,
   },
   stationerySeal: {
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   headingEmphasis: {
     fontFamily: AppFonts.displaySans,
     fontStyle: "italic",
-    color: Palette.accentAmber,
+    color: Palette.accentLavender,
   },
   subtitle: {
     fontFamily: AppFonts.body,
@@ -111,6 +111,6 @@ const styles = StyleSheet.create({
     marginTop: 18,
     width: "100%",
     height: 1,
-    backgroundColor: "rgba(239, 162, 91, 0.12)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
 });

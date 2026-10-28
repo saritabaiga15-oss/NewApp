@@ -142,9 +142,7 @@ export default function ProfileScreen() {
     [tributes]
   );
 
-  const openMemory = (item: WallItem) =>
     router.push({ pathname: "/memory-detail/[id]", params: { id: item.id } });
-  const openStory = (story: Story) =>
     router.push({ pathname: "/stories/[id]", params: { id: story.id } });
 
   return (
@@ -323,99 +321,46 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        <SectionHeading
-          title="My saved collection"
-          action="View all"
-          onAction={() => router.push("/saved-items")}
-        />
-        {pinnedItems.length === 0 &&
-        bookmarkedStories.length === 0 &&
-        savedLessons.length === 0 ? (
-          <TouchableOpacity
-            style={styles.savedEmpty}
-            onPress={() => router.push("/discover")}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-          >
-            <Ionicons name="bookmark-outline" size={20} color={Palette.turquoise} />
-            <View style={styles.savedEmptyCopy}>
-              <Text style={styles.savedEmptyTitle}>Keep a story close</Text>
-              <Text style={styles.savedEmptySubtitle}>
-                Save a story or lesson, or pin one of your memories.
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={Palette.textSecondary} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.savedList}>
-            {bookmarkedStories.slice(0, 2).map((story) => (
-              <SavedRow
-                key={`story-${story.id}`}
-                title={story.title}
-                subtitle={`Story · ${story.relationship}`}
-                imageUri={story.imageUrl}
-                icon="book-outline"
-                onPress={() => openStory(story)}
-              />
-            ))}
-            {savedLessons.slice(0, 2).map((lesson) => (
-              <SavedRow
-                key={`lesson-${lesson.id}`}
-                title={lesson.storyTitle}
-                subtitle={`Saved lesson · ${lesson.attribution}`}
-                icon="bulb-outline"
-                onPress={() =>
-                  router.push({
-                    pathname: "/stories/[id]",
-                    params: { id: lesson.storyId },
-                  })
-                }
-              />
-            ))}
-            {pinnedItems.slice(0, 2).map((item) => (
-              <SavedRow
-                key={`memory-${item.id}`}
-                title={getItemTitle(item)}
-                subtitle={`Pinned memory · ${item.mentorName}`}
-                imageUri={getItemImage(item)}
-                icon="pin-outline"
-                onPress={() => openMemory(item)}
-              />
-            ))}
-          </View>
-        )}
-
-        <SectionHeading title="Account & preferences" />
-        <View style={styles.accountCard}>
-          <AccountRow
-            icon="person-circle-outline"
-            title="Personal information"
-            subtitle="Name, username, photograph and bio"
-            onPress={() => router.push("/profile-edit")}
+        <View style={styles.menuCardsContainer}>
+          <PastelMenuCard
+            badgeBg={Palette.accentMint}
+            icon="bookmark"
+            title="Saved items"
+            subtitle={`${pinnedItems.length + bookmarkedStories.length + savedLessons.length} mentors and stories`}
+            onPress={() => router.push("/saved-items")}
           />
-          <AccountRow
-            icon="shield-checkmark-outline"
-            title="Email & account security"
-            subtitle="Manage your password"
-            onPress={() => router.push("/forgot-password")}
+          <PastelMenuCard
+            badgeBg={Palette.accentLavender}
+            icon="chatbox-ellipses"
+            title="My tributes"
+            subtitle={`${tributes.length > 0 ? `${tributes.length} published` : "1 draft Â· 3 published"}`}
+            onPress={() => router.push("/create")}
           />
-          <AccountRow
-            icon="options-outline"
-            title="Notifications & preferences"
-            subtitle="Review available app preferences"
+          <PastelMenuCard
+            badgeBg={Palette.accentPink}
+            icon="heart"
+            title="My memories"
+            subtitle={`${memories.length > 0 ? `${memories.length} moments` : "14 moments"}`}
+            onPress={() => router.push("/memory-wall")}
+          />
+          <PastelMenuCard
+            badgeBg={Palette.accentSky}
+            icon="notifications"
+            title="Notifications"
+            subtitle="Manage your updates"
             onPress={() => router.push("/settings")}
           />
-          <AccountRow
-            icon="lock-closed-outline"
-            title="Privacy & story visibility"
-            subtitle="Your keepsakes are stored on this device"
-            onPress={() => router.push("/memory-wall")}
-            last
+          <PastelMenuCard
+            badgeBg={Palette.accentPeach}
+            icon="sparkles"
+            title="Settings"
+            subtitle="Privacy, account and support"
+            onPress={() => router.push("/settings")}
           />
         </View>
 
         {isLoading && (
-          <Text style={styles.loadingNote}>Loading your saved profile data…</Text>
+          <Text style={styles.loadingNote}>Loading your saved profile dataÃ¢â‚¬Â¦</Text>
         )}
       </ScrollView>
       <BottomNavigation activeTab="profile" />
@@ -480,88 +425,37 @@ function SectionHeading({
     </View>
   );
 }
-
-function SavedRow({
+function PastelMenuCard({
+  badgeBg,
+  icon,
   title,
   subtitle,
-  imageUri,
-  icon,
   onPress,
 }: {
+  badgeBg: string;
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle: string;
-  imageUri?: string;
-  icon: ProfileActionIcon;
   onPress: () => void;
 }) {
   return (
     <TouchableOpacity
-      style={styles.savedRow}
+      style={styles.pastelMenuCard}
       onPress={onPress}
       activeOpacity={0.82}
       accessibilityRole="button"
-      accessibilityLabel={`Open ${title}`}
-    >
-      {imageUri ? (
-        <Image source={{ uri: imageUri }} style={styles.savedThumb} />
-      ) : (
-        <View style={styles.savedThumbFallback}>
-          <Ionicons name={icon} size={19} color={Palette.oceanTeal} />
-        </View>
-      )}
-      <View style={styles.savedRowCopy}>
-        <Text style={styles.savedRowTitle} numberOfLines={1}>{title}</Text>
-        <Text style={styles.savedRowSubtitle} numberOfLines={1}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={Palette.textSecondary} />
-    </TouchableOpacity>
-  );
-}
-
-function AccountRow({
-  icon,
-  title,
-  subtitle,
-  onPress,
-  last = false,
-}: {
-  icon: ProfileActionIcon;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-  last?: boolean;
-}) {
-  return (
-    <TouchableOpacity
-      style={[styles.accountRow, last && styles.accountRowLast]}
-      onPress={onPress}
-      activeOpacity={0.8}
-      accessibilityRole="button"
       accessibilityLabel={`${title}. ${subtitle}`}
     >
-      <View style={styles.accountIcon}>
-        <Ionicons name={icon} size={19} color={Palette.oceanTeal} />
+      <View style={[styles.pastelBadge, { backgroundColor: badgeBg }]}>
+        <Ionicons name={icon} size={20} color="#1A0409" />
       </View>
-      <View style={styles.accountCopy}>
-        <Text style={styles.accountTitle}>{title}</Text>
-        <Text style={styles.accountSubtitle}>{subtitle}</Text>
+      <View style={styles.pastelCardCopy}>
+        <Text style={styles.pastelCardTitle}>{title}</Text>
+        <Text style={styles.pastelCardSubtitle}>{subtitle}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={Palette.textMuted} />
+      <Ionicons name="chevron-forward" size={18} color="rgba(255, 255, 255, 0.45)" />
     </TouchableOpacity>
   );
-}
-
-function getItemTitle(item: WallItem): string {
-  if (item.kind === "lesson") return item.lessonTitle;
-  return "title" in item && item.title ? item.title : "Saved memory";
-}
-
-function getItemImage(item: WallItem): string | undefined {
-  if (item.kind === "tribute") return item.photoUri || undefined;
-  if ("imageUri" in item) return item.imageUri;
-  return undefined;
-}
-
 function getInitials(name: string): string {
   return name
     .trim()
@@ -894,6 +788,51 @@ const styles = StyleSheet.create({
   savedRowCopy: { flex: 1 },
   savedRowTitle: { color: Palette.deepTeal, fontSize: 12, fontWeight: "800" },
   savedRowSubtitle: { marginTop: 3, color: Palette.textSecondary, fontSize: 10 },
+  menuCardsContainer: {
+    marginTop: 18,
+    gap: 10,
+    marginBottom: 20,
+  },
+  pastelMenuCard: {
+    backgroundColor: Palette.surfaceCard,
+    borderRadius: 22,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  pastelBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  pastelCardCopy: {
+    flex: 1,
+  },
+  pastelCardTitle: {
+    fontSize: 15.5,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    fontFamily: AppFonts.displaySans,
+    letterSpacing: -0.2,
+  },
+  pastelCardSubtitle: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: Palette.textSecondary,
+    marginTop: 3,
+    fontFamily: AppFonts.body,
+  },
   accountCard: {
     paddingHorizontal: 13,
     borderRadius: 18,

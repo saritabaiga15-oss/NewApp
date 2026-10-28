@@ -142,7 +142,7 @@ export default function TributePhotoPicker({
               accessibilityRole="button"
               accessibilityLabel="Add your photo from device gallery"
             >
-              <Ionicons name="image-outline" size={16} color={Palette.pureWhite} />
+              <Ionicons name="image-outline" size={17} color="#000000" />
               <Text style={styles.addPhotoBtnText}>Add your photo</Text>
             </TouchableOpacity>
           ) : (
@@ -314,20 +314,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,
-    backgroundColor: Palette.oceanTeal,
-    paddingVertical: 12,
-    borderRadius: 14,
-    shadowColor: Palette.oceanTeal,
+    gap: 8,
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 14,
+    borderRadius: 999,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
+    shadowOpacity: 0.18,
     shadowRadius: 6,
     elevation: 3,
   },
   addPhotoBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "800",
-    color: Palette.pureWhite,
+    color: "#000000",
     letterSpacing: 0.2,
   },
   customActionRow: {
@@ -391,8 +391,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   presetThumbActive: {
-    borderColor: Palette.turquoise,
-    backgroundColor: Palette.mintMist,
+    borderColor: Palette.accentSky,
+    backgroundColor: "rgba(143, 211, 255, 0.12)",
   },
   presetThumb: {
     width: 44,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   presetThumbLabelActive: {
-    color: Palette.oceanTeal,
+    color: Palette.accentSky,
     fontWeight: "800",
   },
 });

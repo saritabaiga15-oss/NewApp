@@ -4,7 +4,7 @@ import {
   Dimensions,
   Image,
   Modal,
-  Platform,
+  
   ScrollView,
   Share,
   StatusBar,

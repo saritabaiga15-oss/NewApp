@@ -3,7 +3,6 @@ import {
   Alert,
   Animated,
   Image,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,

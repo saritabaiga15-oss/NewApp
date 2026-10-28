@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { getCategoryAccent, Palette } from "@/constants/theme";
 import { TributeRelationship } from "@/types/create";
 import { TRIBUTE_RELATIONSHIPS } from "@/data/tributeDetailsData";
 
@@ -70,6 +70,7 @@ export default function TributePersonSection({
             {relationshipOptions.map((rel) => {
               const isSelected = relationship === rel;
               const iconName = getRelationshipIcon(rel);
+              const accentColor = getCategoryAccent(rel);
 
               return (
                 <Pressable
@@ -77,7 +78,10 @@ export default function TributePersonSection({
                   onPress={() => onRelationshipChange(rel)}
                   style={({ pressed }) => [
                     styles.chip,
-                    isSelected && styles.chipSelected,
+                    isSelected && {
+                      backgroundColor: "rgba(255, 255, 255, 0.08)",
+                      borderColor: accentColor,
+                    },
                     pressed && styles.chipPressed,
                   ]}
                   accessibilityRole="button"
@@ -87,18 +91,18 @@ export default function TributePersonSection({
                   <Ionicons
                     name={iconName}
                     size={13}
-                    color={isSelected ? Palette.oceanTeal : Palette.textSecondary}
+                    color={isSelected ? accentColor : Palette.textSecondary}
                   />
                   <Text
                     style={[
                       styles.chipText,
-                      isSelected && styles.chipTextSelected,
+                      isSelected && { color: accentColor, fontWeight: "800" },
                     ]}
                   >
                     {rel}
                   </Text>
                   {isSelected && (
-                    <View style={styles.selectedDot} />
+                    <View style={[styles.selectedDot, { backgroundColor: accentColor }]} />
                   )}
                 </Pressable>
               );
@@ -155,7 +159,7 @@ const styles = StyleSheet.create({
   editorialLabel: {
     fontSize: 10,
     fontWeight: "800",
-    color: Palette.oceanTeal,
+    color: Palette.accentSky,
     letterSpacing: 1.1,
   },
   heading: {

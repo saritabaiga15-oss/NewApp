@@ -24,7 +24,7 @@ interface AchievementDetailModalProps {
   onViewMentor?: (mentorName: string) => void;
 }
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function AchievementDetailModal({
   visible,

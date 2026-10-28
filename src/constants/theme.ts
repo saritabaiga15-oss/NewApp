@@ -144,28 +144,29 @@ export const Palette = {
   textSecondary: '#B89E99',
   textMuted: '#8C7570',
 
-  // Brand Accents
-  oceanTeal: '#EFA25B',
-  turquoise: '#EFA25B',
-  deepTeal: '#FFF8F3',
-  mintMist: '#2A0B12',
+  // Brand Accents — Clean white primary & soft pastel accents
+  oceanTeal: '#FFFFFF',
+  turquoise: '#8FD3FF',
+  deepTeal: '#FFFFFF',
+  mintMist: '#202020',
 
-  oceanTealSoft: 'rgba(239, 162, 91, 0.12)',
-  turquoiseSoft: 'rgba(239, 162, 91, 0.18)',
-  mintMistAura: 'rgba(42, 11, 18, 0.85)',
-  oceanTealDark: '#3A0010',
+  oceanTealSoft: 'rgba(255, 255, 255, 0.08)',
+  turquoiseSoft: 'rgba(143, 211, 255, 0.15)',
+  mintMistAura: 'rgba(32, 32, 32, 0.85)',
+  oceanTealDark: '#202020',
 
-  accentAmber: '#EFA25B',
-  accentGold: '#F0A35C',
+  // Soft Pastel Palette (delightful, cohesive pastel accents)
+  accentAmber: '#FFF09A',
+  accentGold: '#FFD199',
   accentCyan: '#8FD3FF',
-  accentRose: '#C0675F',
+  accentRose: '#FF9ECF',
   accentEmerald: '#8FF0C6',
   accentSky: '#8FD3FF',
-  accentPurple: '#C4A7FF',
+  accentPurple: '#D8B4FE',
   accentLavender: '#D8B4FE',
   accentLilac: '#D8B4FE',
-  accentCoral: '#C0675F',
-  accentPeach: '#F0A35C',
+  accentCoral: '#FFB899',
+  accentPeach: '#FFB899',
   accentMint: '#8FF0C6',
   accentPink: '#FF9ECF',
 } as const;
@@ -175,11 +176,12 @@ export function getCategoryAccent(category: string): string {
   if (normalized.includes('parent')) return Palette.accentPink;
   if (normalized.includes('coach')) return Palette.accentMint;
   if (normalized.includes('friend')) return Palette.accentPeach;
-  if (normalized.includes('leader')) return Palette.accentAmber;
+  if (normalized.includes('leader')) return Palette.accentLavender;
+  if (normalized.includes('teacher') || normalized.includes('school')) return Palette.accentSky;
   if (normalized.includes('memory')) return Palette.accentLavender;
-  if (normalized.includes('quote') || normalized.includes('tribute')) return Palette.accentCoral;
+  if (normalized.includes('quote') || normalized.includes('tribute')) return Palette.accentPink;
   if (normalized.includes('saved')) return Palette.accentMint;
-  return Palette.accentAmber;
+  return Palette.accentSky;
 }
 
 export const Colors = {
