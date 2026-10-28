@@ -19,7 +19,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 // Design System Tokens
-import { BottomTabInset, Palette } from "@/constants/theme";
+import { AppFonts, BottomTabInset, Palette } from "@/constants/theme";
 
 // Shared Navigation
 import BottomNavigation from "@/components/home/BottomNavigation";
@@ -1030,14 +1030,14 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontWeight: "900",
     color: Palette.turquoise,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
+    fontFamily: AppFonts.body,
   },
   quoteText: {
     fontSize: 16,
     lineHeight: 24,
     fontStyle: "italic",
     color: Palette.deepTeal,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
+    fontFamily: AppFonts.body,
   },
   quoteAttribution: {
     fontSize: 12,
@@ -1085,7 +1085,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Palette.deepTeal,
     marginBottom: 14,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
+    fontFamily: AppFonts.body,
   },
   storyParagraphs: {
     gap: 14,
@@ -1094,7 +1094,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     color: Palette.textPrimary,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
+    fontFamily: AppFonts.body,
   },
   letterSignoffContainer: {
     marginTop: 18,
@@ -1106,7 +1106,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontStyle: "italic",
     color: Palette.textSecondary,
-    fontFamily: Platform.select({ ios: "Georgia", default: "serif" }),
+    fontFamily: AppFonts.body,
     lineHeight: 22,
   },
 

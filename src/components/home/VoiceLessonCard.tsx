@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import {
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 export interface VoiceLessonItem {
   id: string;
@@ -247,7 +246,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Palette.accentAmber,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000000",
@@ -283,11 +282,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: "#E5E5E5",
     fontStyle: "italic",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
   footer: {
     flexDirection: "row",

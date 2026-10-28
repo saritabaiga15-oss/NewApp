@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 import type { WallMentorProfile } from "@/types/memoryWall";
 
 interface YearGratitudeCardProps {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     color: Palette.iceWhite,
-    fontFamily: "serif",
+    fontFamily: AppFonts.displaySans,
     fontSize: 26,
     fontWeight: "800",
     lineHeight: 34,

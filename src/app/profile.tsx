@@ -10,11 +10,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import BottomNavigation from "@/components/home/BottomNavigation";
-import { MaxContentWidth, Palette } from "@/constants/theme";
+import { AppFonts, MaxContentWidth, Palette } from "@/constants/theme";
 import { memoryService } from "@/services/memoryService";
 import { storyBookmarkService } from "@/services/storyBookmarkService";
 import { tributeDraftService } from "@/services/tributeDraftService";
@@ -181,66 +182,54 @@ export default function ProfileScreen() {
         )}
 
         <View style={styles.identityCard}>
-          <View style={styles.identityTopRow}>
-            <View>
-              <Text style={styles.eyebrow}>A LIFE OF GRATITUDE</Text>
-              <Text style={styles.welcomeTitle}>Your story, kept close.</Text>
+          {profile.avatarUri ? (
+            <Image
+              source={{ uri: profile.avatarUri }}
+              style={styles.profileCoverImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.profileCoverFallback}>
+              <Text style={styles.avatarFallback}>{getInitials(profile.name)}</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => router.push("/profile-edit")}
-              style={styles.editIcon}
-              accessibilityRole="button"
-              accessibilityLabel="Edit profile photo and information"
-            >
-              <Ionicons name="pencil" size={17} color={Palette.deepTeal} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.identityRow}>
-            <TouchableOpacity
-              onPress={() => router.push("/profile-edit")}
-              style={styles.avatarButton}
-              accessibilityRole="button"
-              accessibilityLabel="Change profile photo"
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarFallback}>{getInitials(profile.name)}</Text>
-                {profile.avatarUri ? (
-                  <Image source={{ uri: profile.avatarUri }} style={styles.avatarImage} />
-                ) : null}
-              </View>
-              <View style={styles.cameraBadge}>
-                <Ionicons name="camera" size={13} color={Palette.pureWhite} />
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.identityCopy}>
-              <Text style={styles.profileName} numberOfLines={2}>
-                {profile.name}
-              </Text>
-              <Text style={styles.username}>@{profile.username}</Text>
-              <Text style={styles.bio} numberOfLines={3}>
-                {profile.bio}
-              </Text>
-            </View>
-          </View>
-
+          )}
+          <LinearGradient
+            colors={["transparent", "rgba(0, 0, 0, 0.12)", "rgba(0, 0, 0, 0.94)", "#000000"]}
+            locations={[0, 0.34, 0.7, 1]}
+            style={styles.profileCoverGradient}
+            pointerEvents="none"
+          />
           <TouchableOpacity
-            style={styles.editProfileButton}
             onPress={() => router.push("/profile-edit")}
-            activeOpacity={0.82}
+            style={styles.editIcon}
             accessibilityRole="button"
+            accessibilityLabel="Edit profile photo and information"
           >
-            <Ionicons name="create-outline" size={17} color={Palette.pureWhite} />
-            <Text style={styles.editProfileText}>Edit profile</Text>
+            <Ionicons name="pencil" size={17} color="#FFFFFF" />
           </TouchableOpacity>
+          <View style={styles.profileCoverContent}>
+            <Text style={styles.profileName} numberOfLines={2}>
+              {profile.name}
+            </Text>
+            <Text style={styles.username}>@{profile.username}</Text>
+            <Text style={styles.bio} numberOfLines={2}>
+              &ldquo;{profile.bio}&rdquo;
+            </Text>
+            <TouchableOpacity
+              style={styles.editProfileButton}
+              onPress={() => router.push("/profile-edit")}
+              activeOpacity={0.82}
+              accessibilityRole="button"
+              accessibilityLabel="Edit profile"
+            >
+              <Text style={styles.editProfileText}>Edit profile</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.sectionHeadingRow}>
-          <View>
-            <Text style={styles.sectionTitle}>Your keepsakes</Text>
-            <Text style={styles.sectionSubtitle}>A little measure of what you carry.</Text>
-          </View>
+          <Text style={styles.sectionTitle}>Your keepsakes</Text>
+          <Text style={styles.sectionSubtitle}>What you carry</Text>
         </View>
 
         <View style={styles.statsRow}>
@@ -263,6 +252,20 @@ export default function ProfileScreen() {
             onPress={() => router.push("/saved-items?section=stories")}
           />
         </View>
+
+        <TouchableOpacity
+          style={styles.createTributePrompt}
+          onPress={() => router.push("/create-tribute")}
+          activeOpacity={0.82}
+          accessibilityRole="button"
+          accessibilityLabel="Honour someone who helped you grow"
+        >
+          <Ionicons name="heart-outline" size={16} color={Palette.accentSky} />
+          <Text style={styles.createTributePromptText}>
+            Honour someone who helped you grow
+          </Text>
+          <Ionicons name="chevron-forward" size={15} color={Palette.accentSky} />
+        </TouchableOpacity>
 
         <SectionHeading
           title="My tributes"
@@ -431,15 +434,22 @@ function StatCard({
   icon: ProfileActionIcon;
   onPress: () => void;
 }) {
+  const iconColor =
+    label === "Tributes"
+      ? Palette.accentPink
+      : label === "Memories"
+        ? Palette.accentAmber
+        : Palette.accentSky;
+
   return (
     <TouchableOpacity
-      style={styles.statCard}
+      style={[styles.statCard, label === "Memories" && styles.statCardFeatured]}
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
       accessibilityLabel={`${count} ${label}. Open collection.`}
     >
-      <Ionicons name={icon} size={19} color={Palette.turquoise} />
+      <Ionicons name={icon} size={17} color={iconColor} />
       <Text style={styles.statNumber}>{count}</Text>
       <Text style={styles.statLabel} numberOfLines={2}>{label}</Text>
     </TouchableOpacity>
@@ -575,30 +585,37 @@ function formatDate(value: string): string {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.iceWhite },
   header: {
-    height: 54,
+    height: 56,
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: Palette.borderSubtle,
   },
   headerIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Palette.surfaceCard,
+    borderWidth: 1,
+    borderColor: Palette.borderSubtle,
     justifyContent: "center",
     alignItems: "center",
   },
   headerTitle: {
-    color: Palette.deepTeal,
-    fontSize: 22,
-    fontWeight: "800",
+    color: Palette.cream,
+    fontSize: 16,
+    fontWeight: "700",
+    fontStyle: "italic",
+    fontFamily: AppFonts.body,
   },
   content: {
     width: "100%",
     maxWidth: MaxContentWidth,
     alignSelf: "center",
-    paddingHorizontal: 18,
-    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingTop: 10,
     paddingBottom: 132,
   },
   errorBanner: {
@@ -612,130 +629,144 @@ const styles = StyleSheet.create({
   },
   errorText: { flex: 1, color: Palette.deepTeal, fontSize: 12 },
   identityCard: {
-    padding: 18,
+    height: 310,
+    position: "relative",
+    overflow: "hidden",
     borderRadius: 25,
-    backgroundColor: Palette.pureWhite,
+    backgroundColor: Palette.surfaceCard,
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    shadowColor: Palette.deepTeal,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
     elevation: 3,
   },
-  identityTopRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+  profileCoverImage: {
+    ...StyleSheet.absoluteFill,
   },
-  eyebrow: {
-    color: Palette.turquoise,
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1.5,
+  profileCoverFallback: {
+    ...StyleSheet.absoluteFill,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Palette.surfaceElevated,
   },
-  welcomeTitle: {
-    marginTop: 4,
-    color: Palette.deepTeal,
-    fontSize: 21,
-    fontWeight: "800",
+  profileCoverGradient: {
+    ...StyleSheet.absoluteFill,
   },
   editIcon: {
+    position: "absolute",
+    top: 12,
+    right: 12,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "rgba(23, 23, 23, 0.88)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
     alignItems: "center",
     justifyContent: "center",
-  },
-  identityRow: { flexDirection: "row", alignItems: "center", marginTop: 18 },
-  avatarButton: { position: "relative", marginRight: 15 },
-  avatar: {
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    borderWidth: 3,
-    borderColor: Palette.turquoise,
-    backgroundColor: Palette.mintMist,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
   },
   avatarFallback: {
-    color: Palette.deepTeal,
-    fontSize: 27,
+    color: Palette.textPrimary,
+    fontSize: 42,
     fontWeight: "800",
   },
-  avatarImage: {
+  profileCoverContent: {
     position: "absolute",
-    width: "100%",
-    height: "100%",
-    borderRadius: 43,
+    left: 16,
+    right: 16,
+    bottom: 14,
   },
-  cameraBadge: {
-    position: "absolute",
-    right: -1,
-    bottom: 0,
-    width: 25,
-    height: 25,
-    borderRadius: 13,
-    backgroundColor: Palette.oceanTeal,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: Palette.pureWhite,
-  },
-  identityCopy: { flex: 1 },
   profileName: {
-    color: Palette.deepTeal,
+    color: "#FFFFFF",
     fontSize: 23,
     fontWeight: "800",
   },
-  username: { marginTop: 2, color: Palette.textSecondary, fontSize: 12 },
-  bio: { marginTop: 7, color: Palette.deepTeal, fontSize: 13, lineHeight: 18 },
+  username: { marginTop: 1, color: "#E5E5E5", fontSize: 12 },
+  bio: {
+    marginTop: 7,
+    marginBottom: 12,
+    color: Palette.cream,
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: AppFonts.body,
+    fontStyle: "italic",
+    fontWeight: "600",
+  },
   editProfileButton: {
-    minHeight: 43,
-    marginTop: 17,
-    borderRadius: 15,
-    backgroundColor: Palette.oceanTeal,
+    minHeight: 40,
+    borderRadius: 999,
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.9)",
   },
-  editProfileText: { color: Palette.pureWhite, fontSize: 13, fontWeight: "800" },
-  sectionHeadingRow: { marginTop: 24, marginBottom: 12 },
+  editProfileText: { color: "#000000", fontSize: 13, fontWeight: "800" },
+  sectionHeadingRow: {
+    marginTop: 20,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   sectionTitle: {
-    color: Palette.deepTeal,
-    fontSize: 21,
-    fontWeight: "800",
+    color: Palette.cream,
+    fontSize: 17,
+    fontWeight: "700",
+    fontFamily: AppFonts.body,
   },
-  sectionSubtitle: { marginTop: 3, color: Palette.textSecondary, fontSize: 12 },
-  statsRow: { flexDirection: "row", gap: 10 },
+  sectionSubtitle: { color: Palette.accentSky, fontSize: 9.5 },
+  statsRow: { flexDirection: "row", gap: 7 },
   statCard: {
     flex: 1,
-    minHeight: 102,
-    paddingHorizontal: 7,
-    paddingVertical: 12,
+    minHeight: 88,
+    paddingHorizontal: 5,
+    paddingVertical: 9,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: Palette.pureWhite,
+    borderRadius: 16,
+    backgroundColor: Palette.surfaceCard,
     borderWidth: 1,
     borderColor: Palette.borderSubtle,
   },
+  statCardFeatured: {
+    borderColor: "rgba(239, 162, 91, 0.55)",
+  },
   statNumber: {
-    marginTop: 5,
-    color: Palette.deepTeal,
-    fontSize: 24,
-    fontWeight: "800",
+    marginTop: 3,
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "700",
+    fontFamily: AppFonts.body,
   },
   statLabel: {
     marginTop: 1,
     color: Palette.textSecondary,
-    fontSize: 10,
-    fontWeight: "700",
+    fontSize: 9,
+    fontWeight: "600",
     textAlign: "center",
+  },
+  createTributePrompt: {
+    minHeight: 38,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(143, 211, 255, 0.45)",
+    backgroundColor: "#050505",
+  },
+  createTributePromptText: {
+    color: Palette.accentSky,
+    fontSize: 10,
+    fontWeight: "600",
+    flexShrink: 1,
   },
   sectionHeading: {
     marginTop: 25,

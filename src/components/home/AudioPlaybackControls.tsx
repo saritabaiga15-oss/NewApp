@@ -40,6 +40,11 @@ export default function AudioPlaybackControls({
   };
 
   const duration = durationSeconds ?? status.duration;
+  const progress = duration > 0 ? status.currentTime / duration : 0;
+  const waveformHeights = [
+    12, 19, 25, 16, 29, 21, 14, 27, 34, 20, 13, 24, 31, 18, 12, 28, 36, 22,
+    16, 30, 20, 13, 26, 34, 18, 12, 23, 31, 19, 14, 27, 35, 21, 15, 29, 18,
+  ];
 
   return (
     <View style={[styles.container, compact && styles.compactContainer]}>
@@ -56,19 +61,33 @@ export default function AudioPlaybackControls({
           color={Palette.pureWhite}
         />
       </TouchableOpacity>
+      {compact ? (
+      <View style={styles.waveform}>
+        {waveformHeights.map((height, index) => (
+          <View
+            key={`wave-${index}`}
+            style={[
+              styles.waveformBar,
+              { height },
+              duration > 0 && (index + 1) / waveformHeights.length <= progress
+                ? styles.waveformBarPlayed
+                : null,
+            ]}
+          />
+        ))}
+      </View>
+      ) : (
       <View style={styles.progressTrack}>
         <View
           style={[
             styles.progress,
             {
-              width:
-                duration > 0
-                  ? `${Math.min((status.currentTime / duration) * 100, 100)}%`
-                  : "0%",
+              width: `${Math.min(progress * 100, 100)}%`,
             },
           ]}
         />
       </View>
+      )}
       <Text style={styles.duration}>
         {formatTime(status.playing ? status.currentTime : duration)}
       </Text>
@@ -110,9 +129,9 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.oceanTeal,
   },
   compactPlayButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
   },
   progressTrack: {
     height: 4,
@@ -124,6 +143,24 @@ const styles = StyleSheet.create({
   progress: {
     height: "100%",
     borderRadius: 2,
+    backgroundColor: Palette.turquoise,
+  },
+  waveform: {
+    flex: 1,
+    height: 32,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 2,
+    overflow: "hidden",
+  },
+  waveformBar: {
+    width: 3,
+    maxHeight: 32,
+    borderRadius: 2,
+    backgroundColor: "rgba(84, 0, 14, 0.22)",
+  },
+  waveformBarPlayed: {
     backgroundColor: Palette.turquoise,
   },
   duration: {

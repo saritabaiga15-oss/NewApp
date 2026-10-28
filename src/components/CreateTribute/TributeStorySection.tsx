@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     lineHeight: 22,
     color: Palette.deepTeal,
-    fontFamily: "serif",
   },
   metaCounterRow: {
     flexDirection: "row",

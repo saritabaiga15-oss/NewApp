@@ -21,8 +21,30 @@ export default function OnboardingScreen() {
   // Smooth entrance animation
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const slideAnim = useMemo(() => new Animated.Value(16), []);
+  const collageFloat = useMemo(
+    () => [new Animated.Value(-4), new Animated.Value(4), new Animated.Value(-4)],
+    []
+  );
 
   useEffect(() => {
+    const floatAnimations = collageFloat.map((value, index) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(value, {
+            toValue: index === 1 ? -4 : 4,
+            duration: 2200 + index * 180,
+            useNativeDriver: true,
+          }),
+          Animated.timing(value, {
+            toValue: index === 1 ? 4 : -4,
+            duration: 2200 + index * 180,
+            useNativeDriver: true,
+          }),
+        ])
+      )
+    );
+    floatAnimations.forEach((animation) => animation.start());
+
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -35,7 +57,11 @@ export default function OnboardingScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [fadeAnim, slideAnim]);
+
+      return () => {
+        floatAnimations.forEach((animation) => animation.stop());
+      };
+  }, [collageFloat, fadeAnim, slideAnim]);
 
   // Responsive sizing for collage cards
   const cardWidth = Math.min(136, Math.max(105, Math.floor((windowWidth - 36) / 2.75)));
@@ -58,7 +84,12 @@ export default function OnboardingScreen() {
           <View style={[styles.collageContainer, { height: collageHeight }]}>
             <View style={styles.tiltedWrapper}>
               {/* Column 1 */}
-              <View style={[styles.column, { paddingTop: 24 }]}>
+              <Animated.View
+                style={[
+                  styles.column,
+                  { paddingTop: 24, transform: [{ translateY: collageFloat[0] }] },
+                ]}
+              >
                 <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
                   <Image
                     source={require("../../assets/images/img4.jpeg")}
@@ -73,10 +104,15 @@ export default function OnboardingScreen() {
                     resizeMode="cover"
                   />
                 </View>
-              </View>
+              </Animated.View>
 
               {/* Column 2 */}
-              <View style={[styles.column, { paddingTop: 0 }]}>
+              <Animated.View
+                style={[
+                  styles.column,
+                  { paddingTop: 0, transform: [{ translateY: collageFloat[1] }] },
+                ]}
+              >
                 <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
                   <Image
                     source={require("../../assets/images/img3.jpeg")}
@@ -91,10 +127,15 @@ export default function OnboardingScreen() {
                     resizeMode="cover"
                   />
                 </View>
-              </View>
+              </Animated.View>
 
               {/* Column 3 */}
-              <View style={[styles.column, { paddingTop: 28 }]}>
+              <Animated.View
+                style={[
+                  styles.column,
+                  { paddingTop: 28, transform: [{ translateY: collageFloat[2] }] },
+                ]}
+              >
                 <View style={[styles.card, { width: cardWidth, height: cardHeight }]}>
                   <Image
                     source={require("../../assets/images/img1.jpeg")}
@@ -109,7 +150,7 @@ export default function OnboardingScreen() {
                     resizeMode="cover"
                   />
                 </View>
-              </View>
+              </Animated.View>
             </View>
 
             {/* Fade into canvas */}
@@ -253,7 +294,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 38,
     fontWeight: "800",
-    color: Palette.deepTeal,
+    color: Palette.cream,
     textAlign: "center",
     lineHeight: 46,
     letterSpacing: -0.6,
@@ -272,7 +313,7 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 14.5,
     lineHeight: 22,
-    color: Palette.deepTeal,
+    color: Palette.cream,
     textAlign: "center",
     fontWeight: "700",
   },
@@ -319,7 +360,7 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontSize: 14,
-    color: Palette.accentSky,
+    color: "#FFFFFF",
     fontWeight: "800",
   },
 });

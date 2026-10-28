@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Animated,
@@ -18,7 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 // Design System Tokens
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 // Modular Reusable Components
 import SectionHeader from "../components/home/SectionHeader";
@@ -184,6 +184,70 @@ const VOICE_NOTES: VoiceNoteData[] = [
     category: "Philosophy",
   },
 ];
+
+const MEMORY_WALL_FILTERS = [
+  { id: "all", label: "All Memories", icon: "sparkles-outline", color: Palette.accentSky },
+  { id: "photo", label: "Photos", icon: "camera-outline", color: Palette.accentLavender },
+  { id: "gratitude", label: "Gratitude", icon: "chatbubble-ellipses-outline", color: Palette.accentPink },
+  { id: "voice", label: "Audio", icon: "mic-outline", color: Palette.accentPeach },
+  { id: "achievement", label: "Milestones", icon: "trophy-outline", color: Palette.accentMint },
+  { id: "lesson", label: "Lessons", icon: "book-outline", color: Palette.accentAmber },
+] as const;
+
+interface MemoryFilterPillProps {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  isActive: boolean;
+  onPress: () => void;
+}
+
+function MemoryFilterPill({
+  label,
+  icon,
+  color,
+  isActive,
+  onPress,
+}: MemoryFilterPillProps) {
+  const scale = React.useMemo(() => new Animated.Value(1), []);
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: isActive ? 1.04 : 1,
+      speed: 24,
+      bounciness: 5,
+      useNativeDriver: true,
+    }).start();
+  }, [isActive, scale]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.75}
+        style={[styles.filterPill, isActive && styles.filterPillActive]}
+        accessibilityRole="button"
+        accessibilityLabel={`${label} filter`}
+        accessibilityState={{ selected: isActive }}
+      >
+        <Ionicons
+          name={icon}
+          size={14}
+          color={isActive ? "#000000" : color}
+        />
+        <Text
+          style={[
+            styles.filterText,
+            { color: isActive ? "#000000" : color },
+            isActive && styles.filterTextActive,
+          ]}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 function formatAudioDuration(seconds: number) {
   const totalSeconds = Math.max(0, Math.floor(seconds));
@@ -823,32 +887,15 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterRow}
           >
-            {[
-              { id: "all", label: "All Memories" },
-              { id: "photo", label: "📷 Photos" },
-              { id: "gratitude", label: "💬 Gratitude" },
-              { id: "voice", label: "🎙 Audio" },
-              { id: "achievement", label: "🏆 Milestones" },
-              { id: "lesson", label: "📖 Lessons" },
-            ].map((f) => (
-              <TouchableOpacity
-                key={f.id}
-                onPress={() => setSelectedTag(f.id)}
-                activeOpacity={0.7}
-                style={[
-                  styles.filterPill,
-                  selectedTag === f.id && styles.filterPillActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterText,
-                    selectedTag === f.id && styles.filterTextActive,
-                  ]}
-                >
-                  {f.label}
-                </Text>
-              </TouchableOpacity>
+            {MEMORY_WALL_FILTERS.map((filter) => (
+              <MemoryFilterPill
+                key={filter.id}
+                label={filter.label}
+                icon={filter.icon}
+                color={filter.color}
+                isActive={selectedTag === filter.id}
+                onPress={() => setSelectedTag(filter.id)}
+              />
             ))}
           </ScrollView>
 
@@ -1225,11 +1272,7 @@ const styles = StyleSheet.create({
     fontSize: 23,
     lineHeight: 26,
     fontWeight: "700",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.displaySans,
     marginBottom: 5,
   },
   featuredStoryMentor: {
@@ -1336,13 +1379,9 @@ const styles = StyleSheet.create({
   lessonQuoteText: {
     fontSize: 17,
     lineHeight: 26,
-    color: Palette.deepTeal, // Deep Teal quote
+    color: Palette.deepTeal,
     fontStyle: "italic",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
   lessonAuthorRow: {
     marginTop: 14,
@@ -1368,24 +1407,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   filterPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
     paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 16,
-    backgroundColor: Palette.pureWhite, // Pure White card
-    borderWidth: 1.2,
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: Palette.pureWhite,
+    borderWidth: 1,
     borderColor: Palette.borderSubtle,
   },
   filterPillActive: {
-    backgroundColor: Palette.oceanTeal, // Ocean Teal active pill
+    backgroundColor: Palette.oceanTeal,
     borderColor: Palette.oceanTeal,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 3,
   },
   filterText: {
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: "600",
     color: Palette.deepTeal,
   },
   filterTextActive: {
-    color: "#FFFFFF",
+    color: "#000000",
     fontWeight: "800",
   },
 

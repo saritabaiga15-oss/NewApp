@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 import type { AchievementData } from "./AchievementCard";
 
 interface AchievementDetailModalProps {
@@ -545,11 +545,7 @@ const styles = StyleSheet.create({
     color: Palette.deepTeal,
     fontStyle: "italic",
     opacity: 0.9,
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
   statPill: {
     flexDirection: "row",

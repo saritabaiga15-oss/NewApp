@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Animated,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +16,42 @@ interface FilterTabsProps {
   onSelect: (key: WallCategory) => void;
 }
 
+interface FilterChipProps {
+  tab: WallFilterTab;
+  isActive: boolean;
+  onSelect: (key: WallCategory) => void;
+}
+
+function FilterChip({ tab, isActive, onSelect }: FilterChipProps) {
+  const scale = React.useMemo(() => new Animated.Value(1), []);
+
+  React.useEffect(() => {
+    Animated.spring(scale, {
+      toValue: isActive ? 1.04 : 1,
+      speed: 24,
+      bounciness: 5,
+      useNativeDriver: true,
+    }).start();
+  }, [isActive, scale]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        onPress={() => onSelect(tab.key)}
+        activeOpacity={0.75}
+        style={[styles.chip, isActive && styles.chipActive]}
+        accessibilityRole="tab"
+        accessibilityLabel={`${tab.label} filter`}
+        accessibilityState={{ selected: isActive }}
+      >
+        <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+          {tab.label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 export default function FilterTabs({ tabs, active, onSelect }: FilterTabsProps) {
   return (
     <View style={styles.wrapper}>
@@ -26,19 +63,12 @@ export default function FilterTabs({ tabs, active, onSelect }: FilterTabsProps) 
         {tabs.map((tab) => {
           const isActive = tab.key === active;
           return (
-            <TouchableOpacity
+            <FilterChip
               key={tab.key}
-              onPress={() => onSelect(tab.key)}
-              activeOpacity={0.75}
-              style={[styles.chip, isActive && styles.chipActive]}
-              accessibilityRole="tab"
-              accessibilityLabel={`${tab.label} filter`}
-              accessibilityState={{ selected: isActive }}
-            >
-              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
+              tab={tab}
+              isActive={isActive}
+              onSelect={onSelect}
+            />
           );
         })}
       </ScrollView>

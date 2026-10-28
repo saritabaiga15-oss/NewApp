@@ -1,27 +1,22 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 interface CreateHeaderProps {
   draftCount?: number;
   onPressDrafts?: () => void;
-  onPressQuill?: () => void;
 }
 
 export default function CreateHeader({
   draftCount = 0,
   onPressDrafts,
-  onPressQuill,
 }: CreateHeaderProps) {
   return (
     <View style={styles.container}>
       {/* Top Studio Badge Row */}
       <View style={styles.topRow}>
         <View style={styles.studioPill}>
-          <View style={styles.nibCircle}>
-            <Ionicons name="sparkles" size={12} color={Palette.turquoise} />
-          </View>
           <Text style={styles.studioPillText}>MEMORY STUDIO</Text>
         </View>
 
@@ -33,39 +28,20 @@ export default function CreateHeader({
           accessibilityRole="button"
           accessibilityLabel={`Open drafts, ${draftCount} unfinished`}
         >
-          <Ionicons name="journal-outline" size={15} color={Palette.oceanTeal} />
-          {draftCount > 0 && (
-            <View style={styles.sealDot}>
-              <Text style={styles.sealDotText}>{draftCount}</Text>
-            </View>
-          )}
+          <Ionicons name="albums-outline" size={16} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
       {/* Main Header Content */}
       <View style={styles.titleArea}>
-        <View style={styles.headingRow}>
-          <Text style={styles.heading}>Let&apos;s celebrate someone.</Text>
-          {/* Interactive handwritten ink feather accent */}
-          <TouchableOpacity
-            style={styles.quillIconWrap}
-            onPress={onPressQuill}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Create a new tribute or memory"
-          >
-            <Ionicons name="pencil" size={16} color={Palette.turquoise} />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.heading}>
+          Let&apos;s celebrate{"\n"}
+          <Text style={styles.headingEmphasis}>someone.</Text>
+        </Text>
         <Text style={styles.subtitle}>Every memory deserves a place to live.</Text>
       </View>
 
-      {/* Delicate horizontal deckle line with warm accent */}
-      <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <View style={styles.dividerDiamond} />
-        <View style={styles.dividerLine} />
-      </View>
+      <View style={styles.dividerLine} />
     </View>
   );
 }
@@ -74,7 +50,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 16,
+    paddingBottom: 14,
   },
   topRow: {
     flexDirection: "row",
@@ -85,108 +61,56 @@ const styles = StyleSheet.create({
   studioPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: Palette.mintMist,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.28)",
-  },
-  nibCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "rgba(236, 143, 62, 0.18)",
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor: "rgba(239, 162, 91, 0.28)",
   },
   studioPillText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: "800",
-    color: Palette.oceanTeal,
-    letterSpacing: 1.1,
+    color: Palette.accentAmber,
+    letterSpacing: 1.2,
   },
   stationerySeal: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: Palette.pureWhite,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-    position: "relative",
-  },
-  sealDot: {
-    position: "absolute",
-    top: -3,
-    right: -3,
-    backgroundColor: Palette.turquoise,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 3,
-  },
-  sealDotText: {
-    fontSize: 9,
-    fontWeight: "800",
-    color: Palette.pureWhite,
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   titleArea: {
-    marginTop: 2,
-  },
-  headingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    marginTop: 8,
   },
   heading: {
-    fontSize: 27,
-    fontWeight: "900",
-    color: Palette.deepTeal,
+    fontFamily: AppFonts.displaySans,
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#FFFFFF",
     letterSpacing: -0.6,
-    flex: 1,
+    lineHeight: 38,
   },
-  quillIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(236, 143, 62, 0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
+  headingEmphasis: {
+    fontFamily: AppFonts.displaySans,
+    fontStyle: "italic",
+    color: Palette.accentAmber,
   },
   subtitle: {
-    fontSize: 14,
-    fontStyle: "italic",
+    fontFamily: AppFonts.body,
+    fontSize: 15,
     color: Palette.textSecondary,
-    marginTop: 4,
+    marginTop: 6,
     letterSpacing: 0.1,
   },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 14,
-    gap: 8,
-  },
   dividerLine: {
-    flex: 1,
+    marginTop: 18,
+    width: "100%",
     height: 1,
-    backgroundColor: "rgba(177, 167, 166, 0.35)",
-  },
-  dividerDiamond: {
-    width: 6,
-    height: 6,
-    backgroundColor: Palette.turquoise,
-    transform: [{ rotate: "45deg" }],
-    borderRadius: 1,
+    backgroundColor: "rgba(239, 162, 91, 0.12)",
   },
 });

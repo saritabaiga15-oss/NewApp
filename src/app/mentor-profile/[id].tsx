@@ -20,7 +20,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
 // Design System Tokens
-import { BottomTabInset, getCategoryAccent, Palette } from "@/constants/theme";
+import { AppFonts, BottomTabInset, getCategoryAccent, Palette } from "@/constants/theme";
 
 // Shared Navigation & Components
 import BottomNavigation from "@/components/home/BottomNavigation";
@@ -1423,11 +1423,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: "#F3F4F6",
     lineHeight: 18,
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
 
   /* Action Grid Buttons (Bookmark, Add Memory, Tribute, Share) */

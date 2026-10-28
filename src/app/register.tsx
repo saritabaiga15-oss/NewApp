@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "800",
-    color: Palette.deepTeal,
+    color: Palette.cream,
     marginBottom: 8,
     letterSpacing: -0.5,
   },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     borderColor: Palette.borderSubtle,
     borderRadius: 18,
     paddingHorizontal: 18,
-    color: Palette.deepTeal,
+    color: Palette.cream,
     fontSize: 15,
     fontWeight: "600",
     marginBottom: 14,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: "#000000",
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginLink: {
-    color: Palette.oceanTeal,
+    color: "#FFFFFF",
     fontWeight: "800",
   },
 });

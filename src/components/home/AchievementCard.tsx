@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Image,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,7 +8,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 export type AchievementCardVariant =
   | "cinematic"
@@ -444,6 +443,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     letterSpacing: -0.2,
     marginBottom: 2,
+    fontFamily: AppFonts.displaySans,
   },
   cinematicDedicated: {
     fontSize: 11.5,
@@ -460,6 +460,7 @@ const styles = StyleSheet.create({
     color: "rgba(255, 248, 240, 0.9)",
     fontStyle: "italic",
     marginBottom: 10,
+    fontFamily: AppFonts.displaySerif,
   },
   cinematicAccentBar: {
     height: 3,
@@ -531,6 +532,7 @@ const styles = StyleSheet.create({
     color: Palette.deepTeal,
     letterSpacing: -0.2,
     marginBottom: 6,
+    fontFamily: AppFonts.displaySans,
   },
   editorialDedicatedRow: {
     flexDirection: "row",

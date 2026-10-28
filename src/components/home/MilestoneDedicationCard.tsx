@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { AppFonts } from "@/constants/theme";
 
 export interface MilestoneDedicationData {
   id: string;
@@ -157,12 +157,8 @@ const styles = StyleSheet.create({
   dedicationQuote: {
     fontSize: 12.5,
     lineHeight: 19,
-    color: "#D1D5DB", // Soft grey
+    color: "#D1D5DB",
     fontStyle: "italic",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
 });

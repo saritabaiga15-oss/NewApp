@@ -331,10 +331,6 @@ export default function CreateScreen() {
     );
   };
 
-  const handlePressQuill = () => {
-    handleSelectOption("tribute");
-  };
-
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
@@ -356,7 +352,6 @@ export default function CreateScreen() {
           <CreateHeader
             draftCount={allDrafts.length}
             onPressDrafts={handlePressDrafts}
-            onPressQuill={handlePressQuill}
           />
 
           {/* Toast Notification Banner */}

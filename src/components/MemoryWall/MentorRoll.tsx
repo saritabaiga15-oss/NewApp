@@ -31,6 +31,8 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
+const BANNER_THEMES = ["#93363F", "#480E18", "#E49147", "#863D46", "#9E4048"];
+
 export default function MentorRoll({
   mentors,
   onMentorPress,
@@ -64,9 +66,10 @@ export default function MentorRoll({
 
       {/* 2-Column Grid */}
       <View style={styles.grid}>
-        {mentors.map((mentor) => {
+        {mentors.map((mentor, idx) => {
           const initials = getInitials(mentor.name);
           const accentColor = getCategoryAccent(mentor.relationship);
+          const bannerColor = mentor.coverColor || BANNER_THEMES[idx % BANNER_THEMES.length];
           const quoteText =
             mentor.meaningfulQuote ||
             mentor.description ||
@@ -82,7 +85,7 @@ export default function MentorRoll({
               accessibilityLabel={`${mentor.name} profile card`}
             >
               {/* Top Banner (72px) with Cover Color & Refresh Button */}
-              <View style={styles.banner}>
+              <View style={[styles.banner, { backgroundColor: bannerColor }]}>
                 <View style={styles.bannerArc} />
                 <TouchableOpacity
                   onPress={() =>
@@ -291,16 +294,16 @@ const styles = StyleSheet.create({
     padding: 3,
     borderRadius: 42,
     borderWidth: 2,
-    borderColor: Palette.borderSubtle,
+    borderColor: "rgba(239, 162, 91, 0.4)",
     backgroundColor: Palette.surfaceCard,
   },
   avatarCircle: {
     width: 66,
     height: 66,
     borderRadius: 33,
-    backgroundColor: Palette.surfaceElevated,
+    backgroundColor: "#381219",
     borderWidth: 1.5,
-    borderColor: Palette.borderSubtle,
+    borderColor: "rgba(239, 162, 91, 0.25)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -395,7 +398,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   sendThanksBtn: {
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: "#FFFFFF",
     marginHorizontal: 8,
     paddingVertical: 8.5,
     borderRadius: 999,
@@ -412,7 +415,7 @@ const styles = StyleSheet.create({
   sendThanksText: {
     fontSize: 12.5,
     fontWeight: "700",
-    color: Palette.textOnPrimary,
+    color: "#000000",
   },
   lastThankedText: {
     fontSize: 10.5,

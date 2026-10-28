@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 interface SectionHeaderProps {
   title: string;
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: Palette.deepTeal,
     letterSpacing: -0.3,
+    fontFamily: AppFonts.displaySans,
   },
   titleDark: {
     color: "#FFFFFF",
@@ -111,6 +112,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.5,
     textTransform: "uppercase",
+    fontFamily: AppFonts.body,
   },
   badgeTextDark: {
     color: "#FFFFFF",
@@ -120,6 +122,7 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     marginTop: 3,
     fontWeight: "400",
+    fontFamily: AppFonts.body,
   },
   subtitleDark: {
     color: "#9CA3AF",

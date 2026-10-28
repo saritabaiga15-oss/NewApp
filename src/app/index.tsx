@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 // Auto-navigate after this many ms (matches total animation + hold time)
 const SPLASH_DURATION = 4200;
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   eyebrow: {
-    fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "serif" }),
+    fontFamily: AppFonts.displaySans,
     fontStyle: "italic",
     fontSize: 30,
     fontWeight: "600",
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   titleMain: {
-    fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "serif" }),
+    fontFamily: AppFonts.displaySans,
     fontSize: 44,
     fontWeight: "800",
     color: Palette.textPrimary,
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   tagline: {
-    fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "serif" }),
+    fontFamily: AppFonts.body,
     fontStyle: "italic",
     fontSize: 16.5,
     lineHeight: 26,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   beginLabel: {
-    fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "serif" }),
+    fontFamily: AppFonts.body,
     fontStyle: "italic",
     fontSize: 17,
     fontWeight: "600",

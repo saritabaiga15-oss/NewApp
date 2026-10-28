@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Fonts } from "@/constants/theme";
+import { Fonts, Palette } from "@/constants/theme";
 
 interface MemoryQuote {
   quote: string;
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.serif,
     fontStyle: "italic",
     fontWeight: "700",
-    color: "#D27928",
+    color: Palette.amber,
     marginBottom: 8,
     letterSpacing: 0.2,
   },
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.serif,
     fontSize: 23,
     fontWeight: "700",
-    color: "#3B0B14",
+    color: Palette.textPrimary,
     lineHeight: 31,
     letterSpacing: -0.3,
     marginBottom: 14,
@@ -101,18 +101,18 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontStyle: "italic",
     fontWeight: "700",
-    color: "#3B0B14",
+    color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
   anotherLink: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#5A0C18",
+    color: Palette.amber,
     textDecorationLine: "underline",
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(142, 42, 51, 0.12)",
+    backgroundColor: Palette.borderSubtle,
     marginTop: 20,
   },
 });

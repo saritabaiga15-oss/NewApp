@@ -2,14 +2,13 @@ import React from "react";
 import {
   Animated,
   Image,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { getCategoryAccent, Palette } from "@/constants/theme";
+import { AppFonts, getCategoryAccent, Palette } from "@/constants/theme";
 
 export interface MentorData {
   id: string;
@@ -430,14 +429,10 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18.5,
     fontWeight: "800",
-    color: "#FFFFFF", // Bright white mentor name
+    color: "#FFFFFF",
     letterSpacing: -0.3,
     textAlign: "center",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.displaySerif,
     fontStyle: "italic",
     marginBottom: 3,
   },
@@ -502,13 +497,9 @@ const styles = StyleSheet.create({
   lessonText: {
     fontSize: 12,
     lineHeight: 18,
-    color: "#E5E5E5", // Elegant readable light typography
+    color: "#E5E5E5",
     fontStyle: "italic",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.displaySerif,
   },
 
   /* Footer */

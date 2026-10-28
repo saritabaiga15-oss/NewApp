@@ -69,7 +69,7 @@ export default function TributeDesignFooter({
           </View>
 
           <View style={styles.arrowCircle}>
-            <Ionicons name="arrow-forward" size={16} color={Palette.deepTeal} />
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
           </View>
         </Pressable>
       </Animated.View>
@@ -111,35 +111,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Palette.oceanTeal,
-    paddingHorizontal: 20,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 22,
     paddingVertical: 14,
-    borderRadius: 20,
+    borderRadius: 999,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 5,
   },
   buttonTextGroup: {},
   buttonLabel: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: Palette.textOnPrimary,
-    letterSpacing: -0.2,
+    fontSize: 16.5,
+    fontWeight: "900",
+    color: "#1A0409",
+    letterSpacing: -0.3,
   },
   buttonSub: {
-    fontSize: 11,
-    color: "rgba(252, 238, 228, 0.75)",
+    fontSize: 11.5,
+    color: "rgba(26, 4, 9, 0.65)",
     marginTop: 2,
+    fontWeight: "500",
   },
   arrowCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Palette.mintMist,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#1A0409",
     alignItems: "center",
     justifyContent: "center",
   },

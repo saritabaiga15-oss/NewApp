@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
 import AudioPlaybackControls from "./AudioPlaybackControls";
@@ -25,13 +19,33 @@ interface VoiceNoteCardProps {
   voiceNote: VoiceNoteData;
 }
 
+function getCategoryStyle(category: string) {
+  const normalized = category.toLowerCase();
+
+  if (normalized.includes("career")) {
+    return { icon: "briefcase-outline" as const };
+  }
+
+  if (normalized.includes("creative")) {
+    return { icon: "sparkles-outline" as const };
+  }
+
+  if (normalized.includes("philosophy")) {
+    return { icon: "bulb-outline" as const };
+  }
+
+  return { icon: "mic-outline" as const };
+}
+
 export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
+  const categoryStyle = getCategoryStyle(voiceNote.category);
+
   return (
     <View style={styles.cardContainer}>
       <View style={styles.cardSurface}>
         <View style={styles.topRow}>
           <View style={styles.categoryBadge}>
-            <Ionicons name="mic" size={12} color={Palette.oceanTeal} />
+            <Ionicons name={categoryStyle.icon} size={12} color={Palette.oceanTeal} />
             <Text style={styles.categoryText}>{voiceNote.category}</Text>
           </View>
           <Text style={styles.dateText}>{voiceNote.date}</Text>
@@ -95,8 +109,8 @@ const styles = StyleSheet.create({
     width: 300,
     borderRadius: 22,
     marginRight: 14,
-    backgroundColor: Palette.pureWhite, // Pure White card surface
-    borderWidth: 1.2,
+    backgroundColor: Palette.pureWhite,
+    borderWidth: 1,
     borderColor: Palette.borderSubtle,
     shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 4 },
@@ -134,7 +148,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   title: {
-    fontSize: 15.5,
+    fontSize: 16,
     fontWeight: "800",
     color: Palette.deepTeal,
     lineHeight: 22,
@@ -164,7 +178,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Palette.oceanTeal, // Ocean Teal play button
+    backgroundColor: Palette.oceanTeal,
     justifyContent: "center",
     alignItems: "center",
     elevation: 2,

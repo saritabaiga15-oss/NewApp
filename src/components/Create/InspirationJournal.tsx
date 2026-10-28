@@ -46,8 +46,8 @@ export default function InspirationJournal({
       {/* Section Header */}
       <View style={styles.headerRow}>
         <View style={styles.headerTitleWrap}>
-          <View style={styles.sparkleWrap}>
-            <Ionicons name="sparkles" size={13} color={Palette.turquoise} />
+          <View style={styles.inspirationIconWrap}>
+            <Ionicons name="bulb-outline" size={13} color={Palette.turquoise} />
           </View>
           <Text style={styles.sectionHeading}>A Little Inspiration</Text>
         </View>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 7,
   },
-  sparkleWrap: {
+  inspirationIconWrap: {
     width: 22,
     height: 22,
     borderRadius: 11,
@@ -230,7 +230,6 @@ const styles = StyleSheet.create({
     fontSize: 38,
     fontWeight: "900",
     color: "rgba(255, 184, 153, 0.35)",
-    fontFamily: "serif",
   },
   questionText: {
     fontSize: 17,

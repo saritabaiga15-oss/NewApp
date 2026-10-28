@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 interface CreativeVoiceModalProps {
   visible: boolean;
@@ -337,11 +337,7 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     fontWeight: "500",
     letterSpacing: -0.1,
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
 
   /* Bottom Dock */

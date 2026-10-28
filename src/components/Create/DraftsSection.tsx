@@ -50,9 +50,6 @@ export default function DraftsSection({
               size={26}
               color={Palette.oceanTeal}
             />
-            <View style={styles.emptyMiniSparkle}>
-              <Ionicons name="sparkles" size={10} color={Palette.turquoise} />
-            </View>
           </View>
 
           <Text style={styles.emptyTitle}>Your studio is waiting</Text>
@@ -288,11 +285,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(236, 143, 62, 0.25)",
     position: "relative",
-  },
-  emptyMiniSparkle: {
-    position: "absolute",
-    top: 4,
-    right: 4,
   },
   emptyTitle: {
     fontSize: 15,

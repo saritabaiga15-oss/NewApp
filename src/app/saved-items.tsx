@@ -14,10 +14,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import { Fonts, MaxContentWidth, Palette } from "@/constants/theme";
+import { AppFonts, Fonts, MaxContentWidth, Palette } from "@/constants/theme";
 import { getAllStories, WISDOM_LESSON } from "@/data/mockStories";
 import { memoryService } from "@/services/memoryService";
 import { storyBookmarkService } from "@/services/storyBookmarkService";
@@ -377,44 +378,98 @@ export default function SavedItemsScreen() {
                     />
                   ))
                 ) : (
-                  <View style={styles.card}>
-                    {/* Visual Keepsake Placeholders */}
+                  <View style={[styles.card, styles.memoryKeepsakeCard]}>
+                    {/* Background Memory Images Grid/Collage */}
+                    <View style={styles.memoryGridBackground} pointerEvents="none">
+                      <View style={styles.memoryGridRow}>
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=500&auto=format&fit=crop&q=80" }}
+                          style={styles.bgMemoryTile}
+                          resizeMode="cover"
+                        />
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=500&auto=format&fit=crop&q=80" }}
+                          style={styles.bgMemoryTile}
+                          resizeMode="cover"
+                        />
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80" }}
+                          style={styles.bgMemoryTile}
+                          resizeMode="cover"
+                        />
+                      </View>
+                      <View style={styles.memoryGridRow}>
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=500&auto=format&fit=crop&q=80" }}
+                          style={styles.bgMemoryTile}
+                          resizeMode="cover"
+                        />
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=500&auto=format&fit=crop&q=80" }}
+                          style={styles.bgMemoryTile}
+                          resizeMode="cover"
+                        />
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500&auto=format&fit=crop&q=80" }}
+                          style={styles.bgMemoryTile}
+                          resizeMode="cover"
+                        />
+                      </View>
+                      {/* Gradient Overlay for warm contrast & legibility */}
+                      <LinearGradient
+                        colors={[
+                          "rgba(26, 4, 9, 0.72)",
+                          "rgba(38, 7, 14, 0.88)",
+                          "#1A0409",
+                        ]}
+                        locations={[0, 0.45, 1]}
+                        style={StyleSheet.absoluteFill}
+                      />
+                    </View>
+
+                    {/* Foreground Visual Keepsake Photos */}
                     <View style={styles.keepsakeRow}>
                       <View
                         style={[
-                          styles.keepsakePlaceholder,
-                          { transform: [{ rotate: "-5deg" }], marginRight: 4 },
+                          styles.keepsakePhotoCard,
+                          { transform: [{ rotate: "-6deg" }], marginRight: 6 },
                         ]}
                       >
-                        <Ionicons
-                          name="image-outline"
-                          size={24}
-                          color={Palette.accentCoral}
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&auto=format&fit=crop&q=80" }}
+                          style={styles.keepsakePhotoImage}
                         />
+                        <View style={styles.keepsakePin}>
+                          <Ionicons name="pin" size={11} color={Palette.accentAmber} />
+                        </View>
                       </View>
                       <View
                         style={[
-                          styles.keepsakePlaceholder,
-                          { marginHorizontal: 4 },
+                          styles.keepsakePhotoCard,
+                          { marginHorizontal: 4, zIndex: 2 },
                         ]}
                       >
-                        <Ionicons
-                          name="image-outline"
-                          size={24}
-                          color={Palette.accentCoral}
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&auto=format&fit=crop&q=80" }}
+                          style={styles.keepsakePhotoImage}
                         />
+                        <View style={styles.keepsakePin}>
+                          <Ionicons name="sparkles" size={11} color={Palette.accentAmber} />
+                        </View>
                       </View>
                       <View
                         style={[
-                          styles.keepsakePlaceholder,
-                          { transform: [{ rotate: "5deg" }], marginLeft: 4 },
+                          styles.keepsakePhotoCard,
+                          { transform: [{ rotate: "6deg" }], marginLeft: 6 },
                         ]}
                       >
-                        <Ionicons
-                          name="image-outline"
-                          size={24}
-                          color={Palette.accentCoral}
+                        <Image
+                          source={{ uri: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=400&auto=format&fit=crop&q=80" }}
+                          style={styles.keepsakePhotoImage}
                         />
+                        <View style={styles.keepsakePin}>
+                          <Ionicons name="heart" size={11} color={Palette.accentCoral} />
+                        </View>
                       </View>
                     </View>
 

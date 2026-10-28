@@ -63,69 +63,14 @@ export default function CreationStudioCard({
     animateCard(isHovered.current, false);
   };
 
-  // Render specific decorative detail per creation type
-  const renderCardDecors = () => {
-    switch (item.id) {
-      case "tribute":
-        return (
-          <>
-            {/* Top Ribbon Seal Accent */}
-            <View style={styles.tributeRibbonTab}>
-              <View style={styles.ribbonTail} />
-            </View>
-            {/* Wax Seal Micro-Emblem */}
-            <View style={styles.waxSealEmblem}>
-              <Ionicons name="sparkles" size={10} color={Palette.turquoise} />
-            </View>
-          </>
-        );
-
-      case "memory":
-        return (
-          <>
-            {/* Washi Tape Strip on Polaroid corner */}
-            <View style={styles.washiTapeStrip} />
-            {/* Viewfinder Corner Brackets */}
-            <View style={styles.viewfinderCorner} />
-          </>
-        );
-
-      case "letter":
-        return (
-          <>
-            {/* Postage Stamp Accent in corner */}
-            <View style={styles.postageStamp}>
-              <Ionicons name="paper-plane" size={9} color={Palette.textSecondary} />
-            </View>
-            {/* Ruled Paper Horizontal Lines Hint */}
-            <View style={styles.ruledLinesWrap} pointerEvents="none">
-              <View style={styles.ruledLine} />
-              <View style={styles.ruledLine} />
-              <View style={styles.ruledLine} />
-            </View>
-          </>
-        );
-
-      case "lesson":
-        return (
-          <>
-            {/* Golden Bookmark Ribbon extending at bottom */}
-            <View style={styles.lessonBookmarkRibbon} />
-            {/* Quotation Watermark */}
-            <Text style={styles.quoteWatermark} pointerEvents="none">
-              “
-            </Text>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
+  const isFeatureCard = item.id === "tribute";
+  const isLessonCard = item.id === "lesson";
 
   return (
     <Animated.View
       style={[
         styles.cardOuter,
+        (isFeatureCard || isLessonCard) && styles.cardOuterFullWidth,
         { transform: [{ translateY: liftAnim }, { scale: scaleAnim }] },
       ]}
     >
@@ -138,52 +83,75 @@ export default function CreationStudioCard({
         style={({ pressed }) => [
           styles.cardInner,
           getSpecificCardStyle(item.id),
+          isFeatureCard && styles.featureCardLayout,
+          isLessonCard && styles.lessonCardLayout,
           (isSelected || pressed) && styles.cardActiveState,
         ]}
         accessibilityRole="button"
         accessibilityLabel={`${item.title}: ${item.subtitle}`}
         accessibilityHint={item.purpose}
       >
-        {/* Type-specific decorative accents */}
-        {renderCardDecors()}
-
-        {/* Top Meta Row: Badge & Icon */}
-        <View style={styles.topMetaRow}>
-          <View
-            style={[
-              styles.iconWrapper,
-              getIconWrapperStyle(item.id),
-            ]}
-          >
-            <Ionicons
-              name={item.icon}
-              size={20}
-              color={getIconColor(item.id)}
-            />
+        {isFeatureCard ? (
+          <View style={styles.tributeContainer}>
+            <View style={styles.tributeTopRow}>
+              <View style={[styles.iconWrapperLarge, getIconWrapperStyle(item.id)]}>
+                <Ionicons name={item.icon} size={24} color={getIconColor(item.id)} />
+              </View>
+              <View style={styles.tributeHeadingBlock}>
+                <Text style={styles.tributeBadgeText}>{item.badgeLabel.toUpperCase()}</Text>
+                <Text style={styles.tributeTitle}>{item.title}</Text>
+                <Text style={styles.tributeSubtitle}>{item.subtitle}</Text>
+              </View>
+            </View>
+            <View style={styles.tributeBottomRow}>
+              <Text style={styles.tributePurpose}>{item.purpose}</Text>
+              <View style={styles.actionArrowCircleLarge}>
+                <Ionicons name="arrow-forward" size={16} color="#000000" />
+              </View>
+            </View>
           </View>
-
-          {/* Micro-pill badge */}
-          <View style={styles.pillBadge}>
-            <Text style={styles.pillBadgeText}>{item.badgeLabel}</Text>
+        ) : isLessonCard ? (
+          <View style={styles.lessonContentRow}>
+            <View style={[styles.iconWrapperLarge, getIconWrapperStyle(item.id)]}>
+              <Ionicons name={item.icon} size={22} color={getIconColor(item.id)} />
+            </View>
+            <View style={styles.lessonTextContent}>
+              <View style={styles.lessonTitleRow}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.lessonBadgeText}>
+                  {item.badgeLabel.toUpperCase()}
+                </Text>
+              </View>
+              <Text style={[styles.cardSubtitle, { color: Palette.accentAmber }]}>{item.subtitle}</Text>
+            </View>
+            <View style={styles.actionArrowCircle}>
+              <Ionicons name="arrow-forward" size={14} color="#000000" />
+            </View>
           </View>
-        </View>
-
-        {/* Typography Content */}
-        <View style={styles.contentWrap}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
-          <Text style={styles.cardPurpose} numberOfLines={2}>
-            {item.purpose}
-          </Text>
-        </View>
-
-        {/* Bottom Action Hint */}
-        <View style={styles.bottomActionRow}>
-          <Text style={styles.startActionText}>Craft this</Text>
-          <View style={styles.actionArrowCircle}>
-            <Ionicons name="arrow-forward" size={11} color={Palette.deepTeal} />
+        ) : (
+          <View style={styles.splitCardContent}>
+            <View style={styles.topMetaRow}>
+              <View style={[styles.iconWrapper, getIconWrapperStyle(item.id)]}>
+                <Ionicons name={item.icon} size={20} color={getIconColor(item.id)} />
+              </View>
+              <Text style={styles.splitBadgeText}>{item.badgeLabel.toUpperCase()}</Text>
+            </View>
+            <View style={styles.contentWrap}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={[styles.cardSubtitle, { color: item.id === "memory" ? "#8FD3FF" : "#FFB899" }]}>
+                {item.subtitle}
+              </Text>
+              <Text style={styles.cardPurpose} numberOfLines={3}>
+                {item.purpose}
+              </Text>
+            </View>
+            <View style={styles.splitActionRow}>
+              <View style={styles.actionArrowCircle}>
+                <Ionicons name="arrow-forward" size={13} color="#000000" />
+              </View>
+            </View>
           </View>
-        </View>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -237,230 +205,222 @@ function getIconColor(type: string) {
 const styles = StyleSheet.create({
   cardOuter: {
     width: "48.2%",
-    marginBottom: 14,
+    marginBottom: 12,
+  },
+  cardOuterFullWidth: {
+    width: "100%",
   },
   cardInner: {
-    backgroundColor: Palette.surfaceCard,
-    borderRadius: 20,
-    padding: 14,
+    backgroundColor: "#16050B",
+    borderRadius: 24,
+    padding: 16,
     borderWidth: 1.2,
-    borderColor: Palette.borderSubtle,
+    borderColor: "rgba(239, 162, 91, 0.16)",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 4,
     position: "relative",
     overflow: "hidden",
-    minHeight: 188,
+    minHeight: 180,
     justifyContent: "space-between",
   },
   cardActiveState: {
-    borderColor: Palette.accentSky,
-    shadowColor: "#000000",
+    borderColor: Palette.accentAmber,
+    shadowColor: Palette.accentAmber,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
-    backgroundColor: Palette.surfaceCard,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 5,
   },
 
   // Bespoke styles per card
   tributeCard: {
-    backgroundColor: Palette.surfaceCard,
-    borderTopLeftRadius: 24,
-    borderColor: Palette.borderSubtle,
+    backgroundColor: "#200812",
+    borderColor: "rgba(255, 158, 207, 0.26)",
   },
   memoryCard: {
-    backgroundColor: Palette.surfaceCard,
-    borderTopRightRadius: 24,
-    borderColor: Palette.borderSubtle,
+    backgroundColor: "#130A14",
+    borderColor: "rgba(143, 211, 255, 0.2)",
   },
   letterCard: {
-    backgroundColor: Palette.surfaceCard,
-    borderBottomLeftRadius: 24,
-    borderColor: Palette.borderSubtle,
+    backgroundColor: "#1B0B10",
+    borderColor: "rgba(255, 184, 153, 0.2)",
   },
   lessonCard: {
-    backgroundColor: Palette.surfaceCard,
-    borderBottomRightRadius: 24,
-    borderColor: Palette.borderSubtle,
+    backgroundColor: "#18080E",
+    borderColor: "rgba(239, 162, 91, 0.2)",
   },
-
-  // Visual Accents per Card Type
-  tributeRibbonTab: {
-    position: "absolute",
-    top: 0,
-    left: 20,
-    width: 14,
-    height: 8,
-    backgroundColor: Palette.accentPink,
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
+  featureCardLayout: {
+    minHeight: 148,
+    padding: 18,
   },
-  ribbonTail: {
-    position: "absolute",
-    bottom: -3,
-    left: 4,
-    width: 6,
-    height: 3,
-    backgroundColor: Palette.turquoise,
-  },
-  waxSealEmblem: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "rgba(255, 158, 207, 0.14)",
-    alignItems: "center",
+  lessonCardLayout: {
+    minHeight: 82,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     justifyContent: "center",
   },
 
-  washiTapeStrip: {
-    position: "absolute",
-    top: 6,
-    right: 8,
-    width: 32,
-    height: 9,
-    backgroundColor: "rgba(143, 211, 255, 0.14)",
-    transform: [{ rotate: "14deg" }],
-    borderRadius: 1,
+  // Tribute card layout
+  tributeContainer: {
+    flex: 1,
+    justifyContent: "space-between",
   },
-  viewfinderCorner: {
-    position: "absolute",
-    bottom: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderBottomWidth: 1.5,
-    borderRightWidth: 1.5,
-    borderColor: "rgba(143, 211, 255, 0.45)",
-  },
-
-  postageStamp: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 3,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "rgba(255, 184, 153, 0.45)",
-    backgroundColor: "rgba(255, 184, 153, 0.08)",
+  tributeTopRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 14,
   },
-  ruledLinesWrap: {
-    position: "absolute",
-    top: 48,
-    left: 14,
-    right: 14,
-    opacity: 0.15,
+  tributeHeadingBlock: {
+    flex: 1,
   },
-  ruledLine: {
-    height: 1,
-    backgroundColor: Palette.oceanTeal,
-    marginBottom: 8,
+  tributeBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#FF9ECF",
+    letterSpacing: 1.2,
+    marginBottom: 2,
+  },
+  tributeTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
+  },
+  tributeSubtitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#8FD3FF",
+    marginTop: 2,
+  },
+  tributeBottomRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginTop: 12,
+    gap: 12,
+  },
+  tributePurpose: {
+    fontSize: 12,
+    color: "#B89E99",
+    lineHeight: 17,
+    flex: 1,
   },
 
-  lessonBookmarkRibbon: {
-    position: "absolute",
-    bottom: 0,
-    right: 22,
-    width: 12,
-    height: 7,
-    backgroundColor: Palette.accentAmber,
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 2,
+  // Lesson card layout
+  lessonContentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
-  quoteWatermark: {
-    position: "absolute",
-    top: -6,
-    right: 6,
-    fontSize: 52,
-    fontWeight: "900",
-    color: "rgba(255, 240, 154, 0.10)",
-    fontFamily: "serif",
+  lessonTextContent: {
+    flex: 1,
+  },
+  lessonTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 2,
+  },
+  lessonBadgeText: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#B89E99",
+    letterSpacing: 1,
   },
 
-  // Common Header & Meta
+  // Split cards layout (Memory & Letter)
+  splitCardContent: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
   topMetaRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
-    zIndex: 2,
+    marginBottom: 12,
   },
-  iconWrapper: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+  splitBadgeText: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#B89E99",
+    letterSpacing: 1.1,
+  },
+  splitActionRow: {
+    alignItems: "flex-end",
+    marginTop: 8,
+  },
+
+  // Common Header & Meta
+  iconWrapperLarge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
   },
-  pillBadge: {
-    backgroundColor: Palette.surfaceElevated,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  pillBadgeText: {
-    fontSize: 8.5,
-    fontWeight: "800",
-    color: Palette.textSecondary,
-    letterSpacing: 0.8,
+  iconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
 
   // Content
   contentWrap: {
-    zIndex: 2,
     flex: 1,
     justifyContent: "center",
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "800",
-    color: Palette.deepTeal,
-    letterSpacing: -0.2,
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
   },
   cardSubtitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "600",
-    color: Palette.turquoise,
-    marginTop: 2,
-    marginBottom: 4,
+    marginTop: 3,
+    marginBottom: 6,
   },
   cardPurpose: {
-    fontSize: 11,
-    color: Palette.textSecondary,
-    lineHeight: 15,
+    fontSize: 11.5,
+    color: "#B89E99",
+    lineHeight: 16,
   },
 
-  // Bottom action row
-  bottomActionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: Palette.borderSubtle,
-    zIndex: 2,
-  },
-  startActionText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: Palette.deepTeal,
-  },
-  actionArrowCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: Palette.mintMist,
+  // Action Buttons
+  actionArrowCircleLarge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionArrowCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

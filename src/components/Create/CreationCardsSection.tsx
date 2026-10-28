@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 import { CreationOptionItem, CreationType } from "@/types/create";
 import CreationStudioCard from "./CreationStudioCard";
 
@@ -52,15 +52,17 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-    letterSpacing: -0.3,
+    fontFamily: AppFonts.displaySans,
+    fontSize: 21,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: -0.4,
   },
   sectionSubtitle: {
-    fontSize: 12.5,
+    fontFamily: AppFonts.body,
+    fontSize: 13,
     color: Palette.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
   },
   gridContainer: {
     flexDirection: "row",

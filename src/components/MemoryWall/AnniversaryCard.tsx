@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Fonts, Palette } from "@/constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { Fonts } from "@/constants/theme";
 
 interface AnniversaryCardProps {
   onWriteThanksPress?: () => void;
@@ -8,7 +9,12 @@ interface AnniversaryCardProps {
 
 export default function AnniversaryCard({ onWriteThanksPress }: AnniversaryCardProps) {
   return (
-    <View style={styles.card}>
+    <LinearGradient
+      colors={["#62101F", "#30000A"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.card}
+    >
       {/* Ambient decorative glow */}
       <View style={styles.glowCircle} />
 
@@ -40,47 +46,46 @@ export default function AnniversaryCard({ onWriteThanksPress }: AnniversaryCardP
           <Text style={styles.ctaText}>Write a thank-you</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 24,
+    borderRadius: 26,
     padding: 20,
     marginHorizontal: 20,
     marginTop: 14,
     marginBottom: 18,
     position: "relative",
     overflow: "hidden",
-    backgroundColor: Palette.surfaceCard,
     borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    elevation: 6,
+    borderColor: "rgba(239, 162, 91, 0.22)",
+    shadowColor: "#3A0010",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 8,
   },
   glowCircle: {
     position: "absolute",
-    top: -40,
-    right: -40,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(196, 167, 255, 0.08)",
+    top: -30,
+    right: -30,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(239, 162, 91, 0.16)",
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(255, 240, 154, 0.16)",
+    backgroundColor: "rgba(239, 162, 91, 0.35)",
     paddingHorizontal: 14,
     paddingVertical: 4.5,
     borderRadius: 999,
     marginBottom: 12,
   },
   badgeText: {
-    color: Palette.accentAmber,
+    color: "#FFF8F3",
     fontSize: 12.5,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -89,7 +94,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.serif,
     fontSize: 20,
     fontWeight: "700",
-    color: Palette.textPrimary,
+    color: "#FFFFFF",
     lineHeight: 28,
     letterSpacing: -0.2,
     marginBottom: 18,
@@ -103,7 +108,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -111,7 +116,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Palette.surfaceElevated,
+    backgroundColor: "#FFF8F3",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000000",
@@ -124,22 +129,22 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.serif,
     fontSize: 15,
     fontWeight: "700",
-    color: Palette.textPrimary,
+    color: "#3B0B14",
   },
   ctaButton: {
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 999,
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   ctaText: {
     fontSize: 14,
     fontWeight: "700",
-    color: Palette.textOnPrimary,
+    color: "#000000",
   },
 });

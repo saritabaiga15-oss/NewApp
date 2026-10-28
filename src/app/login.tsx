@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
-import { AppleLogo, FacebookLogo } from "@/components/SocialLogos";
+import { AppleLogo, FacebookLogo, GoogleLogo } from "@/components/SocialLogos";
 
 export default function Login() {
   const insets = useSafeAreaInsets();
@@ -162,7 +162,7 @@ export default function Login() {
                 accessibilityRole="button"
                 accessibilityLabel="Sign in with Google"
               >
-                <AntDesign name="google" size={26} color="#4285F4" />
+                <GoogleLogo size={24} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -172,7 +172,7 @@ export default function Login() {
                 accessibilityRole="button"
                 accessibilityLabel="Sign in with Apple"
               >
-                <AppleLogo size={26} color="#000000" />
+                <AppleLogo size={26} color="#FFFFFF" />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -250,11 +250,11 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   welcomeText: {
-    color: Palette.deepTeal, // Deep Teal heading
+    color: Palette.cream,
     fontWeight: "800",
   },
   backText: {
-    color: Palette.oceanTeal, // Ocean Teal highlight
+    color: "#FFFFFF",
     fontWeight: "800",
   },
   subtitle: {
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   forgotPasswordText: {
-    color: Palette.oceanTeal, // Ocean Teal link
+    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginButtonText: {
-    color: "#FFFFFF",
+    color: "#000000",
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     fontSize: 14,
-    color: Palette.oceanTeal, // Ocean Teal link
+    color: "#FFFFFF",
     fontWeight: "800",
   },
 });

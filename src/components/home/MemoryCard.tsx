@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import {
   Image,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 export type MemoryType = "photo" | "gratitude" | "voice" | "achievement" | "lesson" | "tribute";
 
@@ -115,7 +114,7 @@ export default function MemoryCard({
         {memory.type === "voice" && memory.audioDuration ? (
           <View style={styles.voicePreview}>
             <View style={styles.voicePlayBtn}>
-              <Ionicons name="play" size={13} color="#FFFFFF" />
+              <Ionicons name="play" size={13} color="#000000" />
             </View>
             <View style={styles.miniWaveform}>
               {[8, 14, 18, 10, 16, 22, 12, 19, 14, 8, 16, 12].map((h, i) => (
@@ -132,7 +131,11 @@ export default function MemoryCard({
         {/* Mentor Tag & Like Footer */}
         <View style={styles.footer}>
           <View style={styles.mentorTag}>
-            <Ionicons name="person-circle-outline" size={15} color="#00D2D3" />
+            <Ionicons
+              name="person-circle-outline"
+              size={15}
+              color="#00D2D3"
+            />
             <Text style={styles.mentorName} numberOfLines={1}>
               {memory.mentorName}
             </Text>
@@ -228,11 +231,7 @@ const styles = StyleSheet.create({
   quoteBody: {
     fontStyle: "italic",
     color: "#E5E5E5",
-    fontFamily: Platform.select({
-      ios: "Georgia",
-      android: "serif",
-      default: "serif",
-    }),
+    fontFamily: AppFonts.body,
   },
   voicePreview: {
     flexDirection: "row",
@@ -249,7 +248,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: Palette.accentAmber,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -287,9 +286,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   mentorName: {
-    fontSize: 12,
-    color: Palette.textOnPrimary,
+    fontSize: 13,
+    color: Palette.accentAmber,
     fontWeight: "700",
+    fontFamily: AppFonts.body,
   },
   likeBtn: {
     flexDirection: "row",

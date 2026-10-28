@@ -30,11 +30,11 @@ interface TabItem {
 }
 
 const FIVE_TABS: TabItem[] = [
-  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home", activeColor: Palette.accentMint },
-  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass", activeColor: Palette.accentSky },
-  { key: "create", label: "Create", icon: "add", activeIcon: "add", activeColor: Palette.accentSky },
-  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: Palette.accentMint },
-  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person", activeColor: Palette.accentPink },
+  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home", activeColor: "#FFFFFF" },
+  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass", activeColor: "#FFFFFF" },
+  { key: "create", label: "Create", icon: "add", activeIcon: "add", activeColor: "#FFFFFF" },
+  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: "#FFFFFF" },
+  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person", activeColor: "#FFFFFF" },
 ];
 
 export default function BottomNavigation({
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
     zIndex: 99,
     borderTopWidth: 1,
-    borderTopColor: Palette.borderSubtle,
+    borderTopColor: "#303030",
   },
   container: {
     flexDirection: "row",
@@ -162,6 +162,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
   },
   activePillIndicator: {
     position: "absolute",

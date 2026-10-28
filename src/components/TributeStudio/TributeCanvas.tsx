@@ -350,12 +350,10 @@ export default function TributeCanvas({
 
 function getFontFamily(style: string) {
   switch (style) {
-    case "serif":
-      return { fontFamily: "serif", fontStyle: "italic" as const };
+    case "serif": return { fontStyle: "italic" as const };
     case "display":
       return { fontWeight: "900" as const, letterSpacing: -0.5 };
-    case "handwritten":
-      return { fontFamily: "serif", letterSpacing: 0.2 };
+    case "handwritten": return { fontStyle: "italic" as const, letterSpacing: 0.2 };
     case "modern":
     default:
       return { fontWeight: "700" as const, letterSpacing: 0 };

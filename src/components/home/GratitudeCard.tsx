@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 
 export interface GratitudePostData {
   id: string;
@@ -166,25 +166,31 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: "800",
     color: Palette.deepTeal,
+    fontFamily: AppFonts.displaySans,
   },
   dedicationText: {
     fontSize: 12,
     color: Palette.textSecondary,
     marginTop: 2,
+    fontFamily: AppFonts.body,
   },
   mentorHighlight: {
-    color: Palette.oceanTeal, // Ocean Teal dedication highlight
+    color: Palette.oceanTeal,
     fontWeight: "700",
+    fontFamily: AppFonts.body,
   },
   timeAgo: {
     fontSize: 11,
     color: Palette.textMuted,
+    fontFamily: AppFonts.body,
   },
   messageText: {
     fontSize: 14,
     lineHeight: 21,
     color: Palette.deepTeal,
     marginBottom: 12,
+    fontFamily: AppFonts.displaySerif,
+    fontStyle: "italic",
   },
   imageContainer: {
     width: "100%",
