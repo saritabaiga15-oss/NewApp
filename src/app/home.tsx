@@ -53,7 +53,7 @@ const MENTORS_DATA: MentorData[] = [
     trait: "Patient guide",
     traitIcon: "flask-outline",
     lessonCarried: "She stayed after class until fractions finally clicked.",
-    coverColor: "#7B1A28",
+    coverColor: Palette.accentSky,
   },
   {
     id: "m2",
@@ -67,7 +67,7 @@ const MENTORS_DATA: MentorData[] = [
     trait: "Honest compass",
     traitIcon: "compass-outline",
     lessonCarried: "Critique is an invitation to who you can become tomorrow.",
-    coverColor: "#3D0A14",
+    coverColor: Palette.accentLavender,
   },
   {
     id: "m3",
@@ -81,7 +81,7 @@ const MENTORS_DATA: MentorData[] = [
     trait: "Master craftsman",
     traitIcon: "construct-outline",
     lessonCarried: "Build things that outlive your tenure and elevate people around you.",
-    coverColor: "#8B2230",
+    coverColor: Palette.accentMint,
   },
   {
     id: "m4",
@@ -95,7 +95,7 @@ const MENTORS_DATA: MentorData[] = [
     trait: "Creative clarity",
     traitIcon: "sparkles-outline",
     lessonCarried: "Forgive yourself for the first five ugly drafts to find the single true stroke.",
-    coverColor: "#5E1520",
+    coverColor: Palette.accentPink,
   },
   {
     id: "m5",
@@ -109,7 +109,7 @@ const MENTORS_DATA: MentorData[] = [
     trait: "Creative visionary",
     traitIcon: "color-palette-outline",
     lessonCarried: "She told me to trust my taste and ship the idea anyway.",
-    coverColor: "#9E2A2B",
+    coverColor: Palette.accentCoral,
   },
 ];
 
@@ -827,7 +827,7 @@ export default function HomeScreen() {
               />
               <QuickAction
                 icon="heart"
-                label="Write Tribute"
+                label="Appreciation"
                 color={Palette.accentCoral}
                 onPress={() => router.push("/create-tribute")}
               />
@@ -1347,7 +1347,7 @@ const styles = StyleSheet.create({
     padding: 22,
     backgroundColor: Palette.mintMist, // Mint Mist card
     borderWidth: 1.2,
-    borderColor: "rgba(84, 0, 14, 0.2)",
+    borderColor: "#303030",
     position: "relative",
     shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 4 },
@@ -1493,7 +1493,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: Palette.mintMist, // Mint Mist reflection card
     borderWidth: 1.2,
-    borderColor: "rgba(84, 0, 14, 0.2)",
+    borderColor: "#303030",
   },
   promptHeader: {
     flexDirection: "row",
@@ -1542,11 +1542,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(84, 0, 14, 0.12)",
+    backgroundColor: "rgba(143, 211, 255, 0.12)",
     padding: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(84, 0, 14, 0.25)",
+    borderColor: "rgba(143, 211, 255, 0.25)",
   },
   promptSuccessText: {
     color: Palette.oceanTeal,

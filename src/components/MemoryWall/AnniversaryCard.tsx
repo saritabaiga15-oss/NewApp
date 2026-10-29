@@ -1,7 +1,7 @@
 
 
 
-import { Fonts } from "@/constants/theme";
+import { Fonts, Palette } from "@/constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -12,7 +12,7 @@ interface AnniversaryCardProps {
 export default function AnniversaryCard({ onWriteThanksPress }: AnniversaryCardProps) {
   return (
     <LinearGradient
-      colors={["#62101F", "#30000A"]}
+      colors={["#171717", "#202020"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.card}
@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
     position: "relative",
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(239, 162, 91, 0.22)",
-    shadowColor: "#3A0010",
+    borderColor: "rgba(255, 184, 153, 0.3)",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.35,
     shadowRadius: 20,
@@ -76,18 +76,18 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: "rgba(239, 162, 91, 0.16)",
+    backgroundColor: "rgba(255, 184, 153, 0.1)",
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(239, 162, 91, 0.35)",
+    backgroundColor: "rgba(255, 184, 153, 0.18)",
     paddingHorizontal: 14,
     paddingVertical: 4.5,
     borderRadius: 999,
     marginBottom: 12,
   },
   badgeText: {
-    color: "#FFF8F3",
+    color: Palette.accentPeach,
     fontSize: 12.5,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    backgroundColor: "rgba(216, 180, 254, 0.28)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#FFF8F3",
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000000",
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.serif,
     fontSize: 15,
     fontWeight: "700",
-    color: "#3B0B14",
+    color: "#111111",
   },
   ctaButton: {
     backgroundColor: "#FFFFFF",

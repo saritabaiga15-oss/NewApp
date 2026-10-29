@@ -426,7 +426,7 @@ export default function CreationFlowModal({
 function getDefaultTitle(type: CreationType): string {
   switch (type) {
     case "tribute":
-      return "A Tribute to Guidance";
+      return "With Appreciation";
     case "memory":
       return "A Moment Cherished";
     case "letter":
@@ -440,7 +440,7 @@ function getStudioTypeConfig(type: CreationType) {
   switch (type) {
     case "tribute":
       return {
-        title: "Craft a Tribute",
+        title: "Create an Appreciation Card",
         subtitle: "Celebrate someone who made a lasting difference",
         icon: "heart" as const,
         accentColor: Palette.oceanTeal,

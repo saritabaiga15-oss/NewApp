@@ -120,7 +120,7 @@ export default function ProfileScreen() {
           relationship: keepsake.relationship,
           photoUri: keepsake.photoUri,
           quote: keepsake.quote,
-          title: keepsake.customTitle || `A Tribute to ${keepsake.mentorName}`,
+          title: keepsake.customTitle || `Appreciation for ${keepsake.mentorName}`,
           story: keepsake.story,
           createdAt: keepsake.createdAt,
           templateId: keepsake.templateId,
@@ -237,7 +237,7 @@ export default function ProfileScreen() {
         <View style={styles.statsRow}>
           <StatCard
             count={tributes.length}
-            label="Tributes"
+            label="Appreciation"
             icon="heart-outline"
             onPress={() => router.push("/tributes")}
           />
@@ -270,7 +270,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <SectionHeading
-          title="My tributes"
+          title="Appreciation Cards"
           action="View all"
           onAction={() => router.push("/tributes")}
         />
@@ -289,7 +289,7 @@ export default function ProfileScreen() {
                 onPress={() => openMemory(tribute)}
                 activeOpacity={0.86}
                 accessibilityRole="button"
-                accessibilityLabel={`Open tribute to ${tribute.mentorName}`}
+                accessibilityLabel={`Open appreciation card for ${tribute.mentorName}`}
               >
                 <Image source={{ uri: tribute.photoUri }} style={styles.tributePhoto} />
                 <View style={styles.tributeCardBody}>
@@ -298,7 +298,7 @@ export default function ProfileScreen() {
                     {tribute.mentorName}
                   </Text>
                   <Text style={styles.tributeExcerpt} numberOfLines={2}>
-                    {tribute.quote || tribute.story || "A tribute kept with gratitude."}
+                    {tribute.quote || tribute.story || "An appreciation card kept with gratitude."}
                   </Text>
                   <Text style={styles.tributeDate}>{formatDate(tribute.createdAt)}</Text>
                 </View>
@@ -319,7 +319,7 @@ export default function ProfileScreen() {
               onPress={() => router.push("/create-tribute")}
               accessibilityRole="button"
             >
-              <Text style={styles.emptyActionText}>Create your first tribute</Text>
+              <Text style={styles.emptyActionText}>Create your first appreciation card</Text>
               <Ionicons name="arrow-forward" size={15} color={Palette.pureWhite} />
             </TouchableOpacity>
           </View>
@@ -336,7 +336,7 @@ export default function ProfileScreen() {
           <PastelMenuCard
             badgeBg={Palette.accentLavender}
             icon="chatbox-ellipses"
-            title="My tributes"
+            title="My Appreciation Cards"
             subtitle={`${tributes.length > 0 ? `${tributes.length} published` : "1 draft Â· 3 published"}`}
             onPress={() => router.push("/create")}
           />
@@ -384,7 +384,7 @@ function StatCard({
   onPress: () => void;
 }) {
   const iconColor =
-    label === "Tributes"
+    label === "Appreciation"
       ? Palette.accentPink
       : label === "Memories"
         ? Palette.accentAmber

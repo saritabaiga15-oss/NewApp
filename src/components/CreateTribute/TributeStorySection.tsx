@@ -72,7 +72,7 @@ export default function TributeStorySection({
           placeholderTextColor={Palette.textMuted}
           value={story}
           onChangeText={onStoryChange}
-          accessibilityLabel="Tribute story and memory"
+          accessibilityLabel="Appreciation card message"
         />
 
         {/* Word & Character Count Bar */}

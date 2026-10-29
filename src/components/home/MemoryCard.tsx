@@ -59,7 +59,7 @@ export default function MemoryCard({
       case "lesson":
         return { icon: "bookmark" as const, color: Palette.accentSky, bg: Palette.surfaceElevated, label: "Timeless Lesson" };
       case "tribute":
-        return { icon: "heart" as const, color: Palette.accentCoral, bg: Palette.surfaceElevated, label: "Tribute" };
+        return { icon: "heart" as const, color: Palette.accentCoral, bg: Palette.surfaceElevated, label: "Appreciation" };
     }
   };
 

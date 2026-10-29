@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { Palette } from "@/constants/theme";
 
 interface WallHeaderProps {
   totalItems: number;
@@ -18,7 +19,7 @@ export default function WallHeader({
 }: WallHeaderProps) {
   return (
     <LinearGradient
-      colors={["#3A0010", "#6E0C1E"]}
+      colors={["#000000", "#171717"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -31,8 +32,7 @@ export default function WallHeader({
       <View style={styles.topRow}>
         <View style={styles.titleArea}>
           <View style={styles.logoTile}>
-            {/* Book spines icon in amber */}
-            <Ionicons name="book" size={17} color="#EFA25B" />
+            <Ionicons name="book" size={17} color={Palette.accentPeach} />
           </View>
           <Text style={styles.brandTitle}>Memory Wall</Text>
         </View>
@@ -64,7 +64,7 @@ export default function WallHeader({
         <Text style={styles.headline}>Your Personal</Text>
         <Text style={styles.headlineAccent}>Archive</Text>
         <Text style={styles.subline}>
-          Every tribute, memory, and lesson that shaped who you are.
+          Every appreciation card, memo, and note that shaped who you are.
         </Text>
       </View>
 
@@ -81,7 +81,7 @@ export default function WallHeader({
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statPill}>
-          <Ionicons name="heart" size={15} color="#EFA25B" />
+          <Ionicons name="heart" size={15} color={Palette.accentPink} />
           <Text style={[styles.statLabel, { marginLeft: 6 }]}>Curated</Text>
         </View>
       </View>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
     borderRadius: 85,
-    backgroundColor: "rgba(239, 162, 91, 0.16)",
+    backgroundColor: "rgba(216, 180, 254, 0.12)",
   },
   topRow: {
     flexDirection: "row",
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "rgba(255, 255, 255, 0.12)",
     borderWidth: 1,
-    borderColor: "rgba(239, 162, 91, 0.45)",
+    borderColor: "rgba(143, 211, 255, 0.32)",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#EFA25B",
+    color: Palette.accentPeach,
   },
   statLabel: {
     fontSize: 12,

@@ -41,7 +41,7 @@ export default function TributesScreen() {
       })
       .catch((error: unknown) => {
         console.error("Unable to load tributes:", error);
-        if (mounted) setLoadError("Your tributes could not be loaded.");
+        if (mounted) setLoadError("Your appreciation cards could not be loaded.");
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
@@ -72,7 +72,7 @@ export default function TributesScreen() {
           <Ionicons name="chevron-back" size={23} color={Palette.deepTeal} />
         </TouchableOpacity>
         <View style={styles.headerCopy}>
-          <Text style={styles.headerTitle}>My tributes</Text>
+          <Text style={styles.headerTitle}>My Appreciation Cards</Text>
           <Text style={styles.headerSubtitle}>
             {sortedTributes.length} {sortedTributes.length === 1 ? "keepsake" : "keepsakes"}
           </Text>
@@ -110,7 +110,7 @@ export default function TributesScreen() {
             <View style={styles.emptyIcon}>
               <Ionicons name="heart-outline" size={25} color={Palette.oceanTeal} />
             </View>
-            <Text style={styles.emptyTitle}>Your first tribute starts here.</Text>
+            <Text style={styles.emptyTitle}>Your first appreciation card starts here.</Text>
             <Text style={styles.emptyText}>
               Celebrate someone whose guidance you want to remember.
             </Text>
@@ -119,7 +119,7 @@ export default function TributesScreen() {
               onPress={() => router.push("/create-tribute")}
               accessibilityRole="button"
             >
-              <Text style={styles.createButtonText}>Create a tribute</Text>
+              <Text style={styles.createButtonText}>Create an Appreciation Card</Text>
               <Ionicons name="arrow-forward" size={15} color={Palette.pureWhite} />
             </TouchableOpacity>
           </View>
@@ -141,7 +141,7 @@ function getSavedTributes(): WallTribute[] {
         relationship: keepsake.relationship,
         photoUri: keepsake.photoUri,
         quote: keepsake.quote,
-        title: keepsake.customTitle || `A Tribute to ${keepsake.mentorName}`,
+        title: keepsake.customTitle || `Appreciation for ${keepsake.mentorName}`,
         story: keepsake.story,
         templateId: keepsake.templateId,
         createdAt: keepsake.createdAt,

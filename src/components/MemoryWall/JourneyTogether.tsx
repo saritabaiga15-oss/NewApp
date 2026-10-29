@@ -9,23 +9,24 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Palette } from "@/constants/theme";
 
 export const JOURNEY_COLORS = {
-  panelStart: "#3A0009",
-  panelMiddle: "#54000E",
-  panelEnd: "#6B1020",
-  cream: "#FFF8F0",
-  paper: "#FFF6EE",
-  gold: "#EC8F3E",
-  mutedText: "rgba(255, 248, 240, 0.62)",
-  cardText: "#4A0E1A",
-  yearText: "#8E1B34",
-  mentorText: "#A8444F",
-  snippetText: "#7A5560",
-  card: "#FFF6EE",
-  cardBorder: "#F0DDD3",
-  milestoneCard: "#FFF6EE",
-  milestoneBorder: "rgba(236, 143, 62, 0.35)",
+  panelStart: "#000000",
+  panelMiddle: "#111111",
+  panelEnd: "#171717",
+  cream: "#FFFFFF",
+  paper: "#171717",
+  gold: Palette.accentAmber,
+  mutedText: "#BDBDBD",
+  cardText: "#FFFFFF",
+  yearText: Palette.accentSky,
+  mentorText: Palette.accentPeach,
+  snippetText: "#D1D1D1",
+  card: "#171717",
+  cardBorder: "#303030",
+  milestoneCard: "#202020",
+  milestoneBorder: "rgba(143, 211, 255, 0.35)",
 } as const;
 
 export interface JourneyNode {
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: "rgba(236, 143, 62, 0.12)",
+    backgroundColor: "rgba(255, 240, 154, 0.1)",
   },
   header: {
     paddingHorizontal: 20,
@@ -248,8 +249,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.35)",
-    backgroundColor: "rgba(236, 143, 62, 0.18)",
+    borderColor: "rgba(255, 240, 154, 0.35)",
+    backgroundColor: "rgba(255, 240, 154, 0.14)",
   },
   labelText: {
     color: JOURNEY_COLORS.gold,
@@ -267,8 +268,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 248, 240, 0.2)",
-    backgroundColor: "rgba(255, 248, 240, 0.12)",
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   fullButtonText: {
     color: JOURNEY_COLORS.cream,
@@ -314,15 +315,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 16,
     borderWidth: 4,
-    borderColor: "rgba(255, 248, 240, 0.25)",
-    backgroundColor: "rgba(255, 248, 240, 0.08)",
+    borderColor: "rgba(255, 255, 255, 0.25)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   milestoneNodeRing: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    borderColor: "rgba(236, 143, 62, 0.4)",
-    backgroundColor: "rgba(236, 143, 62, 0.18)",
+    borderColor: "rgba(255, 240, 154, 0.4)",
+    backgroundColor: "rgba(255, 240, 154, 0.14)",
     shadowColor: JOURNEY_COLORS.gold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.85,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 3,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 248, 240, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   card: {
     minHeight: 188,
@@ -378,11 +379,11 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     borderRadius: 10,
-    backgroundColor: "rgba(142, 27, 52, 0.08)",
+    backgroundColor: "rgba(143, 211, 255, 0.12)",
     marginBottom: 10,
   },
   milestoneYearBadge: {
-    backgroundColor: "rgba(236, 143, 62, 0.2)",
+    backgroundColor: "rgba(255, 240, 154, 0.14)",
   },
   year: {
     color: JOURNEY_COLORS.yearText,

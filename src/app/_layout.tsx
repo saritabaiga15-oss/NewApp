@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
+import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Caveat_400Regular } from "@expo-google-fonts/caveat";
 import "@/global.css";
@@ -12,7 +13,7 @@ import { userProfileService } from "@/services/userProfileService";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Caveat_400Regular,
+    ...(Platform.OS === "web" ? {} : { Caveat_400Regular }),
   });
 
   useEffect(() => {

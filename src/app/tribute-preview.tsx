@@ -28,7 +28,7 @@ import { tributeDraftService } from "@/services/tributeDraftService";
 import { DEFAULT_SAMPLE_PORTRAIT } from "@/data/tributeDetailsData";
 
 export default function TributePreviewScreen() {
-  // Retrieve the actual tribute design created in the studio
+  // Retrieve the appreciation-card design created in the studio
   const loadedDesign = tributeDraftService.getDesignState();
 
   // Fallback state if accessed directly
@@ -118,7 +118,7 @@ export default function TributePreviewScreen() {
     }
   };
 
-  // Secondary Action: Share Tribute
+  // Secondary Action: Share Appreciation Card
   const handleShareTribute = async () => {
     try {
       const shareContent = {
@@ -131,7 +131,7 @@ export default function TributePreviewScreen() {
     }
   };
 
-  // Secondary Action: Edit Tribute
+  // Secondary Action: Edit Appreciation Card
   const handleEditTribute = () => {
     // Return to design studio with all properties preserved
     router.back();
@@ -146,7 +146,7 @@ export default function TributePreviewScreen() {
       showToast("Added to Memory Wall!");
       Alert.alert(
         "Memory Wall",
-        `Your tribute for ${design.mentorName} has been added to your Memory Wall.`,
+        `Your appreciation card for ${design.mentorName} has been added to your Memory Wall.`,
         [
           {
             text: "View Memory Wall",

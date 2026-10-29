@@ -501,7 +501,7 @@ export default function MentorProfileScreen() {
     setIsMenuVisible(false);
     if (!mentor) return;
     try {
-      let msg = `A tribute to my mentor, ${mentor.name} (${mentor.relationship}).\n\n`;
+      let msg = `An appreciation for my mentor, ${mentor.name} (${mentor.relationship}).\n\n`;
       if (mentor.description) msg += `${mentor.description}\n\n`;
       if (meaningfulQuote) msg += `“${meaningfulQuote}”\n\n`;
       msg += `Preserving ${memories.length} meaningful memories on Honour Your Mentor.`;
@@ -709,7 +709,7 @@ export default function MentorProfileScreen() {
                       tributeStatus === "sent" && styles.selectorPillTextActive,
                     ]}
                   >
-                    Tribute Sent
+                    Appreciation Sent
                   </Text>
                 </TouchableOpacity>
 
@@ -838,7 +838,7 @@ export default function MentorProfileScreen() {
                 style={styles.actionGridBtn}
               >
                 <Ionicons name="ribbon" size={16} color={Palette.accentLavender} />
-                <Text style={styles.actionGridText}>Tribute</Text>
+                <Text style={styles.actionGridText}>Appreciation</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1106,7 +1106,7 @@ export default function MentorProfileScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name="ribbon-outline" size={18} color={Palette.accentLavender} />
-              <Text style={styles.menuItemText}>Create Tribute</Text>
+              <Text style={styles.menuItemText}>Create Appreciation Card</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuItem}
@@ -1114,7 +1114,7 @@ export default function MentorProfileScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name="share-social-outline" size={18} color={Palette.textPrimary} />
-              <Text style={styles.menuItemText}>Share Tribute</Text>
+              <Text style={styles.menuItemText}>Share Profile</Text>
             </TouchableOpacity>
           </View>
         </>

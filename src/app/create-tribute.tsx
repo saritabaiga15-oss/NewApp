@@ -210,7 +210,7 @@ export default function CreateTributeScreen() {
           ? tributeDraftService.getDesignState()
           : null
       );
-      Alert.alert("Draft Saved", "Your tribute and photo have been saved in your studio.");
+      Alert.alert("Draft Saved", "Your appreciation card and photo have been saved in your studio.");
     } catch (error) {
       console.error("Unable to save tribute draft:", error);
       Alert.alert("Could not save draft", "Please check device storage and try again.");
@@ -296,8 +296,8 @@ export default function CreateTributeScreen() {
               onBack={() => router.back()}
               onOptionsPress={() => {
                 Alert.alert(
-                  "Tribute Options",
-                  "You can save this tribute as a draft or discard changes anytime.",
+                  "Appreciation Options",
+                  "You can save this appreciation card as a draft or discard changes anytime.",
                   [
                     { text: "Continue Editing", style: "cancel" },
                     {
@@ -362,7 +362,7 @@ export default function CreateTributeScreen() {
             />
 
             {/* ======================================================== */}
-            {/* 7. MINIATURE TRIBUTE PREVIEW: Live Keepsake Card Preview */}
+            {/* 7. MINIATURE APPRECIATION PREVIEW: Live Keepsake Card Preview */}
             {/* ======================================================== */}
             <TributeMiniPreview
               name={mentorName}

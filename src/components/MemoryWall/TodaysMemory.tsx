@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.serif,
     fontStyle: "italic",
     fontWeight: "700",
-    color: Palette.amber,
+    color: Palette.accentLavender,
     marginBottom: 8,
     letterSpacing: 0.2,
   },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   anotherLink: {
     fontSize: 14,
     fontWeight: "600",
-    color: Palette.amber,
+    color: Palette.accentLavender,
     textDecorationLine: "underline",
   },
   divider: {

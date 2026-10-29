@@ -341,7 +341,7 @@ export default function TributeDesignScreen() {
               activeOpacity={0.8}
               style={styles.quickPreviewPill}
               accessibilityRole="button"
-              accessibilityLabel="Tap to preview tribute in full presentation"
+              accessibilityLabel="Tap to preview appreciation card in full presentation"
             >
               <Ionicons name="eye" size={14} color={Palette.oceanTeal} />
               <Text style={styles.quickPreviewPillText}>
@@ -433,11 +433,11 @@ export default function TributeDesignScreen() {
                 activeOpacity={0.85}
                 style={styles.previewTributeBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Preview finished tribute"
+                accessibilityLabel="Preview finished appreciation card"
               >
                 <View style={styles.btnTextCol}>
                   <Text style={styles.previewTributeBtnLabel}>
-                    Preview Tribute
+                    Preview Appreciation Card
                   </Text>
                   <Text style={styles.previewTributeBtnSub}>
                     View finished keepsake presentation

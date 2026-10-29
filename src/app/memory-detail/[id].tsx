@@ -123,7 +123,7 @@ export default function MemoryDetailScreen() {
     }
     switch (item.kind) {
       case "tribute":
-        return { label: "Tribute Keepsake", icon: "heart", color: Palette.accentCoral };
+        return { label: "Appreciation Card", icon: "heart", color: Palette.accentCoral };
       case "memory":
         return { label: "Cherished Memory", icon: "images", color: Palette.accentLavender };
       case "letter":
@@ -624,7 +624,7 @@ export default function MemoryDetailScreen() {
             onPress={handleShare}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel="Share this tribute"
+            accessibilityLabel="Share this appreciation card"
           >
             <Ionicons name="share-social-outline" size={18} color={Palette.pureWhite} />
             <Text style={styles.shareBottomText}>Share Memory</Text>

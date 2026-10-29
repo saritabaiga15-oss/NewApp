@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.pureWhite,
     flexDirection: "row",
     overflow: "hidden",
-    shadowColor: "#54000E",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 10,

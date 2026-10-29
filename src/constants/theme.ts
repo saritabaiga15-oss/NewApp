@@ -45,7 +45,7 @@ export const AppTypography = {
     fontStyle: 'italic' as const,
     fontWeight: '700' as const,
     letterSpacing: -0.5,
-    color: '#EFA25B',
+    color: '#FFB899',
   },
   sectionTitle: {
     fontFamily: AppFonts.displaySans,
@@ -113,30 +113,30 @@ export const AppTypography = {
 } as const;
 
 export const Palette = {
-  // Figma Spec: Deep wine, Maroon, Rose, Amber, Cream/Ink
-  wineDark: '#3A0010',
-  wineLight: '#6E0C1E',
-  maroon: '#8E2A33',
-  rose: '#C0675F',
-  amber: '#EFA25B',
-  amberBtn: '#F0A35C',
-  ink: '#3B0B14',
-  muted: '#8C7570',
-  cream: '#FBF4EE',
+  // Legacy token names now follow the app's black, charcoal, and pastel theme.
+  wineDark: '#000000',
+  wineLight: '#171717',
+  maroon: '#202020',
+  rose: '#FF9ECF',
+  amber: '#FFF09A',
+  amberBtn: '#FFFFFF',
+  ink: '#111111',
+  muted: '#BDBDBD',
+  cream: '#FFFFFF',
 
   // Core Surface & Canvas
   iceWhite: '#000000',
   pureWhite: '#171717',
   surfaceCard: '#171717',
   surfaceElevated: '#202020',
-  /** Use ONLY on amber/light CTA buttons — NOT on dark card text */
-  textOnPrimary: '#3B0B14',
-  /** Use for text ON DARK backgrounds (amber CTA button label) */
-  textOnAmber: '#3B0B14',
+  /** Dark text for light primary buttons */
+  textOnPrimary: '#111111',
+  /** Dark text for pastel accent buttons */
+  textOnAmber: '#111111',
   /** White for arrow icons inside dark circles */
   textOnDark: '#FFFFFF',
-  borderSubtle: '#2C1018',
-  borderActive: 'rgba(239, 162, 91, 0.55)',
+  borderSubtle: '#303030',
+  borderActive: 'rgba(143, 211, 255, 0.55)',
 
   // Typography Hierarchy (dark-background defaults)
   textPrimary: '#FFF8F3',
@@ -190,10 +190,10 @@ export const Colors = {
     textSecondary: '#B89E99',
     backgroundElement: '#171717',
     backgroundSelected: '#202020',
-    primary: '#EFA25B',
-    secondary: '#C0675F',
-    accent: '#EFA25B',
-    border: '#2C1018',
+    primary: '#FFFFFF',
+    secondary: '#FF9ECF',
+    accent: '#8FD3FF',
+    border: '#303030',
   },
   dark: {
     background: '#000000',
@@ -201,10 +201,10 @@ export const Colors = {
     textSecondary: '#B89E99',
     backgroundElement: '#171717',
     backgroundSelected: '#202020',
-    primary: '#EFA25B',
-    secondary: '#C0675F',
-    accent: '#EFA25B',
-    border: '#2C1018',
+    primary: '#FFFFFF',
+    secondary: '#FF9ECF',
+    accent: '#8FD3FF',
+    border: '#303030',
   },
 } as const;
 

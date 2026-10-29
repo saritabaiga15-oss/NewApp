@@ -11,7 +11,7 @@ export default function WallEmptyState() {
       {/* Decorative floating card */}
       <View style={styles.floatCard}>
         <LinearGradient
-          colors={[Palette.deepTeal, "#3A0009"]}
+          colors={["#171717", "#202020"]}
           style={styles.cardGradient}
         >
           <Ionicons name="library-outline" size={32} color="rgba(252,238,228,0.5)" />
@@ -20,7 +20,7 @@ export default function WallEmptyState() {
 
       <Text style={styles.headline}>Your archive is empty</Text>
       <Text style={styles.body}>
-        Create your first tribute, memory, letter, or lesson. Everything you
+        Create your first appreciation card, memo, letter, or note. Everything you
         add here lives forever in your personal wall.
       </Text>
 
@@ -32,12 +32,12 @@ export default function WallEmptyState() {
         accessibilityLabel="Start creating a memory"
       >
         <LinearGradient
-          colors={[Palette.deepTeal, "#3A0009"]}
+          colors={["#171717", "#202020"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.ctaGradient}
         >
-          <Ionicons name="add-circle-outline" size={18} color="#FFF8F0" />
+          <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
           <Text style={styles.ctaText}>Start Creating</Text>
         </LinearGradient>
       </TouchableOpacity>

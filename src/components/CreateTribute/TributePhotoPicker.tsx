@@ -66,7 +66,7 @@ export default function TributePhotoPicker({
       if (!permission.granted) {
         Alert.alert(
           "Permission Required",
-          "Please grant camera roll permissions to select a tribute photo from your gallery."
+          "Please grant camera roll permissions to select an appreciation-card photo from your gallery."
         );
         return;
       }
@@ -184,7 +184,7 @@ export default function TributePhotoPicker({
         {!isCustomPhoto && (
           <View style={styles.presetsArea}>
             <Text style={styles.presetsTitle}>
-              Or choose from authentic tribute portraits:
+              Or choose from the mentor portraits:
             </Text>
             <ScrollView
               horizontal

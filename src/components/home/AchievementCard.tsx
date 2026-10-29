@@ -115,9 +115,9 @@ export default function AchievementCard({
         />
         <LinearGradient
           colors={[
-            "rgba(84, 0, 14, 0.15)",
-            "rgba(84, 0, 14, 0.65)",
-            "#54000E",
+            "rgba(0, 0, 0, 0.2)",
+            "rgba(0, 0, 0, 0.7)",
+            "#000000",
           ]}
           locations={[0, 0.5, 1]}
           style={styles.cinematicGradient}
@@ -229,7 +229,7 @@ export default function AchievementCard({
         style={styles.luxeContainer}
       >
         <LinearGradient
-          colors={["#3D000A", "#54000E", "#7A1528"]}
+          colors={["#111111", "#171717", "#202020"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.luxeGradient}
@@ -249,7 +249,7 @@ export default function AchievementCard({
               resizeMode="cover"
             />
             <View style={styles.luxeWaxSeal}>
-              <Ionicons name="ribbon" size={14} color="#54000E" />
+              <Ionicons name="ribbon" size={14} color="#111111" />
             </View>
           </View>
 
@@ -332,7 +332,7 @@ export default function AchievementCard({
           resizeMode="cover"
         />
         <LinearGradient
-          colors={["transparent", "rgba(84, 0, 14, 0.75)"]}
+          colors={["transparent", "rgba(0, 0, 0, 0.8)"]}
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.showcaseCategoryPill}>
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "rgba(236, 143, 62, 0.85)", // Golden Amber badge
+    backgroundColor: "rgba(255, 184, 153, 0.9)",
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 12,
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   cinematicDedicated: {
     fontSize: 11.5,
-    color: "rgba(255, 248, 240, 0.85)",
+    color: "rgba(255, 255, 255, 0.85)",
     marginBottom: 5,
   },
   cinematicMentorName: {
@@ -457,14 +457,14 @@ const styles = StyleSheet.create({
   cinematicStory: {
     fontSize: 12,
     lineHeight: 16.5,
-    color: "rgba(255, 248, 240, 0.9)",
+    color: "rgba(255, 255, 255, 0.9)",
     fontStyle: "italic",
     marginBottom: 10,
     fontFamily: AppFonts.displaySerif,
   },
   cinematicAccentBar: {
     height: 3,
-    backgroundColor: "rgba(255, 248, 240, 0.25)",
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
     borderRadius: 2,
     overflow: "hidden",
   },
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "rgba(84, 0, 14, 0.08)",
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
     paddingTop: 8,
   },
   editorialHighlightPill: {
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
     overflow: "hidden",
     borderWidth: 1.5,
-    borderColor: "rgba(236, 143, 62, 0.45)", // Golden Amber border
+    borderColor: "rgba(255, 240, 154, 0.45)",
     shadowColor: Palette.oceanTeal,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18,
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(236, 143, 62, 0.22)",
+    backgroundColor: "rgba(255, 240, 154, 0.16)",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
   },
   luxeDate: {
     fontSize: 10.5,
-    color: Palette.mintMist,
+    color: Palette.textSecondary,
     opacity: 0.85,
   },
   luxeImageFrame: {
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
     borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.3)",
+    borderColor: "rgba(255, 240, 154, 0.3)",
     marginBottom: 10,
   },
   luxeImage: {
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
   luxeStory: {
     fontSize: 12,
     lineHeight: 17,
-    color: "rgba(255, 248, 240, 0.9)",
+    color: "rgba(255, 255, 255, 0.9)",
     fontStyle: "italic",
   },
 
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
     width: 250,
     borderRadius: 18,
     marginRight: 16,
-    backgroundColor: Palette.iceWhite, // Cream White
+    backgroundColor: Palette.surfaceCard,
     borderWidth: 1.2,
     borderColor: "rgba(177, 167, 166, 0.4)",
     padding: 12,
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: 44,
     height: 12,
-    backgroundColor: "rgba(236, 143, 62, 0.4)", // Golden Amber tape
+    backgroundColor: "rgba(255, 184, 153, 0.4)",
     borderRadius: 2,
     zIndex: 3,
   },
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: "rgba(84, 0, 14, 0.08)",
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
   },
   polaroidBadgePill: {
     flexDirection: "row",
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "rgba(84, 0, 14, 0.08)",
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
     paddingTop: 8,
   },
   showcaseTapLabel: {

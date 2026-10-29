@@ -135,7 +135,7 @@ export default function StoryDetailModal({
               Did this story remind you of someone?
             </Text>
             <Text style={styles.gratitudeSub}>
-              Take a moment to record your own tribute and thank the person who shaped you.
+              Take a moment to create an appreciation card for the person who shaped you.
             </Text>
             <TouchableOpacity
               onPress={onClose}

@@ -11,10 +11,10 @@ interface LetterWallCardProps {
 }
 
 const MOOD_CONFIG: Record<string, { icon: string; color: string }> = {
-  Reflective: { icon: "moon-outline", color: "#7A4040" },
-  Warm: { icon: "sunny-outline", color: "#EC8F3E" },
-  Grateful: { icon: "heart-outline", color: "#9E2A2B" },
-  Hopeful: { icon: "leaf-outline", color: "#5A7A5A" },
+  Reflective: { icon: "moon-outline", color: "#D8B4FE" },
+  Warm: { icon: "sunny-outline", color: "#FFB899" },
+  Grateful: { icon: "heart-outline", color: "#FF9ECF" },
+  Hopeful: { icon: "leaf-outline", color: "#8FF0C6" },
 };
 
 export default function LetterWallCard({
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Palette.pureWhite,
     padding: 16,
-    shadowColor: "#54000E",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(236,143,62,0.3)",
+    borderColor: "rgba(143,211,255,0.3)",
   },
   moodChip: {
     flexDirection: "row",

@@ -4,6 +4,7 @@ import {
   WallMentorProfile,
 } from "@/types/memoryWall";
 import type { JourneyNode } from "@/components/MemoryWall/JourneyTogether";
+import { Palette } from "@/constants/theme";
 
 // ─── Mentor Profiles ─────────────────────────────────────────────────────────
 
@@ -108,14 +109,14 @@ export const WALL_MENTOR_PROFILES: WallMentorProfile[] = [
 // ─── Wall Items ──────────────────────────────────────────────────────────────
 
 export const WALL_ITEMS: WallItem[] = [
-  // ─── Tributes ─────────────────────────────────────────────────
+  // ─── Appreciation cards ───────────────────────────────────────
   {
     kind: "tribute",
     id: "t1",
     mentorId: "mp1",
     mentorName: "Mrs. Anita Sharma",
     relationship: "Teacher",
-    title: "A Tribute to Careful Words",
+    title: "Appreciation for Careful Words",
     photoUri:
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80",
     additionalImages: [
@@ -191,7 +192,7 @@ export const WALL_ITEMS: WallItem[] = [
     ],
     year: "2021",
     emotion: "Gratitude",
-    emotionColor: "#EC8F3E",
+    emotionColor: Palette.accentPeach,
     quote: "Do not defend an idea simply because it was born in your own mind.",
     lessonCarried:
       "The joy of research is not being proven right; it is discovering where reality is richer than your models.",
@@ -218,7 +219,7 @@ export const WALL_ITEMS: WallItem[] = [
     ],
     year: "2019",
     emotion: "Joy",
-    emotionColor: "#9E2A2B",
+    emotionColor: Palette.accentPink,
     quote: "Perfectionism is just fear disguised as high standards.",
     lessonCarried:
       "Start before you feel ready. The act of creation creates the confidence, not the other way around.",
@@ -242,7 +243,7 @@ export const WALL_ITEMS: WallItem[] = [
       "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format&fit=crop&q=80",
     year: "2015",
     emotion: "Moved",
-    emotionColor: "#54000E",
+    emotionColor: Palette.accentLavender,
     quote: "Specific truth is universal. Generalities touch nobody.",
     lessonCarried:
       "When someone gives you their undivided time and presence, they are giving you a piece of their life they will never get back.",
@@ -362,7 +363,7 @@ export const WALL_ITEMS: WallItem[] = [
       "Walked into honors literature hesitant to speak. She asked for my opinion first.",
     year: "2016",
     emotion: "Hopeful",
-    emotionColor: "#A8444F",
+    emotionColor: Palette.accentCoral,
     createdAt: "2016-09-01",
     isPinned: false,
   },
@@ -381,7 +382,7 @@ export const WALL_ITEMS: WallItem[] = [
       "A letter that opened doors across the country and changed where I could dream of going.",
     year: "2019",
     type: "life-change",
-    accentColor: "#F2A03D",
+    accentColor: Palette.accentAmber,
     createdAt: "2019-11-01",
     isPinned: false,
   },
@@ -398,7 +399,7 @@ export const WALL_ITEMS: WallItem[] = [
       "He rehearsed my interview with me three times, and then told me I did not need to.",
     year: "2022",
     type: "life-change",
-    accentColor: "#9E2A2B",
+    accentColor: Palette.accentPink,
     createdAt: "2022-06-01",
     isPinned: false,
   },
@@ -415,7 +416,7 @@ export const WALL_ITEMS: WallItem[] = [
       "The notification email arrived on an overcast Thursday in March: 'Manuscript Accepted for Publication with Distinction.' I ran up the three flights of stairs to Dr. Mitchell's office, papers clutched in hand. He printed out the title page, taped it to the corkboard beside his desk, and said: 'Remember this feeling. The world now knows what you know.'\n\nThat milestone broke the spell of imposter syndrome that had haunted me for years.",
     year: "2022",
     type: "breakthrough",
-    accentColor: "#EC8F3E",
+    accentColor: Palette.accentPeach,
     quote: "You belong in every room your hard work has earned entry to.",
     achievements: [
       "Published in the National Journal of Computational Science",
@@ -437,7 +438,7 @@ export const WALL_ITEMS: WallItem[] = [
       "On commencement morning, amidst hundreds of caps and gowns, I spotted Mrs. Sharma sitting proudly next to my parents. She had driven ninety miles to be there. When my name was announced and I walked across the stage to receive the departmental honours medal, she was the first to stand.\n\nAfterward, she handed me an inscribed fountain pen with the words: 'To a writer of truth.'",
     year: "2018",
     type: "graduation",
-    accentColor: "#9E2A2B",
+    accentColor: Palette.accentLavender,
     quote: "Honours fade; the discipline of craft remains.",
     achievements: [
       "Summa Cum Laude in English Literature",
@@ -459,7 +460,7 @@ export const WALL_ITEMS: WallItem[] = [
       "At 9:00 AM on a Monday, the deploy script ran clean and our consumer app went live to fifty thousand initial users. My heart was in my throat. Vikram dialed my cell from the airport lounge where he was traveling for a conference: 'Look out the window. The sky did not fall. You built something that works. Now enjoy today, because tomorrow the real learning begins.'",
     year: "2023",
     type: "life-change",
-    accentColor: "#54000E",
+    accentColor: Palette.accentSky,
     quote: "Every beginning requires the bravery to be misunderstood at first.",
     achievements: [
       "Featured #1 Product of the Day on Launch Week",
@@ -535,7 +536,7 @@ export const WALL_FILTER_TABS: WallFilterTab[] = [
   { key: "all", label: "All", icon: "apps", count: WALL_ITEMS.length },
   {
     key: "tributes",
-    label: "Tributes",
+    label: "Appreciation",
     icon: "heart",
     count: WALL_ITEMS.filter((i) => i.kind === "tribute").length,
   },

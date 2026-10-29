@@ -22,14 +22,14 @@ export default function TributeWallCard({
       activeOpacity={0.88}
       style={styles.card}
       accessibilityRole="button"
-      accessibilityLabel={`Tribute to ${item.mentorName}`}
+      accessibilityLabel={`Appreciation card for ${item.mentorName}`}
     >
       {/* Photo background */}
       <Image source={{ uri: item.photoUri }} style={styles.photo} />
 
       {/* Bottom gradient overlay */}
       <LinearGradient
-        colors={["transparent", "rgba(84,0,14,0.92)"]}
+        colors={["transparent", "rgba(0,0,0,0.92)"]}
         start={{ x: 0, y: 0.3 }}
         end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -66,7 +66,7 @@ export default function TributeWallCard({
       <View style={styles.content}>
         <View style={styles.typeBadge}>
           <Ionicons name="heart" size={10} color={Palette.turquoise} />
-          <Text style={styles.typeLabel}>Tribute</Text>
+          <Text style={styles.typeLabel}>Appreciation</Text>
         </View>
         <Text style={styles.mentorName} numberOfLines={1}>
           {item.mentorName}
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "rgba(236,143,62,0.4)",
+    borderColor: "rgba(255,240,154,0.4)",
   },
   pinnedText: {
     color: Palette.turquoise,

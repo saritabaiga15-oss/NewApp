@@ -255,9 +255,9 @@ export default function MentorCard({
             activeOpacity={0.85}
             style={styles.ctaBtn}
           >
-            <Ionicons name="heart" size={13} color="#FF4B72" />
+            <Ionicons name="heart" size={13} color={Palette.accentPink} />
             <Text style={styles.ctaText}>Send Thanks</Text>
-            <Ionicons name="chevron-forward" size={12} color="#00D2D3" />
+            <Ionicons name="chevron-forward" size={12} color={Palette.accentSky} />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   quoteGlyph: {
     fontSize: 22,
     lineHeight: 22,
-    color: "#F59E0B", // Tasteful amber quote glyph
+    color: Palette.accentAmber,
     fontWeight: "900",
   },
   lessonLabel: {

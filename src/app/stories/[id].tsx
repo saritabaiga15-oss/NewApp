@@ -127,7 +127,7 @@ export default function StoryDetailScreen() {
     }
   };
 
-  // Submit gratitude tribute
+  // Submit appreciation message
   const handleSendGratitude = () => {
     if (!mentorNameInput.trim() || !gratitudeNoteInput.trim()) return;
     setHasSentGratitude(true);
@@ -137,7 +137,7 @@ export default function StoryDetailScreen() {
       setMentorNameInput("");
       setGratitudeNoteInput("");
       Alert.alert(
-        "Tribute Recorded",
+        "Appreciation Saved",
         "Your message of gratitude has been safely placed in your memory journal."
       );
     }, 1200);
@@ -577,15 +577,15 @@ export default function StoryDetailScreen() {
 
             <Text style={styles.modalHeading}>Express Your Gratitude</Text>
             <Text style={styles.modalSubtitle}>
-              Send a warm tribute to the teacher, mentor, or friend who shaped your path.
+              Send an appreciation message to the teacher, mentor, or friend who shaped your path.
             </Text>
 
             {hasSentGratitude ? (
               <View style={styles.modalSuccessBox}>
                 <Ionicons name="checkmark-circle" size={36} color={Palette.oceanTeal} />
-                <Text style={styles.modalSuccessTitle}>Tribute Recorded</Text>
+                <Text style={styles.modalSuccessTitle}>Appreciation Saved</Text>
                 <Text style={styles.modalSuccessText}>
-                  Your message has been inscribed into your tribute album.
+                  Your message has been saved to your appreciation collection.
                 </Text>
               </View>
             ) : (
@@ -620,7 +620,7 @@ export default function StoryDetailScreen() {
                   disabled={!mentorNameInput.trim() || !gratitudeNoteInput.trim()}
                 >
                   <Ionicons name="send" size={15} color={Palette.pureWhite} />
-                  <Text style={styles.modalSendBtnText}>Save Gratitude Tribute</Text>
+                  <Text style={styles.modalSendBtnText}>Save Appreciation</Text>
                 </TouchableOpacity>
               </View>
             )}
