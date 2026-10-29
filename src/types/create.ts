@@ -44,6 +44,12 @@ export interface CreationFormState {
   quote?: string;
   emotionalTag?: string;
   dateOrYear?: string;
+  greeting?: string;
+  closing?: string;
+  signature?: string;
+  photoUri?: string;
+  layoutStyle?: string;
+  decorations?: string[];
 }
 
 export type TributeRelationship =

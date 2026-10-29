@@ -50,7 +50,7 @@ export default function TributeDesignFooter({
 
       {/* Supporting Text */}
       <Text style={styles.supportingText}>
-        Turn your words and memories into a beautiful tribute.
+        Turn your gratitude into a recognition card they will want to keep.
       </Text>
 
       {/* Prominent Action Button */}
@@ -61,11 +61,11 @@ export default function TributeDesignFooter({
           onPressOut={handlePressOut}
           style={styles.continueButton}
           accessibilityRole="button"
-          accessibilityLabel="Continue to Design tribute studio"
+          accessibilityLabel="Continue to design appreciation card"
         >
           <View style={styles.buttonTextGroup}>
             <Text style={styles.buttonLabel}>Continue to Design</Text>
-            <Text style={styles.buttonSub}>Preserve in Design Studio</Text>
+            <Text style={styles.buttonSub}>Choose a card style and details</Text>
           </View>
 
           <View style={styles.arrowCircle}>

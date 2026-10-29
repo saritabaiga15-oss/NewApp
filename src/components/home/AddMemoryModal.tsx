@@ -31,11 +31,11 @@ interface StudioCard {
 const STUDIO_CARDS: StudioCard[] = [
   {
     key: "tribute",
-    badge: "Honour",
-    title: "A Tribute",
-    tagline: "Celebrate someone special.",
+    badge: "Appreciation",
+    title: "Appreciation",
+    tagline: "Celebrate their impact.",
     description:
-      "Create a heartfelt tribute to a person who made a difference in your life.",
+      "Create a beautiful recognition card for someone who made a difference.",
     icon: "heart",
     cardBg: Palette.surfaceCard,
     iconBg: "rgba(255, 158, 207, 0.16)",
@@ -43,11 +43,11 @@ const STUDIO_CARDS: StudioCard[] = [
   },
   {
     key: "memory",
-    badge: "Snapshot",
-    title: "A Memory",
-    tagline: "Keep a moment alive.",
+    badge: "Journal",
+    title: "Write a Memo",
+    tagline: "Keep a moment forever.",
     description:
-      "Preserve a meaningful experience, photograph, or place you shared.",
+      "Preserve a meaningful moment with your mentor in a personal memory journal.",
     icon: "camera",
     cardBg: Palette.surfaceCard,
     iconBg: "rgba(143, 211, 255, 0.16)",
@@ -56,8 +56,8 @@ const STUDIO_CARDS: StudioCard[] = [
   {
     key: "letter",
     badge: "Personal",
-    title: "A Letter",
-    tagline: "Say what matters.",
+    title: "Open Letter",
+    tagline: "Write from the heart.",
     description:
       "Write a personal letter expressing gratitude and appreciation.",
     icon: "mail",
@@ -67,15 +67,15 @@ const STUDIO_CARDS: StudioCard[] = [
   },
   {
     key: "lesson",
-    badge: "Wisdom",
-    title: "A Life Lesson",
-    tagline: "Save their wisdom.",
+    badge: "Stationery",
+    title: "Write a Note",
+    tagline: "Make it uniquely yours.",
     description:
-      "Capture valuable advice, meaningful quotes, and teachings.",
-    icon: "bulb-outline",
+      "Create a thoughtful note on artistic stationery with expressive details.",
+    icon: "color-palette-outline",
     cardBg: Palette.surfaceCard,
-    iconBg: "rgba(143, 240, 198, 0.16)",
-    accent: Palette.accentMint,
+    iconBg: "rgba(216, 180, 254, 0.16)",
+    accent: Palette.accentLavender,
   },
 ];
 

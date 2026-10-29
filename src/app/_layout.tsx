@@ -1,15 +1,24 @@
 import React, { useEffect } from "react";
 import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Caveat_400Regular } from "@expo-google-fonts/caveat";
+import "@/global.css";
 import { memoryService } from "@/services/memoryService";
+import { creationDraftService } from "@/services/creationDraftService";
 import { storyBookmarkService } from "@/services/storyBookmarkService";
 import { tributeDraftService } from "@/services/tributeDraftService";
 import { userProfileService } from "@/services/userProfileService";
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    Caveat_400Regular,
+  });
+
   useEffect(() => {
     Promise.all([
       memoryService.initialize(),
+      creationDraftService.initialize(),
       storyBookmarkService.initialize(),
       tributeDraftService.initialize(),
       userProfileService.initialize(),
@@ -17,6 +26,14 @@ export default function RootLayout() {
       console.error("Unable to initialize local app data:", error);
     });
   }, []);
+
+  useEffect(() => {
+    if (fontError) {
+      console.error("Unable to load the Open Letter handwriting font:", fontError);
+    }
+  }, [fontError]);
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
@@ -36,6 +53,10 @@ export default function RootLayout() {
         <Stack.Screen name="create-mentor" />
         <Stack.Screen name="discover" />
         <Stack.Screen name="create" />
+        <Stack.Screen name="creation-studio" />
+        <Stack.Screen name="memo" />
+        <Stack.Screen name="note" />
+        <Stack.Screen name="open-letter" />
         <Stack.Screen name="create-tribute" />
         <Stack.Screen name="tribute-design" />
         <Stack.Screen name="tribute-preview" />

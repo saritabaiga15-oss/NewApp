@@ -30,9 +30,9 @@ export default function TributeMiniPreview({
           <Ionicons name="eye-outline" size={13} color={Palette.turquoise} />
           <Text style={styles.editorialLabel}>STUDIO PREVIEW</Text>
         </View>
-        <Text style={styles.heading}>Your memories, beautifully kept.</Text>
+        <Text style={styles.heading}>A card made to celebrate them.</Text>
         <Text style={styles.subtitle}>
-          A live glimpse of how your tribute will look in your keepsake collection
+          A live glimpse of your appreciation card
         </Text>
       </View>
 

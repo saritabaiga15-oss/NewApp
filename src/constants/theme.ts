@@ -1,5 +1,3 @@
-import '@/global.css';
-
 import { Platform } from 'react-native';
 
 /**
@@ -26,6 +24,7 @@ export const AppFonts = {
     android: 'sans-serif',
     default: 'sans-serif',
   }),
+  handwritten: 'Caveat_400Regular',
 } as const;
 
 /**
@@ -226,8 +225,8 @@ export const Fonts = Platform.select({
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
+    sans: AppFonts.displaySans,
+    serif: AppFonts.displaySerif,
     rounded: 'var(--font-rounded)',
     mono: 'var(--font-mono)',
   },

@@ -40,6 +40,12 @@ import { CURATED_QUOTES, STUDIO_TEMPLATES } from "@/data/tributeStudioData";
 import { DEFAULT_SAMPLE_PORTRAIT } from "@/data/tributeDetailsData";
 import { tributeDraftService } from "@/services/tributeDraftService";
 
+const APPRECIATION_HEADINGS = [
+  "With Deepest Appreciation",
+  "Thank You for Making a Difference",
+  "You Inspire Me",
+];
+
 export default function TributeDesignScreen() {
   const params = useLocalSearchParams<{
     id?: string;
@@ -106,6 +112,9 @@ export default function TributeDesignScreen() {
   const [activeDecorations, setActiveDecorations] = useState<TributeDecorationId[]>(
     existingDesign?.decorations || ["wax-seal", "sparkle-star"]
   );
+  const [customTitle, setCustomTitle] = useState(
+    existingDesign?.customTitle || APPRECIATION_HEADINGS[0]
+  );
 
   // Toast message
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -150,7 +159,7 @@ export default function TributeDesignScreen() {
       isCustomPhoto,
       story,
       quote,
-      customTitle: "A Tribute to Guidance",
+      customTitle,
       templateId: selectedTemplate,
       frameStyle: selectedFrame,
       typographyStyle: selectedTypography,
@@ -173,8 +182,59 @@ export default function TributeDesignScreen() {
       selectedTypography,
       textAlign,
       activeDecorations,
+      customTitle,
     ]
   );
+
+  React.useEffect(() => {
+    const hasDesignContent =
+      mentorName.trim() ||
+      story.trim() ||
+      isCustomPhoto ||
+      customTitle !== APPRECIATION_HEADINGS[0] ||
+      selectedTemplate !== "editorial" ||
+      selectedFrame !== "clean" ||
+      selectedTypography !== "serif" ||
+      textAlign !== "left" ||
+      activeDecorations.length !== 2 ||
+      activeDecorations.some(
+        (decoration) => !["wax-seal", "sparkle-star"].includes(decoration)
+      );
+    if (!hasDesignContent || tributeDraftService.getSavedKeepsakeById(tributeId)) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      const payload = {
+        id: currentDesign.id,
+        mentorName: currentDesign.mentorName,
+        relationship: currentDesign.relationship,
+        photoUri: currentDesign.photoUri,
+        isCustomPhoto: currentDesign.isCustomPhoto,
+        story: currentDesign.story,
+        inspirationPrompt: existingPayload?.inspirationPrompt,
+        createdAt: currentDesign.createdAt,
+      };
+      tributeDraftService.saveDraft(payload, currentDesign).catch((error: unknown) => {
+        console.error("Unable to autosave appreciation design:", error);
+        Alert.alert("Draft not saved", "Your appreciation design could not be saved.");
+      });
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, [
+    activeDecorations,
+    currentDesign,
+    customTitle,
+    existingPayload?.inspirationPrompt,
+    isCustomPhoto,
+    mentorName,
+    selectedFrame,
+    selectedTemplate,
+    selectedTypography,
+    story,
+    textAlign,
+    tributeId,
+  ]);
 
   // Decoration toggle handler
   const handleToggleDecoration = (decoId: TributeDecorationId) => {
@@ -300,6 +360,40 @@ export default function TributeDesignScreen() {
                 showToast(`Applied ${tmplId.toUpperCase()} template`);
               }}
             />
+
+            <View style={styles.headingStyleSection}>
+              <Text style={styles.headingStyleLabel}>CARD HEADING</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.headingStyleRow}
+              >
+                {APPRECIATION_HEADINGS.map((heading) => {
+                  const selected = customTitle === heading;
+                  return (
+                    <TouchableOpacity
+                      key={heading}
+                      onPress={() => setCustomTitle(heading)}
+                      style={[
+                        styles.headingStyleChip,
+                        selected && styles.headingStyleChipSelected,
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                    >
+                      <Text
+                        style={[
+                          styles.headingStyleText,
+                          selected && styles.headingStyleTextSelected,
+                        ]}
+                      >
+                        {heading}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
 
             {/* ======================================================== */}
             {/* 3. EDITING TOOLBAR (Frames, Text, Decorations, Photos)   */}
@@ -453,6 +547,41 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     color: Palette.oceanTeal,
+  },
+  headingStyleSection: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  headingStyleLabel: {
+    color: Palette.textSecondary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  headingStyleRow: {
+    gap: 8,
+  },
+  headingStyleChip: {
+    backgroundColor: Palette.surfaceCard,
+    borderWidth: 1,
+    borderColor: Palette.borderSubtle,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 13,
+  },
+  headingStyleChipSelected: {
+    borderColor: Palette.accentPink,
+    backgroundColor: "rgba(255, 158, 207, 0.1)",
+  },
+  headingStyleText: {
+    color: Palette.textSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  headingStyleTextSelected: {
+    color: Palette.accentPink,
   },
   previewActionWrap: {
     paddingHorizontal: 20,

@@ -29,7 +29,7 @@ export default function DraftsSection({
         <View style={styles.titleWrap}>
           <Text style={styles.sectionTitle}>Pick Up Where You Left Off</Text>
           <Text style={styles.sectionSubtitle}>
-            Unfinished drafts and ongoing tributes
+            Unfinished memos, notes, letters, and appreciation cards
           </Text>
         </View>
 
@@ -54,7 +54,7 @@ export default function DraftsSection({
 
           <Text style={styles.emptyTitle}>Your studio is waiting</Text>
           <Text style={styles.emptySubtitle}>
-            When you begin a tribute, write a letter, or capture a life lesson,
+            When you begin a memo, note, letter, or appreciation card,
             your unfinished thoughts will be safely kept here.
           </Text>
 
@@ -71,7 +71,7 @@ export default function DraftsSection({
                 size={16}
                 color={Palette.oceanTeal}
               />
-              <Text style={styles.emptyCtaText}>Start Your First Memory</Text>
+              <Text style={styles.emptyCtaText}>Start Your First Keepsake</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -183,14 +183,14 @@ function getTypeBadgeConfig(type: string) {
   switch (type) {
     case "tribute":
       return {
-        label: "Tribute",
+        label: "Appreciation",
         icon: "heart" as const,
         color: Palette.oceanTeal,
         bg: "rgba(84, 0, 14, 0.08)",
       };
     case "memory":
       return {
-        label: "Memory",
+        label: "Memo",
         icon: "camera" as const,
         color: Palette.turquoise,
         bg: "rgba(236, 143, 62, 0.14)",
@@ -204,10 +204,10 @@ function getTypeBadgeConfig(type: string) {
       };
     case "lesson":
       return {
-        label: "Life Lesson",
-        icon: "bulb-outline" as const,
-        color: "#B8621B",
-        bg: "rgba(184, 98, 27, 0.12)",
+        label: "Note",
+        icon: "color-palette-outline" as const,
+        color: Palette.accentLavender,
+        bg: "rgba(216, 180, 254, 0.12)",
       };
     default:
       return {

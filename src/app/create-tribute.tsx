@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   KeyboardAvoidingView,
@@ -7,6 +8,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -47,9 +49,13 @@ export default function CreateTributeScreen() {
   const savedDraft = params.draftId
     ? tributeDraftService.getDraftById(params.draftId)
     : undefined;
-  const [tributeId] = useState(
-    () => savedDraft?.payload.id || `tribute-${Date.now()}`
+  const [tributeId, setTributeId] = useState(
+    () => savedDraft?.payload.id || params.draftId || `tribute-${Date.now()}`
   );
+  const createdAtRef = React.useRef(
+    savedDraft?.payload.createdAt || new Date().toISOString()
+  );
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Screen Form State (persisting any incoming navigation params)
   const [mentorName, setMentorName] = useState(
@@ -92,6 +98,46 @@ export default function CreateTributeScreen() {
     }).start();
   }, [entranceFade]);
 
+  React.useEffect(() => {
+    let active = true;
+    tributeDraftService
+      .initialize()
+      .then(() => {
+        if (!active) return;
+        const draft = params.draftId
+          ? tributeDraftService.getDraftById(params.draftId)
+          : undefined;
+        if (draft) {
+          setTributeId(draft.payload.id);
+          createdAtRef.current = draft.payload.createdAt;
+          setMentorName(draft.payload.mentorName);
+          setRelationship(toTributeRelationship(draft.payload.relationship));
+          setStory(draft.payload.story);
+          setPhotoUri(draft.payload.photoUri || null);
+          setIsCustomPhoto(draft.payload.isCustomPhoto);
+          setActivePromptText(draft.payload.inspirationPrompt || null);
+          setSelectedCardId(null);
+          tributeDraftService.setPayload(draft.payload);
+          if (draft.designState) {
+            tributeDraftService.setDesignState(draft.designState);
+          }
+        } else if (params.draftId) {
+          Alert.alert("Draft not found", "This appreciation draft could not be found.");
+        }
+        setIsHydrated(true);
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to load appreciation draft:", error);
+        if (active) {
+          Alert.alert("Draft unavailable", "Your appreciation draft could not be loaded.");
+          setIsHydrated(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [params.draftId]);
+
   // Handle Photo Picker selection
   const handlePhotoSelected = (uri: string, isCustom: boolean) => {
     setPhotoUri(uri);
@@ -116,7 +162,7 @@ export default function CreateTributeScreen() {
     }
   };
 
-  const buildPayload = (): TributePayload => ({
+  const buildPayload = React.useCallback((): TributePayload => ({
     id: tributeId,
     mentorName: mentorName.trim(),
     relationship,
@@ -124,8 +170,36 @@ export default function CreateTributeScreen() {
     isCustomPhoto,
     story: story.trim(),
     inspirationPrompt: activePromptText || undefined,
-    createdAt: savedDraft?.payload.createdAt || new Date().toISOString(),
-  });
+    createdAt: createdAtRef.current,
+  }), [tributeId, mentorName, relationship, photoUri, isCustomPhoto, story, activePromptText]);
+
+  React.useEffect(() => {
+    if (!isHydrated) return;
+    const hasContent =
+      mentorName.trim() || story.trim() || isCustomPhoto || activePromptText;
+    if (!hasContent) return;
+    const timeout = setTimeout(() => {
+      const design = tributeDraftService.getDesignState();
+      tributeDraftService
+        .saveDraft(
+          buildPayload(),
+          design?.id === tributeId ? design : null
+        )
+        .catch((error: unknown) => {
+          console.error("Unable to autosave appreciation draft:", error);
+          Alert.alert("Draft not saved", "Your appreciation draft could not be saved.");
+        });
+    }, 700);
+    return () => clearTimeout(timeout);
+  }, [
+    isHydrated,
+    mentorName,
+    story,
+    isCustomPhoto,
+    activePromptText,
+    buildPayload,
+    tributeId,
+  ]);
 
   const handleSaveDraft = async () => {
     const payload = buildPayload();
@@ -161,19 +235,16 @@ export default function CreateTributeScreen() {
 
     // Store safely in shared state service
     tributeDraftService.setPayload(payload);
-    if (savedDraft) {
-      try {
-        await tributeDraftService.saveDraft(
-          payload,
-          tributeDraftService.getDesignState()?.id === tributeId
-            ? tributeDraftService.getDesignState()
-            : null
-        );
-      } catch (error) {
-        console.error("Unable to update tribute draft:", error);
-        setValidationError("Your draft could not be saved. Please try again.");
-        return;
-      }
+    try {
+      const design = tributeDraftService.getDesignState();
+      await tributeDraftService.saveDraft(
+        payload,
+        design?.id === tributeId ? design : null
+      );
+    } catch (error) {
+      console.error("Unable to update tribute draft:", error);
+      setValidationError("Your draft could not be saved. Please try again.");
+      return;
     }
 
     // Navigate to Tribute Design Studio screen with parameters
@@ -188,6 +259,20 @@ export default function CreateTributeScreen() {
       },
     });
   };
+
+  if (!isHydrated) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <StatusBar barStyle="light-content" backgroundColor={Palette.iceWhite} />
+        <View style={[styles.mainContainer, { alignItems: "center", justifyContent: "center" }]}>
+          <ActivityIndicator color={Palette.accentAmber} />
+          <Text style={{ color: Palette.textSecondary, marginTop: 12 }}>
+            Restoring your appreciation draft…
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>

@@ -4,6 +4,7 @@ import {
   TributeFrameStyle,
   TributeTypographyStyle,
 } from "@/types/create";
+import { AppFonts } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 
 export const STUDIO_TEMPLATES: TemplateOption[] = [
@@ -88,10 +89,10 @@ export interface TypographyOption {
 }
 
 export const TYPOGRAPHY_OPTIONS: TypographyOption[] = [
-  { id: "serif", name: "Literary Serif", description: "Timeless & thoughtful", fontFamily: "serif" },
-  { id: "display", name: "Bold Display", description: "Prominent & majestic", fontFamily: "sans-serif" },
-  { id: "handwritten", name: "Intimate Script", description: "Warm & personal", fontFamily: "serif" },
-  { id: "modern", name: "Clean Modern", description: "Crisp & contemporary", fontFamily: "sans-serif" },
+  { id: "serif", name: "Literary", description: "Timeless & thoughtful", fontFamily: AppFonts.body },
+  { id: "display", name: "Bold Display", description: "Prominent & majestic", fontFamily: AppFonts.body },
+  { id: "handwritten", name: "Intimate", description: "Warm & personal", fontFamily: AppFonts.handwritten },
+  { id: "modern", name: "Clean Modern", description: "Crisp & contemporary", fontFamily: AppFonts.body },
 ];
 
 export interface DecorationOption {

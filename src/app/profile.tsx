@@ -142,8 +142,12 @@ export default function ProfileScreen() {
     [tributes]
   );
 
-    router.push({ pathname: "/memory-detail/[id]", params: { id: item.id } });
-    router.push({ pathname: "/stories/[id]", params: { id: story.id } });
+  const openMemory = (item: WallItem) => {
+    router.push({
+      pathname: "/memory-detail/[id]",
+      params: { id: item.id },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -456,6 +460,8 @@ function PastelMenuCard({
       <Ionicons name="chevron-forward" size={18} color="rgba(255, 255, 255, 0.45)" />
     </TouchableOpacity>
   );
+}
+
 function getInitials(name: string): string {
   return name
     .trim()

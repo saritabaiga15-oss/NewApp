@@ -44,7 +44,7 @@ export default function TributePreviewScreen() {
       story:
         "When I was ready to give up on mathematics, you saw something in me that I couldn't see in myself. You stayed after school every Thursday for ten months until I found my confidence.",
       quote: "Thank you for believing in me before I believed in myself.",
-      customTitle: "A Tribute to Guidance",
+      customTitle: "With Deepest Appreciation",
       templateId: "editorial",
       frameStyle: "clean",
       typographyStyle: "serif",
@@ -104,15 +104,15 @@ export default function TributePreviewScreen() {
     try {
       await tributeDraftService.saveCompletedTribute(design);
       setIsSaved(true);
-      showToast("Tribute keepsake saved to your collection!");
+      showToast("Appreciation card saved to your collection!");
       Alert.alert(
-        "Tribute Saved",
-        `Your tribute for ${design.mentorName} is now safely preserved in your personal collection.`,
+        "Appreciation Saved",
+        `Your card for ${design.mentorName} is now safely preserved in your personal collection.`,
         [{ text: "Cherish It", style: "default" }]
       );
     } catch (error) {
-      console.error("Unable to save tribute:", error);
-      Alert.alert("Could not save tribute", "Please try again.");
+      console.error("Unable to save appreciation card:", error);
+      Alert.alert("Could not save card", "Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -122,12 +122,12 @@ export default function TributePreviewScreen() {
   const handleShareTribute = async () => {
     try {
       const shareContent = {
-        title: `In Honour of ${design.mentorName}`,
-        message: `“${design.quote}”\n\nA tribute to my ${design.relationship}, ${design.mentorName}.\n\nCreated with Honour Your Mentor.`,
+        title: design.customTitle || `In Honour of ${design.mentorName}`,
+        message: `${design.customTitle || "With Deepest Appreciation"}\n\n${design.story}\n\n“${design.quote}”\n\nFor my ${design.relationship}, ${design.mentorName}.\n\nCreated with Honour Your Mentor.`,
       };
       await Share.share(shareContent);
     } catch {
-      Alert.alert("Share", "Unable to share tribute at this moment.");
+      Alert.alert("Share", "Unable to share the appreciation card at this moment.");
     }
   };
 
@@ -158,7 +158,7 @@ export default function TributePreviewScreen() {
       );
     } catch (error) {
       console.error("Unable to add tribute to the Memory Wall:", error);
-      Alert.alert("Could not save tribute", "Please try again.");
+      Alert.alert("Could not save appreciation card", "Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -178,13 +178,13 @@ export default function TributePreviewScreen() {
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={styles.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Back to edit tribute in Design Studio"
+            accessibilityLabel="Back to edit appreciation card"
           >
             <Ionicons name="chevron-back" size={20} color={Palette.deepTeal} />
           </TouchableOpacity>
 
           <View style={styles.headerTitleWrap}>
-            <Text style={styles.headerTitle}>Your Tribute</Text>
+            <Text style={styles.headerTitle}>Appreciation Card</Text>
             <Text style={styles.headerSubtitle}>A memory worth keeping.</Text>
           </View>
 
@@ -231,7 +231,7 @@ export default function TributePreviewScreen() {
               onPress={() => setIsFullScreen(true)}
               style={styles.matteCard}
               accessibilityRole="button"
-              accessibilityLabel="Tap to view tribute full screen"
+              accessibilityLabel="Tap to view appreciation card full screen"
             >
               <TributeCanvas design={design} />
 
@@ -287,7 +287,7 @@ export default function TributePreviewScreen() {
                 color={Palette.pureWhite}
               />
               <Text style={styles.primarySaveBtnText}>
-                {isSaved ? "Saved to Keepsakes" : "Save Keepsake"}
+                {isSaved ? "Saved to Keepsakes" : "Save Card"}
               </Text>
             </TouchableOpacity>
 
@@ -298,14 +298,14 @@ export default function TributePreviewScreen() {
                 activeOpacity={0.8}
                 style={styles.secondaryActionBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Share your tribute"
+                accessibilityLabel="Share your appreciation card"
               >
                 <Ionicons
                   name="share-social-outline"
                   size={16}
                   color={Palette.deepTeal}
                 />
-                <Text style={styles.secondaryActionBtnText}>Share Tribute</Text>
+                <Text style={styles.secondaryActionBtnText}>Share Card</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -313,14 +313,14 @@ export default function TributePreviewScreen() {
                 activeOpacity={0.8}
                 style={styles.secondaryActionBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Edit tribute in Design Studio"
+                accessibilityLabel="Edit appreciation card"
               >
                 <Ionicons
                   name="color-wand-outline"
                   size={16}
                   color={Palette.deepTeal}
                 />
-                <Text style={styles.secondaryActionBtnText}>Edit Tribute</Text>
+                <Text style={styles.secondaryActionBtnText}>Edit Card</Text>
               </TouchableOpacity>
             </View>
 

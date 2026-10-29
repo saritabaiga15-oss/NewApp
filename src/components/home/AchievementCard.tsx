@@ -173,7 +173,7 @@ export default function AchievementCard({
             resizeMode="cover"
           />
           <View style={styles.editorialTagOverlay}>
-            <Ionicons name={meta.icon} size={11} color="#FFFFFF" />
+            <Ionicons name={meta.icon} size={11} color={Palette.textOnAmber} />
             <Text style={styles.editorialTagText}>{meta.label}</Text>
           </View>
         </View>
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: Palette.oceanTeal, // Deep Crimson
+    backgroundColor: Palette.accentAmber,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   editorialTagText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: Palette.textOnAmber,
   },
   editorialBody: {
     padding: 14,
@@ -823,7 +823,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: Palette.accentAmber,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -831,7 +831,7 @@ const styles = StyleSheet.create({
   showcaseCategoryText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: Palette.textOnAmber,
     textTransform: "uppercase",
   },
   showcaseBody: {

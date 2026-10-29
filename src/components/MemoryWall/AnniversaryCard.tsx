@@ -1,7 +1,9 @@
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+
+
+
 import { Fonts } from "@/constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface AnniversaryCardProps {
   onWriteThanksPress?: () => void;

@@ -129,7 +129,11 @@ export default function MemoryDetailScreen() {
       case "letter":
         return { label: "Personal Letter", icon: "mail", color: Palette.accentPeach };
       case "lesson":
-        return { label: "Life Lesson", icon: "bulb", color: Palette.accentSky };
+        return {
+          label: item.category === "Note" ? "Personal Note" : "Life Lesson",
+          icon: item.category === "Note" ? "create" : "bulb",
+          color: Palette.accentSky,
+        };
       case "milestone":
         return { label: "Milestone", icon: "flag", color: Palette.accentAmber };
     }
@@ -478,7 +482,7 @@ export default function MemoryDetailScreen() {
               {item.kind === "letter"
                 ? "The Letter"
                 : item.kind === "lesson"
-                ? "The Reflection"
+                ? item.category === "Note" ? "The Note" : "The Reflection"
                 : "The Story"}
             </Text>
             <View style={styles.sectionLine} />
@@ -499,8 +503,12 @@ export default function MemoryDetailScreen() {
           {item.kind === "letter" && item.signoff && (
             <View style={styles.letterSignoffContainer}>
               <Text style={styles.letterSignoff}>{item.signoff}</Text>
+              {item.signature ? <Text style={styles.letterSignoff}>{item.signature}</Text> : null}
             </View>
           )}
+          {item.kind === "letter" && item.date ? (
+            <Text style={styles.letterDate}>{item.date}</Text>
+          ) : null}
         </View>
 
         {item.kind === "memory" && item.audioUri && (
@@ -1108,6 +1116,12 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     fontFamily: AppFonts.body,
     lineHeight: 22,
+  },
+  letterDate: {
+    fontSize: 11,
+    color: Palette.textMuted,
+    textAlign: "right",
+    marginTop: 10,
   },
 
   // 4. Supporting Cards

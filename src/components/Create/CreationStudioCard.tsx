@@ -122,7 +122,7 @@ export default function CreationStudioCard({
                   {item.badgeLabel.toUpperCase()}
                 </Text>
               </View>
-              <Text style={[styles.cardSubtitle, { color: Palette.accentMint }]}>{item.subtitle}</Text>
+              <Text style={[styles.cardSubtitle, { color: Palette.accentLavender }]}>{item.subtitle}</Text>
             </View>
             <View style={styles.actionArrowCircle}>
               <Ionicons name="arrow-forward" size={14} color="#000000" />
@@ -181,7 +181,7 @@ function getIconWrapperStyle(type: string) {
     case "letter":
       return { backgroundColor: "rgba(255, 184, 153, 0.14)" };
     case "lesson":
-      return { backgroundColor: "rgba(255, 240, 154, 0.14)" };
+      return { backgroundColor: "rgba(216, 180, 254, 0.16)" };
     default:
       return { backgroundColor: Palette.mintMist };
   }
@@ -196,7 +196,7 @@ function getIconColor(type: string) {
     case "letter":
       return Palette.accentPeach;
     case "lesson":
-      return Palette.accentMint;
+      return Palette.accentLavender;
     default:
       return Palette.deepTeal;
   }

@@ -24,7 +24,7 @@ export default function TributeStudioHeader({
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           style={styles.iconBtn}
           accessibilityRole="button"
-          accessibilityLabel="Back to tribute details"
+          accessibilityLabel="Back to appreciation details"
         >
           <Ionicons name="chevron-back" size={20} color={Palette.deepTeal} />
         </TouchableOpacity>
@@ -52,7 +52,7 @@ export default function TributeStudioHeader({
             activeOpacity={0.85}
             style={styles.previewBtn}
             accessibilityRole="button"
-            accessibilityLabel="Preview tribute"
+            accessibilityLabel="Preview appreciation card"
           >
             <Text style={styles.previewBtnText}>Preview</Text>
             <Ionicons name="eye-outline" size={13} color={Palette.pureWhite} />
@@ -62,7 +62,7 @@ export default function TributeStudioHeader({
 
       {/* Title & Subtitle */}
       <View style={styles.titleArea}>
-        <Text style={styles.heading}>Design your tribute</Text>
+        <Text style={styles.heading}>Design your appreciation card</Text>
         <Text style={styles.subtitle}>Make it uniquely yours</Text>
       </View>
     </View>

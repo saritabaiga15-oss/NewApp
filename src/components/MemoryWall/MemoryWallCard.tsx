@@ -38,7 +38,7 @@ export default function MemoryWallCard({
         <View style={styles.headerRow}>
           <View style={styles.typeBadge}>
             <Ionicons name="images-outline" size={10} color={Palette.textMuted} />
-            <Text style={styles.typeText}>Memory · {item.year}</Text>
+            <Text style={styles.typeText}>Memo · {item.year}</Text>
           </View>
           <TouchableOpacity
             onPress={() => onPinPress(item.id)}

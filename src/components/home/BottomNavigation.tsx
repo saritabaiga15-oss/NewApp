@@ -30,11 +30,11 @@ interface TabItem {
 }
 
 const FIVE_TABS: TabItem[] = [
-  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home", activeColor: "#FFFFFF" },
-  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass", activeColor: "#FFFFFF" },
-  { key: "create", label: "Create", icon: "add", activeIcon: "add", activeColor: "#FFFFFF" },
-  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: "#FFFFFF" },
-  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person", activeColor: "#FFFFFF" },
+  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home", activeColor: "#111111" },
+  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass", activeColor: "#111111" },
+  { key: "create", label: "Create", icon: "add", activeIcon: "add", activeColor: "#111111" },
+  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: "#111111" },
+  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person", activeColor: "#111111" },
 ];
 
 export default function BottomNavigation({
@@ -82,7 +82,7 @@ export default function BottomNavigation({
             (activeTab === "gratitude" && tab.key === "saved");
 
           const isCreate = tab.key === "create";
-          const iconColor = isActive || isCreate ? tab.activeColor : Palette.textSecondary;
+          const iconColor = isActive || isCreate ? tab.activeColor : "#777777";
 
           return (
             <TouchableOpacity
@@ -132,17 +132,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingTop: 6,
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
     zIndex: 99,
     borderTopWidth: 1,
-    borderTopColor: "#303030",
+    borderTopColor: "#E8E8E8",
   },
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     height: 58,
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 6,
   },
   tabButton: {
@@ -160,11 +160,13 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#FFFFFF",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.12,
     shadowRadius: 10,
     elevation: 5,
   },
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 10,
     fontWeight: "600",
-    color: Palette.textSecondary,
+    color: "#777777",
     marginTop: 3,
   },
 });

@@ -29,7 +29,7 @@ export default function TributeHeader({
 
         <View style={styles.studioBadge}>
           <Ionicons name="sparkles" size={11} color={Palette.turquoise} />
-          <Text style={styles.studioBadgeText}>MEMORIAL KEEPSAKE</Text>
+          <Text style={styles.studioBadgeText}>APPRECIATION CARD</Text>
         </View>
 
         <TouchableOpacity
@@ -38,7 +38,7 @@ export default function TributeHeader({
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           style={styles.optionsButton}
           accessibilityRole="button"
-          accessibilityLabel="Tribute options"
+          accessibilityLabel="Appreciation card options"
         >
           <Ionicons
             name="ellipsis-horizontal"
@@ -50,7 +50,7 @@ export default function TributeHeader({
 
       {/* Title & Emotional Introduction */}
       <View style={styles.titleWrapper}>
-        <Text style={styles.pageTitle}>A tribute to someone special</Text>
+        <Text style={styles.pageTitle}>Celebrate their impact</Text>
         <Text style={styles.subtitle}>
           “Some people leave a little of themselves in everything we become.”
         </Text>

@@ -29,7 +29,11 @@ export default function LessonWallCard({
       {/* Top row */}
       <View style={styles.topRow}>
         <View style={styles.bulbIcon}>
-          <Ionicons name="bulb" size={15} color={Palette.turquoise} />
+          <Ionicons
+            name={item.category === "Note" ? "create-outline" : "bulb"}
+            size={15}
+            color={Palette.turquoise}
+          />
         </View>
         <View style={styles.categoryChip}>
           <Text style={styles.categoryText}>{item.category}</Text>

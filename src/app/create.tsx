@@ -19,7 +19,6 @@ import { Palette } from "@/constants/theme";
 import {
   CreateHeader,
   CreationCardsSection,
-  CreationFlowModal,
   DraftsSection,
   InspirationJournal,
 } from "@/components/Create";
@@ -28,17 +27,50 @@ import BottomNavigation from "@/components/home/BottomNavigation";
 // Types & Data
 import {
   CreationDraft,
-  CreationFormState,
   CreationType,
   InspirationPrompt,
 } from "@/types/create";
 import { CREATION_OPTIONS, INSPIRATION_PROMPTS } from "@/data/createStudioData";
-import { memoryService } from "@/services/memoryService";
+import { creationDraftService } from "@/services/creationDraftService";
 import { tributeDraftService } from "@/services/tributeDraftService";
-import type { WallItem } from "@/types/memoryWall";
 
 function isCreationType(value: string | undefined): value is CreationType {
   return value === "tribute" || value === "memory" || value === "letter" || value === "lesson";
+}
+
+type CreationRouteParams = {
+  mentorName?: string | string[];
+  relationship?: string | string[];
+  prompt?: string;
+  promptQuestion?: string;
+  draftId?: string;
+};
+
+function navigateToCreation(
+  type: CreationType,
+  params: CreationRouteParams,
+  replace = false
+) {
+  if (type === "tribute") {
+    const href = { pathname: "/create-tribute" as const, params };
+    if (replace) router.replace(href);
+    else router.push(href);
+    return;
+  }
+
+  if (type === "memory") {
+    const href = { pathname: "/memo" as const, params };
+    if (replace) router.replace(href);
+    else router.push(href);
+  } else if (type === "lesson") {
+    const href = { pathname: "/note" as const, params };
+    if (replace) router.replace(href);
+    else router.push(href);
+  } else {
+    const href = { pathname: "/open-letter" as const, params };
+    if (replace) router.replace(href);
+    else router.push(href);
+  }
 }
 
 export default function CreateScreen() {
@@ -48,37 +80,11 @@ export default function CreateScreen() {
     relationship?: string;
   }>();
 
-  // Studio selections & modals
+  // Studio selection
   const [selectedCreationType, setSelectedCreationType] = useState<CreationType>(
     () => (isCreationType(params.type) ? params.type : "tribute")
   );
-  const [isStudioModalOpen, setIsStudioModalOpen] = useState(
-    () =>
-      isCreationType(params.type) &&
-      params.type !== "tribute"
-  );
-  const [activePromptForCreation, setActivePromptForCreation] = useState<InspirationPrompt | null>(null);
-  const [activeDraftForEdit, setActiveDraftForEdit] = useState<CreationDraft | null>(() => {
-    if (!isCreationType(params.type) || params.type === "tribute") return null;
-    return {
-      id: `draft-${Date.now()}`,
-      type: params.type,
-      title: "",
-      mentorName: params.mentorName || "",
-      previewText: "",
-      lastEdited: "Just now",
-      formData: {
-        type: params.type,
-        mentorName: params.mentorName || "",
-        relationship: params.relationship || "Teacher",
-        title: "",
-        body: "",
-      },
-    };
-  });
-
-  // Real user drafts (starts empty to preserve integrity without fabricated content)
-  const [drafts, setDrafts] = useState<CreationDraft[]>([]);
+  const [drafts, setDrafts] = useState<CreationDraft[]>(() => creationDraftService.getDrafts());
   const [tributeDrafts, setTributeDrafts] = useState(() => tributeDraftService.getDrafts());
   const allDrafts = useMemo(
     () => [
@@ -86,7 +92,7 @@ export default function CreateScreen() {
       ...tributeDrafts.map((draft): CreationDraft => ({
         id: draft.id,
         type: "tribute",
-        title: `A Tribute to ${draft.payload.mentorName}`,
+        title: `Appreciation for ${draft.payload.mentorName}`,
         mentorName: draft.payload.mentorName,
         previewText: draft.payload.story,
         lastEdited: new Date(draft.updatedAt).toLocaleDateString(),
@@ -95,10 +101,30 @@ export default function CreateScreen() {
     [drafts, tributeDrafts]
   );
 
-  React.useEffect(
-    () => tributeDraftService.subscribe(() => setTributeDrafts(tributeDraftService.getDrafts())),
-    []
-  );
+  React.useEffect(() => {
+    creationDraftService.initialize().catch((error: unknown) => {
+      console.error("Unable to load creation drafts:", error);
+      Alert.alert("Drafts unavailable", "Saved drafts could not be loaded from this device.");
+    });
+    const unsubscribeCreation = creationDraftService.subscribe(() => {
+      setDrafts(creationDraftService.getDrafts());
+    });
+    const unsubscribeTribute = tributeDraftService.subscribe(() => {
+      setTributeDrafts(tributeDraftService.getDrafts());
+    });
+    return () => {
+      unsubscribeCreation();
+      unsubscribeTribute();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!isCreationType(params.type)) return;
+    navigateToCreation(params.type, {
+      mentorName: params.mentorName,
+      relationship: params.relationship,
+    }, true);
+  }, [params.type, params.mentorName, params.relationship]);
 
   // Feedback toast banner
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -136,48 +162,26 @@ export default function CreateScreen() {
 
   // Handle card selection: opens the respective creation flow
   const handleSelectOption = (type: CreationType) => {
-    if (type === "tribute") {
-      router.push("/create-tribute");
-      return;
-    }
     setSelectedCreationType(type);
-    setActivePromptForCreation(null);
-    setActiveDraftForEdit(null);
-    setIsStudioModalOpen(true);
+    navigateToCreation(type, {
+      mentorName: params.mentorName,
+      relationship: params.relationship,
+    });
   };
 
   // Handle Inspiration "Start Creating" button
   const handleStartFromInspiration = (prompt: InspirationPrompt) => {
-    if (prompt.suggestedType === "tribute") {
-      router.push({
-        pathname: "/create-tribute",
-        params: {
-          promptQuestion: prompt.question,
-        },
-      });
-      return;
-    }
     setSelectedCreationType(prompt.suggestedType);
-    setActivePromptForCreation(prompt);
-    setActiveDraftForEdit(null);
-    setIsStudioModalOpen(true);
+    navigateToCreation(prompt.suggestedType, {
+      prompt: prompt.question,
+      promptQuestion: prompt.question,
+    });
   };
 
   // Handle resuming a draft
   const handleResumeDraft = (draft: CreationDraft) => {
-    if (draft.type === "tribute") {
-      router.push({
-        pathname: "/create-tribute",
-        params: {
-          draftId: draft.id,
-        },
-      });
-      return;
-    }
     setSelectedCreationType(draft.type);
-    setActivePromptForCreation(null);
-    setActiveDraftForEdit(draft);
-    setIsStudioModalOpen(true);
+    navigateToCreation(draft.type, { draftId: draft.id });
   };
 
   // Discard draft
@@ -190,111 +194,17 @@ export default function CreateScreen() {
         {
           text: "Discard",
           style: "destructive",
-          onPress: () => {
-            setDrafts((prev) => prev.filter((d) => d.id !== draftId));
-            tributeDraftService.removeDraft(draftId);
-            showToast("Draft removed from studio");
+          onPress: async () => {
+            try {
+              const isTribute = tributeDrafts.some((draft) => draft.id === draftId);
+              if (isTribute) await tributeDraftService.removeDraft(draftId);
+              else await creationDraftService.removeDraft(draftId);
+              showToast("Draft removed from studio");
+            } catch (error) {
+              console.error("Unable to remove creation draft:", error);
+              Alert.alert("Could not remove draft", "Please try again.");
+            }
           },
-        },
-      ]
-    );
-  };
-
-  // Save as draft handler
-  const handleSaveDraft = (newDraft: CreationDraft) => {
-    setDrafts((prev) => {
-      const exists = prev.findIndex((d) => d.id === newDraft.id);
-      if (exists >= 0) {
-        const updated = [...prev];
-        updated[exists] = newDraft;
-        return updated;
-      }
-      return [newDraft, ...prev];
-    });
-    showToast("Memory draft saved to studio");
-  };
-
-  // Publish / complete creation handler
-  const handlePublishCreation = (formData: CreationFormState) => {
-    // If was editing a draft, remove it from drafts
-    if (activeDraftForEdit) {
-      setDrafts((prev) => prev.filter((d) => d.id !== activeDraftForEdit.id));
-    }
-
-    const mentor = formData.mentorName;
-    const createdAt = new Date().toISOString();
-    const year =
-      formData.dateOrYear?.match(/\d{4}/)?.[0] ??
-      new Date().getFullYear().toString();
-    const id = `creation-${Date.now()}`;
-    let item: WallItem;
-
-    switch (formData.type) {
-      case "memory":
-        item = {
-          kind: "memory",
-          id,
-          mentorName: mentor,
-          relationship: formData.relationship,
-          title: formData.title,
-          excerpt: formData.body,
-          story: formData.body,
-          year,
-          emotion: formData.emotionalTag || "Gratitude",
-          emotionColor: Palette.turquoise,
-          createdAt,
-          isPinned: false,
-        };
-        break;
-      case "letter":
-        item = {
-          kind: "letter",
-          id,
-          mentorName: mentor,
-          relationship: formData.relationship,
-          title: formData.title,
-          preview: formData.body.slice(0, 180),
-          letterBody: formData.body,
-          salutation: `Dear ${mentor},`,
-          wordCount: formData.body.split(/\s+/).filter(Boolean).length,
-          mood: formData.emotionalTag || "Grateful",
-          createdAt,
-          isPinned: false,
-        };
-        break;
-      case "lesson":
-        item = {
-          kind: "lesson",
-          id,
-          mentorName: mentor,
-          relationship: formData.relationship,
-          lessonTitle: formData.title,
-          quote: formData.quote || formData.body,
-          story: formData.body,
-          category: formData.emotionalTag || "Life Lesson",
-          createdAt,
-          isPinned: false,
-        };
-        break;
-      case "tribute":
-        return;
-    }
-
-    const savedId = memoryService.addMemory(item);
-    showToast(`Honoured ${mentor} in your memories`);
-
-    Alert.alert(
-      "Memory Celebrated",
-      `Your ${formData.type} for ${mentor} has been captured in your personal collection.`,
-      [
-        { text: "Keep Creating", style: "cancel" },
-        {
-          text: "View Memory",
-          onPress: () =>
-            router.push({
-              pathname: "/memory-detail/[id]",
-              params: { id: savedId },
-            }),
         },
       ]
     );
@@ -401,16 +311,6 @@ export default function CreateScreen() {
       {/* Floating Bottom Navigation Bar (Active: Create) */}
       <BottomNavigation activeTab="create" />
 
-      {/* Interactive Creation Studio Flow Modal */}
-      <CreationFlowModal
-        visible={isStudioModalOpen}
-        creationType={selectedCreationType}
-        initialPrompt={activePromptForCreation}
-        initialDraft={activeDraftForEdit}
-        onClose={() => setIsStudioModalOpen(false)}
-        onSaveDraft={handleSaveDraft}
-        onPublish={handlePublishCreation}
-      />
     </SafeAreaView>
   );
 }

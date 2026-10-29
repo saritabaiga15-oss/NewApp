@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 import { TributeDesignState } from "@/types/create";
 
 interface TributeCanvasProps {
@@ -22,6 +22,7 @@ export default function TributeCanvas({
   const {
     mentorName,
     relationship,
+    customTitle,
     photoUri,
     story,
     quote,
@@ -118,6 +119,13 @@ export default function TributeCanvas({
               </View>
 
               <Text
+                style={styles.recognitionLabel}
+                numberOfLines={1}
+              >
+                {customTitle || "With Deepest Appreciation"}
+              </Text>
+
+              <Text
                 style={[
                   styles.editorialTitle,
                   fontStyle,
@@ -160,6 +168,9 @@ export default function TributeCanvas({
             </View>
 
             <View style={styles.polaroidBottomArea}>
+              <Text style={styles.recognitionLabel} numberOfLines={1}>
+                {customTitle || "With Deepest Appreciation"}
+              </Text>
               <Text
                 style={[
                   styles.instantName,
@@ -202,6 +213,9 @@ export default function TributeCanvas({
             </View>
 
             <View style={styles.layeredTextContent}>
+              <Text style={styles.recognitionLabel} numberOfLines={1}>
+                {customTitle || "With Deepest Appreciation"}
+              </Text>
               <Text
                 style={[
                   styles.layeredName,
@@ -241,6 +255,9 @@ export default function TributeCanvas({
           </View>
 
           <View style={styles.minimalTextGroup}>
+            <Text style={styles.recognitionLabel} numberOfLines={1}>
+              {customTitle || "With Deepest Appreciation"}
+            </Text>
             <Text style={styles.minimalSub}>{relationship.toUpperCase()}</Text>
             <Text
               style={[
@@ -284,7 +301,7 @@ export default function TributeCanvas({
               <Text style={[styles.journalName, fontStyle]}>
                 {mentorName || "Beloved Mentor"}
               </Text>
-              <Text style={styles.journalInscription}>Memory & Guiding Light</Text>
+              <Text style={styles.journalInscription}>{customTitle || "With Deepest Appreciation"}</Text>
             </View>
           </View>
 
@@ -322,6 +339,9 @@ export default function TributeCanvas({
           </View>
 
           <View style={styles.collageInfoBlock}>
+            <Text style={styles.recognitionLabel} numberOfLines={1}>
+              {customTitle || "With Deepest Appreciation"}
+            </Text>
             <Text style={styles.collageRelation}>{relationship.toUpperCase()}</Text>
             <Text
               style={[
@@ -353,7 +373,11 @@ function getFontFamily(style: string) {
     case "serif": return { fontStyle: "italic" as const };
     case "display":
       return { fontWeight: "900" as const, letterSpacing: -0.5 };
-    case "handwritten": return { fontStyle: "italic" as const, letterSpacing: 0.2 };
+    case "handwritten":
+      return {
+        fontFamily: AppFonts.handwritten,
+        letterSpacing: 0.2,
+      };
     case "modern":
     default:
       return { fontWeight: "700" as const, letterSpacing: 0 };
@@ -560,6 +584,14 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: Palette.pureWhite,
     letterSpacing: 0.8,
+  },
+  recognitionLabel: {
+    color: "#A66D55",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    marginBottom: 5,
+    textTransform: "uppercase",
   },
   editorialTitle: {
     fontSize: 22,

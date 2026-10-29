@@ -65,6 +65,7 @@ export interface WallMemory {
   emotion: string;
   emotionColor: string;
   quote?: string;
+  layoutStyle?: string;
   lessonCarried?: string;
   momentToRemember?: string;
   achievements?: string[];
@@ -83,6 +84,10 @@ export interface WallLetter {
   letterBody?: string;
   salutation?: string;
   signoff?: string;
+  signature?: string;
+  paperStyle?: string;
+  envelopeStyle?: string;
+  date?: string;
   wordCount: number;
   mood: string;
   quote?: string;
@@ -105,10 +110,12 @@ export interface WallLesson {
   relationship?: string;
   category: string;
   story?: string;
+  imageUri?: string;
+  layoutStyle?: string;
+  decorations?: string[];
   lessonCarried?: string;
   momentToRemember?: string;
   achievements?: string[];
-  imageUri?: string;
   additionalImages?: string[];
   createdAt: string;
   isPinned?: boolean;

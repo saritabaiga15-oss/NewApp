@@ -81,7 +81,7 @@ export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
               accessibilityRole="button"
               accessibilityLabel={`Play ${voiceNote.title}`}
             >
-              <Ionicons name="play" size={18} color="#FFFFFF" />
+              <Ionicons name="play" size={18} color={Palette.textOnAmber} />
             </TouchableOpacity>
 
             <View style={styles.waveformContainer}>
@@ -91,7 +91,11 @@ export default function VoiceNoteCard({ voiceNote }: VoiceNoteCardProps) {
               ].map((height, idx) => (
                 <View
                   key={`bar-${idx}`}
-                  style={[styles.waveformBar, { height }]}
+                  style={[
+                    styles.waveformBar,
+                    { height },
+                    idx % 5 === 0 && styles.waveformBarAccent,
+                  ]}
                 />
               ))}
             </View>
@@ -168,17 +172,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "rgba(84, 0, 14, 0.05)",
+    backgroundColor: "#202020",
     padding: 10,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: Palette.borderSubtle,
+    borderColor: "rgba(239, 162, 91, 0.32)",
   },
   playButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: Palette.oceanTeal,
+    backgroundColor: Palette.accentAmber,
     justifyContent: "center",
     alignItems: "center",
     elevation: 2,
@@ -193,8 +197,11 @@ const styles = StyleSheet.create({
   },
   waveformBar: {
     width: 3,
-    backgroundColor: "rgba(84, 0, 14, 0.22)",
+    backgroundColor: "rgba(239, 162, 91, 0.7)",
     borderRadius: 2,
+  },
+  waveformBarAccent: {
+    backgroundColor: Palette.accentCoral,
   },
   durationText: {
     fontSize: 11.5,
