@@ -744,7 +744,7 @@ export default function HomeScreen() {
                 <View style={styles.webQrHeroActionRow}>
                   <TouchableOpacity
                     style={styles.webQrHeroBtn}
-                    onPress={() => openQrModal("https://onodem.com")}
+                    onPress={() => openQrModal("https://onodem.com", "show")}
                     activeOpacity={0.85}
                   >
                     <Ionicons name="qr-code" size={15} color="#FFFFFF" />
@@ -752,10 +752,10 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.webQrHeroSecondaryBtn}
-                    onPress={() => openQrModal("https://onodem.com")}
+                    onPress={() => openQrModal("https://onodem.com", "scan")}
                     activeOpacity={0.85}
                   >
-                    <Ionicons name="camera-outline" size={15} color={Palette.oceanTeal} />
+                    <Ionicons name="camera-outline" size={15} color="#FFFFFF" />
                     <Text style={styles.webQrHeroSecondaryBtnText}>Camera Scanner</Text>
                   </TouchableOpacity>
                 </View>
@@ -763,10 +763,10 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 style={styles.webQrHeroRight}
-                onPress={() => openQrModal("https://onodem.com")}
+                onPress={() => openQrModal("https://onodem.com", "show")}
                 activeOpacity={0.9}
               >
-                <QRCodeSvg value="https://onodem.com" size={114} color={Palette.oceanTeal} />
+                <QRCodeSvg value="https://onodem.com" size={114} color="#000000" backgroundColor="#FFFFFF" />
                 <Text style={styles.webQrScanLabel}>Click to scan / enlarge</Text>
               </TouchableOpacity>
             </View>

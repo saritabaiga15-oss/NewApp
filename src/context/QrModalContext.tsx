@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 import QrCodeModal from "@/components/web/QrCodeModal";
 
 interface QrModalContextValue {
-  openQrModal: (url?: string) => void;
+  openQrModal: (url?: string, initialTab?: "show" | "scan") => void;
   closeQrModal: () => void;
   isQrModalVisible: boolean;
 }
@@ -16,9 +16,11 @@ const QrModalContext = createContext<QrModalContextValue>({
 export function QrModalProvider({ children }: { children: ReactNode }) {
   const [visible, setVisible] = useState(false);
   const [modalUrl, setModalUrl] = useState("https://onodem.com");
+  const [activeTab, setActiveTab] = useState<"show" | "scan">("show");
 
-  const openQrModal = (url?: string) => {
+  const openQrModal = (url?: string, initialTab: "show" | "scan" = "show") => {
     if (url) setModalUrl(url);
+    setActiveTab(initialTab);
     setVisible(true);
   };
 
@@ -29,7 +31,12 @@ export function QrModalProvider({ children }: { children: ReactNode }) {
   return (
     <QrModalContext.Provider value={{ openQrModal, closeQrModal, isQrModalVisible: visible }}>
       {children}
-      <QrCodeModal visible={visible} onClose={closeQrModal} appUrl={modalUrl} />
+      <QrCodeModal
+        visible={visible}
+        onClose={closeQrModal}
+        appUrl={modalUrl}
+        initialTab={activeTab}
+      />
     </QrModalContext.Provider>
   );
 }
