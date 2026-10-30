@@ -147,4 +147,49 @@ export const api = {
       apiRequest(`/reminders/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     delete: (id: string) => apiRequest(`/reminders/${id}`, { method: "DELETE" }),
   },
+
+  // Media & File Uploads (Pictures, Audio notes, Scanned Letters)
+  media: {
+    upload: async (fileUri: string, filename?: string, mimeType?: string, category = "general") => {
+      const token = await getAuthToken();
+      const formData = new FormData();
+
+      if (Platform.OS === "web") {
+        try {
+          const response = await fetch(fileUri);
+          const blob = await response.blob();
+          formData.append("file", blob, filename || "upload.jpg");
+        } catch {
+          formData.append("file", fileUri as any);
+        }
+      } else {
+        formData.append("file", {
+          uri: fileUri,
+          name: filename || "upload.jpg",
+          type: mimeType || "image/jpeg",
+        } as any);
+      }
+      formData.append("category", category);
+
+      const headers: Record<string, string> = {
+        Accept: "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/media/upload`, {
+        method: "POST",
+        body: formData,
+        headers,
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.message || `Upload failed with status ${res.status}`);
+      }
+      return json;
+    },
+    poolHealth: () => apiRequest("/media/pool-health"),
+  },
 };

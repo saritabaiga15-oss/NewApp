@@ -5,6 +5,7 @@ import {
   TributePayload,
   TributeRelationship,
 } from "@/types/create";
+import { api } from "./api";
 
 let currentPayload: TributePayload | null = null;
 let currentDesignState: TributeDesignState | null = null;
@@ -110,6 +111,25 @@ export const tributeDraftService = {
       throw error;
     }
     notify();
+
+    // Asynchronously synchronize to Spring Boot backend + Neon DB
+    api.tributes
+      .create({
+        mentorName: tribute.mentorName,
+        kind: "tribute",
+        title: tribute.customTitle || `In Honour of ${tribute.mentorName}`,
+        relationship: tribute.relationship,
+        photoUri: tribute.photoUri,
+        quote: tribute.quote,
+        story: tribute.story,
+        templateId: tribute.templateId,
+        frameStyle: tribute.frameStyle,
+        typographyStyle: tribute.typographyStyle,
+        privacy: "PUBLIC",
+      })
+      .catch((err) => {
+        console.debug("Completed tribute backend sync:", err);
+      });
   },
 
   getSavedKeepsakes(): TributeDesignState[] {

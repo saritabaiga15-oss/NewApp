@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,83 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
+import { api, setAuthToken } from "@/services/api";
+import { userProfileService } from "@/services/userProfileService";
 
 export default function Register() {
   const insets = useSafeAreaInsets();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleRegister = async () => {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedEmail || !password) {
+      setErrorMessage("Please fill in all fields.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters long.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await api.auth.register({
+        name: trimmedName,
+        email: trimmedEmail,
+        password: password,
+      });
+
+      if (res?.data?.accessToken) {
+        await setAuthToken(res.data.accessToken, res.data.refreshToken);
+        if (res.data.user) {
+          await userProfileService.updateProfile({
+            name: res.data.user.name,
+            username: res.data.user.username || res.data.user.email?.split("@")[0] || "user",
+            email: res.data.user.email,
+            bio: res.data.user.bio || "Grateful mentee",
+            avatarUri:
+              res.data.user.avatarUri ||
+              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+          });
+        }
+        router.replace("/home");
+      } else {
+        router.replace("/home");
+      }
+    } catch (err: any) {
+      const msg = err.message || "Registration failed";
+      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("duplicate")) {
+        setErrorMessage("An account with this email already exists. Try logging in.");
+      } else {
+        Alert.alert(
+          "Registration Notice",
+          `${msg}. Would you like to proceed to Home in demo mode?`,
+          [
+            { text: "Proceed to Home", onPress: () => router.replace("/home") },
+            { text: "Retry", style: "cancel" },
+          ]
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.background}>
@@ -67,10 +136,20 @@ export default function Register() {
               Start remembering and celebrating the people who shaped your journey.
             </Text>
 
+            {/* Error Banner */}
+            {errorMessage && (
+              <View style={styles.errorContainer}>
+                <Ionicons name="alert-circle" size={16} color="#FF6B6B" />
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
+
             <TextInput
               placeholder="Full Name"
               placeholderTextColor={Palette.textMuted}
               style={styles.input}
+              value={name}
+              onChangeText={setName}
             />
 
             <TextInput
@@ -79,21 +158,30 @@ export default function Register() {
               style={styles.input}
               keyboardType="email-address"
               autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
             />
 
             <TextInput
-              placeholder="Password"
+              placeholder="Password (min 8 characters)"
               placeholderTextColor={Palette.textMuted}
               style={styles.input}
               secureTextEntry
+              value={password}
+              onChangeText={setPassword}
             />
 
             <TouchableOpacity
-              style={styles.button}
-              onPress={() => router.replace("/home")}
+              style={[styles.button, loading && { opacity: 0.7 }]}
+              onPress={handleRegister}
               activeOpacity={0.88}
+              disabled={loading}
             >
-              <Text style={styles.buttonText}>Create Account</Text>
+              {loading ? (
+                <ActivityIndicator color={Palette.textOnPrimary} size="small" />
+              ) : (
+                <Text style={styles.buttonText}>Create Account</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -121,102 +209,109 @@ const styles = StyleSheet.create({
   },
   ambientAura: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 240,
-    backgroundColor: Palette.mintMist,
-    opacity: 0.28,
+    top: -120,
+    right: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(32, 32, 32, 0.4)",
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Palette.pureWhite,
-    borderWidth: 1.2,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Palette.mintMist,
+    borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
   },
   container: {
-    paddingHorizontal: 8,
-    paddingBottom: 24,
+    maxWidth: 420,
+    width: "100%",
+    alignSelf: "center",
   },
   logoWrapper: {
-    alignItems: "flex-start",
+    alignItems: "center",
     marginBottom: 16,
   },
   logoImage: {
-    width: 58,
-    height: 60,
+    width: 80,
+    height: 80,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "800",
     color: Palette.cream,
-    marginBottom: 8,
     letterSpacing: -0.5,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14.5,
+    fontSize: 14,
+    lineHeight: 20,
     color: Palette.textSecondary,
-    lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 20,
+  },
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(255, 107, 107, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 107, 0.35)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#FF8E8E",
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
   },
   input: {
-    height: 54,
     backgroundColor: Palette.pureWhite,
-    borderWidth: 1.2,
+    borderWidth: 1,
     borderColor: Palette.borderSubtle,
-    borderRadius: 18,
-    paddingHorizontal: 18,
-    color: Palette.cream,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: Palette.deepTeal,
     fontSize: 15,
-    fontWeight: "600",
     marginBottom: 14,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   button: {
-    height: 54,
     backgroundColor: Palette.oceanTeal,
-    borderRadius: 18,
-    justifyContent: "center",
+    borderRadius: 24,
+    height: 52,
     alignItems: "center",
-    marginTop: 10,
+    justifyContent: "center",
+    marginTop: 8,
     marginBottom: 20,
     shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowRadius: 10,
+    elevation: 4,
   },
   buttonText: {
-    color: "#000000",
+    color: Palette.textOnPrimary,
     fontSize: 16,
     fontWeight: "700",
-    letterSpacing: 0.3,
   },
   loginText: {
-    color: Palette.textSecondary,
     textAlign: "center",
+    color: Palette.textSecondary,
     fontSize: 14,
   },
   loginLink: {
-    color: "#FFFFFF",
-    fontWeight: "800",
+    color: Palette.oceanTeal,
+    fontWeight: "700",
   },
 });

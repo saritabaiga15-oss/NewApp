@@ -10,22 +10,75 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
 import { AppleLogo, FacebookLogo, GoogleLogo } from "@/components/SocialLogos";
+import { api, setAuthToken } from "@/services/api";
+import { userProfileService } from "@/services/userProfileService";
 
 export default function Login() {
   const insets = useSafeAreaInsets();
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    // Navigate to home screen
-    router.replace("/home");
+  const handleLogin = async () => {
+    const trimmed = usernameOrEmail.trim();
+    if (!trimmed || !password) {
+      setErrorMessage("Please enter both email/username and password.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await api.auth.login({
+        emailOrUsername: trimmed,
+        password: password,
+      });
+
+      if (res?.data?.accessToken) {
+        await setAuthToken(res.data.accessToken, res.data.refreshToken);
+        if (res.data.user) {
+          await userProfileService.updateProfile({
+            name: res.data.user.name,
+            username: res.data.user.username || res.data.user.email?.split("@")[0] || "user",
+            email: res.data.user.email,
+            bio: res.data.user.bio || "",
+            avatarUri:
+              res.data.user.avatarUri ||
+              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+          });
+        }
+        router.replace("/home");
+      } else {
+        router.replace("/home");
+      }
+    } catch (err: any) {
+      const msg = err.message || "Login failed";
+      if (msg.toLowerCase().includes("bad credentials") || msg.toLowerCase().includes("401")) {
+        setErrorMessage("Invalid credentials. Please verify your email and password.");
+      } else {
+        Alert.alert(
+          "Connection Info",
+          `${msg}. Would you like to proceed in local demo mode?`,
+          [
+            { text: "Proceed to Home", onPress: () => router.replace("/home") },
+            { text: "Retry", style: "cancel" },
+          ]
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -130,6 +183,14 @@ export default function Login() {
               </TouchableOpacity>
             </View>
 
+            {/* Error Message */}
+            {errorMessage && (
+              <View style={styles.errorContainer}>
+                <Ionicons name="alert-circle" size={16} color="#FF6B6B" />
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
+
             {/* Password Forgot Link */}
             <TouchableOpacity
               style={styles.forgotPasswordContainer}
@@ -141,12 +202,17 @@ export default function Login() {
 
             {/* Primary Login Button (Ocean Teal) */}
             <TouchableOpacity
-              style={styles.loginButtonWrapper}
+              style={[styles.loginButtonWrapper, loading && { opacity: 0.7 }]}
               onPress={handleLogin}
               activeOpacity={0.88}
+              disabled={loading}
             >
               <View style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>Login</Text>
+                {loading ? (
+                  <ActivityIndicator color={Palette.textOnPrimary} size="small" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Login</Text>
+                )}
               </View>
             </TouchableOpacity>
 
@@ -307,6 +373,26 @@ const styles = StyleSheet.create({
     padding: 4,
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  /* Error Banner */
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(255, 107, 107, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 107, 0.35)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#FF8E8E",
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
   },
 
   /* Forgot Password */

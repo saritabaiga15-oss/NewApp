@@ -15,7 +15,7 @@ export interface PasswordResetResponse {
 /**
  * TOGGLE THIS FLAG ONCE YOU HAVE RUN YOUR SPRING BOOT BACKEND.
  */
-export let IS_BACKEND_CONFIGURED = false;
+export let IS_BACKEND_CONFIGURED = true;
 
 /**
  * DEMO MODE FLAG:

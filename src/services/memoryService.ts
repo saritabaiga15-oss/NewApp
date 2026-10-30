@@ -3,6 +3,7 @@ import { WALL_ITEMS, WALL_MENTOR_PROFILES } from "@/data/memoryWallData";
 import { tributeDraftService } from "./tributeDraftService";
 import { WallItem, WallMentorProfile, WallTribute } from "@/types/memoryWall";
 import type { TributeRelationship } from "@/types/create";
+import { api } from "./api";
 
 type Listener = () => void;
 
@@ -90,6 +91,7 @@ class MemoryService {
           }
           this.updateMentorCounts();
           this.notify();
+          this.syncWithBackend().catch(() => {});
         })
         .catch((error: unknown) => {
           this.initializePromise = null;
@@ -97,6 +99,76 @@ class MemoryService {
         });
     }
     return this.initializePromise;
+  }
+
+  /**
+   * Synchronizes public tributes and mentor profiles with the Spring Boot + Neon DB backend
+   */
+  public async syncWithBackend(): Promise<void> {
+    try {
+      // 1. Fetch public feed tributes from Neon PostgreSQL
+      const feedRes = await api.tributes.publicFeed(0, 50);
+      if (feedRes?.data?.content && Array.isArray(feedRes.data.content)) {
+        for (const dto of feedRes.data.content) {
+          const exists = this.items.some((i) => i.id === dto.id);
+          if (!exists) {
+            const wallItem: WallItem = {
+              kind: (dto.kind as any) || "tribute",
+              id: dto.id,
+              mentorId: dto.mentorId,
+              mentorName: dto.mentorName,
+              relationship: dto.relationship || "Mentor",
+              title: dto.title || `Tribute to ${dto.mentorName}`,
+              photoUri: dto.photoUri || "",
+              quote: dto.quote || "",
+              story: dto.story || dto.excerpt || "",
+              excerpt: dto.excerpt || "",
+              lessonCarried: dto.lessonCarried || "",
+              momentToRemember: dto.momentToRemember || "",
+              year: dto.year || "2024",
+              emotion: dto.emotion || "Gratitude",
+              emotionColor: dto.emotionColor || "#FF9ECF",
+              createdAt: dto.createdAt || new Date().toISOString(),
+              isPinned: dto.isPinned || false,
+              isShared: dto.isShared || false,
+            } as any;
+            this.items.unshift(wallItem);
+          }
+        }
+      }
+
+      // 2. Fetch mentors list from Backend
+      const mentorsRes = await api.mentors.list();
+      if (mentorsRes?.data && Array.isArray(mentorsRes.data)) {
+        for (const m of mentorsRes.data) {
+          const idx = this.mentors.findIndex(
+            (p) => p.id === m.id || p.name.toLowerCase() === m.name.toLowerCase()
+          );
+          const mentorProfile: WallMentorProfile = {
+            id: m.id,
+            name: m.name,
+            relationship: m.relationship || "Mentor",
+            avatarUri: m.avatarUri || "",
+            description: m.quote || "",
+            meaningfulQuote: m.quote || "",
+            coverColor: m.coverColor || "#54000E",
+            itemCount: m.itemCount || 0,
+            latestActivity: m.latestActivity || "Active",
+            category: (m.category as any) || "school",
+          };
+          if (idx >= 0) {
+            this.mentors[idx] = mentorProfile;
+          } else {
+            this.mentors.push(mentorProfile);
+          }
+        }
+      }
+
+      this.updateMentorCounts();
+      this.notify();
+    } catch {
+      // Offline fallback: graceful degradation if server is momentarily unreachable
+    }
   }
 
   private notify() {
@@ -293,6 +365,7 @@ class MemoryService {
       this.updateMentorCounts();
       this.notify();
       this.persistUserItems();
+      api.tributes.delete(id).catch(() => {});
       return true;
     }
     return false;
@@ -305,6 +378,7 @@ class MemoryService {
       this.pinOverrides.set(id, item.isPinned);
       this.notify();
       this.persistUserItems();
+      api.tributes.togglePin(id).catch(() => {});
     }
   }
 
@@ -340,6 +414,27 @@ class MemoryService {
     this.updateMentorCounts();
     this.notify();
     this.persistUserItems();
+
+    // Asynchronously synchronize to Spring Boot + Neon DB backend
+    api.tributes
+      .create({
+        mentorName: newItem.mentorName,
+        kind: newItem.kind,
+        title: "title" in newItem ? newItem.title : ("lessonTitle" in newItem ? (newItem as any).lessonTitle : newItem.mentorName),
+        relationship: newItem.relationship || "Mentor",
+        photoUri: "photoUri" in newItem ? (newItem as any).photoUri : ("imageUri" in newItem ? (newItem as any).imageUri : ""),
+        quote: "quote" in newItem ? (newItem as any).quote : "",
+        story: "story" in newItem ? (newItem as any).story : ("excerpt" in newItem ? (newItem as any).excerpt : ""),
+        excerpt: "excerpt" in newItem ? (newItem as any).excerpt : "",
+        lessonCarried: "lessonCarried" in newItem ? (newItem as any).lessonCarried : "",
+        momentToRemember: "momentToRemember" in newItem ? (newItem as any).momentToRemember : "",
+        privacy: "PUBLIC",
+        isPinned: newItem.isPinned || false,
+      })
+      .catch((err) => {
+        console.debug("Backend tribute sync queued/offline:", err);
+      });
+
     return newItem.id;
   }
 
@@ -368,6 +463,24 @@ class MemoryService {
     };
     this.mentors.unshift(mentor);
     this.notify();
+
+    // Asynchronously synchronize to Spring Boot backend + Neon DB
+    api.mentors
+      .create({
+        name: mentor.name,
+        relationship: mentor.relationship,
+        quote: mentor.meaningfulQuote,
+        category: "school",
+      })
+      .then((res) => {
+        if (res?.data?.id) {
+          mentor.id = res.data.id;
+        }
+      })
+      .catch((err) => {
+        console.debug("Backend mentor sync error:", err);
+      });
+
     return { ...mentor };
   }
 
