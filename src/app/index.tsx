@@ -13,9 +13,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AppFonts, Palette } from "@/constants/theme";
+import { getAuthToken } from "@/services/api";
 
-// Auto-navigate after this many ms (matches total animation + hold time)
-const SPLASH_DURATION = 4200;
+// Auto-navigate duration: fast on web (1.2s) for instant load, 2.4s on mobile
+const SPLASH_DURATION = Platform.OS === "web" ? 1200 : 2400;
 
 export default function SplashScreen() {
   const insets = useSafeAreaInsets();
@@ -38,13 +39,28 @@ export default function SplashScreen() {
   const dot2Anim      = useMemo(() => new Animated.Value(0.3), []);
   const dot3Anim      = useMemo(() => new Animated.Value(0.3), []);
 
-  const navigateNext = React.useCallback(() => {
+  const navigateNext = React.useCallback(async () => {
     if (hasNavigated.current) return;
     hasNavigated.current = true;
-    router.replace("/onboarding");
+    const token = await getAuthToken().catch(() => null);
+    if (token) {
+      router.replace("/home");
+    } else {
+      router.replace("/onboarding");
+    }
   }, []);
 
   useEffect(() => {
+    // Check if user is already logged in for instant resume
+    getAuthToken()
+      .then((token) => {
+        if (token && !hasNavigated.current) {
+          hasNavigated.current = true;
+          router.replace("/home");
+        }
+      })
+      .catch(() => {});
+
     // Orb ambient glow pulse
     const glowLoop = Animated.loop(
       Animated.sequence([
@@ -59,24 +75,24 @@ export default function SplashScreen() {
       // 1. logo springs in
       Animated.parallel([
         Animated.spring(logoScale,   { toValue: 1, friction: 5, tension: 26, useNativeDriver: useNative }),
-        Animated.timing(logoOpacity, { toValue: 1, duration: 800, useNativeDriver: useNative }),
+        Animated.timing(logoOpacity, { toValue: 1, duration: 600, useNativeDriver: useNative }),
       ]),
       // 2. heading block rises
       Animated.parallel([
-        Animated.timing(contentFade,  { toValue: 1, duration: 600, useNativeDriver: useNative }),
-        Animated.timing(contentSlide, { toValue: 0, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: useNative }),
+        Animated.timing(contentFade,  { toValue: 1, duration: 500, useNativeDriver: useNative }),
+        Animated.timing(contentSlide, { toValue: 0, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: useNative }),
       ]),
       // 3. pills stagger
-      Animated.stagger(120, [
-        Animated.timing(pill1Anim, { toValue: 1, duration: 400, useNativeDriver: useNative }),
-        Animated.timing(pill2Anim, { toValue: 1, duration: 400, useNativeDriver: useNative }),
-        Animated.timing(pill3Anim, { toValue: 1, duration: 400, useNativeDriver: useNative }),
+      Animated.stagger(100, [
+        Animated.timing(pill1Anim, { toValue: 1, duration: 350, useNativeDriver: useNative }),
+        Animated.timing(pill2Anim, { toValue: 1, duration: 350, useNativeDriver: useNative }),
+        Animated.timing(pill3Anim, { toValue: 1, duration: 350, useNativeDriver: useNative }),
       ]),
       // 4. footer text + dots
-      Animated.timing(footerFade, { toValue: 1, duration: 400, useNativeDriver: useNative }),
+      Animated.timing(footerFade, { toValue: 1, duration: 350, useNativeDriver: useNative }),
     ]).start();
 
-    // Progress bar over full splash duration (no native driver — uses width %)
+    // Progress bar over splash duration
     Animated.timing(progressAnim, {
       toValue: 1,
       duration: SPLASH_DURATION,
@@ -116,7 +132,11 @@ export default function SplashScreen() {
   });
 
   return (
-    <View style={[styles.root, { paddingTop: Math.max(insets.top + 16, 44) }]}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={navigateNext}
+      style={[styles.root, { paddingTop: Math.max(insets.top + 16, 44) }]}
+    >
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* ── Decorative background orbs ── */}
@@ -218,7 +238,7 @@ export default function SplashScreen() {
           <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
         </View>
       </Animated.View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
