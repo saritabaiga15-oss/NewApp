@@ -104,6 +104,13 @@ export const api = {
       }),
   },
 
+  // Users
+  users: {
+    me: () => apiRequest("/users/me"),
+    updateMe: (data: { name?: string; bio?: string; avatarUri?: string }) =>
+      apiRequest("/users/me", { method: "PUT", body: JSON.stringify(data) }),
+  },
+
   // Mentors
   mentors: {
     list: () => apiRequest("/mentors"),

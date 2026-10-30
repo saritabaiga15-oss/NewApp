@@ -112,7 +112,7 @@ export async function verifyResetCode(email: string, code: string): Promise<Pass
 /**
  * 3. Update / Set New Password
  */
-export async function updatePassword(password: string, email = "sarita@example.com", code = "12345"): Promise<PasswordResetResponse> {
+export async function updatePassword(password: string, email = "", code = "12345"): Promise<PasswordResetResponse> {
   try {
     if (IS_BACKEND_CONFIGURED) {
       const res = await api.auth.resetPassword(email.trim().toLowerCase(), code.trim(), password);

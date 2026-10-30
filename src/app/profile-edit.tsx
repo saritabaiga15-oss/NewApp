@@ -20,6 +20,7 @@ import * as ImagePicker from "expo-image-picker";
 
 import { Palette } from "@/constants/theme";
 import { UserProfile, userProfileService } from "@/services/userProfileService";
+import { api } from "@/services/api";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9._]{3,24}$/;
@@ -120,6 +121,18 @@ export default function ProfileEditScreen() {
         bio,
         avatarUri,
       });
+
+      // Also persist to backend if signed in
+      try {
+        await api.users.updateMe({
+          name: name.trim(),
+          bio: bio.trim(),
+          avatarUri: avatarUri.trim(),
+        });
+      } catch {
+        // Local profile is updated even if backend is temporarily unreachable
+      }
+
       router.back();
     } catch (error) {
       console.error("Unable to save profile:", error);

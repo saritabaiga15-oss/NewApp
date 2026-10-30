@@ -48,15 +48,16 @@ export default function Login() {
         await setAuthToken(res.data.accessToken, res.data.refreshToken);
         if (res.data.user) {
           await userProfileService.updateProfile({
-            name: res.data.user.name,
-            username: res.data.user.username || res.data.user.email?.split("@")[0] || "user",
-            email: res.data.user.email,
-            bio: res.data.user.bio || "",
+            name: res.data.user.name || trimmed.split("@")[0],
+            username: res.data.user.username || res.data.user.email?.split("@")[0] || trimmed.split("@")[0],
+            email: res.data.user.email || (trimmed.includes("@") ? trimmed : ""),
+            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
             avatarUri:
               res.data.user.avatarUri ||
               "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
           });
         }
+        await userProfileService.syncWithBackend();
         router.replace("/home");
       } else {
         router.replace("/home");
@@ -70,7 +71,17 @@ export default function Login() {
           "Connection Info",
           `${msg}. Would you like to proceed in local demo mode?`,
           [
-            { text: "Proceed to Home", onPress: () => router.replace("/home") },
+            {
+              text: "Proceed to Home",
+              onPress: async () => {
+                await userProfileService.updateProfile({
+                  name: trimmed.split("@")[0],
+                  username: trimmed.split("@")[0],
+                  email: trimmed.includes("@") ? trimmed : "",
+                });
+                router.replace("/home");
+              },
+            },
             { text: "Retry", style: "cancel" },
           ]
         );

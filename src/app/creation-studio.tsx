@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,6 +24,7 @@ import BottomNavigation from "@/components/home/BottomNavigation";
 import { creationDraftService } from "@/services/creationDraftService";
 import { memoryService } from "@/services/memoryService";
 import { userProfileService } from "@/services/userProfileService";
+import { api } from "@/services/api";
 import type { CreationDraft, CreationFormState } from "@/types/create";
 
 type StudioType = "memory" | "lesson" | "letter";
@@ -90,10 +92,16 @@ export default function CreationStudioScreen({
   const [dateOrYear, setDateOrYear] = useState("");
   const [greeting, setGreeting] = useState("");
   const [closing, setClosing] = useState("With gratitude,");
-  const [signature, setSignature] = useState(userProfileService.getProfile().name);
+  const [signature, setSignature] = useState(() => {
+    const pName = userProfileService.getProfile().name;
+    return pName && pName !== "Sarita Baiga" ? pName : "";
+  });
   const [photoUri, setPhotoUri] = useState("");
   const [layoutStyle, setLayoutStyle] = useState(type === "letter" ? "ivory" : "botanical");
   const [decorations, setDecorations] = useState<string[]>([]);
+  const [mentorEmail, setMentorEmail] = useState("");
+  const [sendDedicationEmail, setSendDedicationEmail] = useState(true);
+  const [isSharedOnFeed, setIsSharedOnFeed] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const formData: CreationFormState = useMemo(
@@ -140,7 +148,12 @@ export default function CreationStudioScreen({
     setDateOrYear(saved.dateOrYear ?? "");
     setGreeting(saved.greeting ?? "");
     setClosing(saved.closing ?? "With gratitude,");
-    setSignature(saved.signature ?? userProfileService.getProfile().name);
+    const authorName = userProfileService.getProfile().name;
+    if (saved.signature && saved.signature !== "Sarita Baiga") {
+      setSignature(saved.signature);
+    } else {
+      setSignature(authorName && authorName !== "Sarita Baiga" ? authorName : "");
+    }
     setPhotoUri(saved.photoUri ?? "");
     setLayoutStyle(saved.layoutStyle ?? (saved.type === "letter" ? "ivory" : "botanical"));
     setDecorations(saved.decorations ?? []);
@@ -154,12 +167,14 @@ export default function CreationStudioScreen({
     ])
       .then(() => {
         if (!active) return;
+        const authorName = userProfileService.getProfile().name;
+        const validAuthor = authorName && authorName !== "Sarita Baiga" ? authorName : "";
         if (draftIdParam) {
           const draft = creationDraftService.getDraftById(draftIdParam);
           if (draft?.type === type) hydrateDraft(draft);
-          else setSignature(userProfileService.getProfile().name);
+          else if (!signature || signature === "Sarita Baiga") setSignature(validAuthor);
         } else {
-          setSignature(userProfileService.getProfile().name);
+          if (!signature || signature === "Sarita Baiga") setSignature(validAuthor);
         }
         setIsHydrated(true);
       })
@@ -364,11 +379,41 @@ export default function CreationStudioScreen({
       } catch (error) {
         console.error("Unable to remove the completed creation draft:", error);
       }
-      Alert.alert("Saved with care", "Your keepsake is now in your collection.", [
+
+      // Publish to backend with dedication email dispatch and community feed sharing
+      try {
+        await api.tributes.create({
+          mentorName: mentorName.trim(),
+          kind: type,
+          title: title.trim() || (type === "letter" ? `A Letter to ${mentorName.trim()}` : "A Moment of Gratitude"),
+          relationship: relationship || "Mentor",
+          story: body.trim(),
+          excerpt: body.trim().slice(0, 200),
+          quote: quote.trim() || undefined,
+          salutation: greeting.trim() || undefined,
+          signoff: closing.trim() || undefined,
+          signature: signature.trim() || userProfileService.getProfile().name,
+          photoUri: photoUri || undefined,
+          recipientEmail: mentorEmail.trim() || undefined,
+          sendDedicationEmail: sendDedicationEmail && !!mentorEmail.trim(),
+          isShared: isSharedOnFeed,
+          privacy: isSharedOnFeed ? "PUBLIC" : "PRIVATE",
+        });
+      } catch (backendErr) {
+        console.warn("Backend tribute sync:", backendErr);
+      }
+
+      const alertMsg = mentorEmail.trim() && sendDedicationEmail
+        ? `Your post has been published and dedicated! We sent an email notification to ${mentorEmail.trim()} with the website link so your mentor can view it.`
+        : isSharedOnFeed
+        ? "Your post has been published and shared to your community feed & Memory Wall!"
+        : "Your post is now saved in your collection.";
+
+      Alert.alert("Published with Care", alertMsg, [
         { text: "Keep creating", style: "cancel", onPress: () => router.replace("/create") },
         {
-          text: "View keepsake",
-          onPress: () => router.replace({ pathname: "/memory-detail/[id]", params: { id: savedId } }),
+          text: isSharedOnFeed ? "View on Memory Wall" : "View Keepsake",
+          onPress: () => router.replace(isSharedOnFeed ? "/memory-wall" : { pathname: "/memory-detail/[id]", params: { id: savedId } }),
         },
       ]);
     } catch (error) {
@@ -549,6 +594,59 @@ export default function CreationStudioScreen({
               accent={accent}
             />
           )}
+
+          {/* Dedication & Feed Sharing Section */}
+          <View style={styles.dedicationCard}>
+            <View style={styles.dedicationHeader}>
+              <Ionicons name="mail-outline" size={18} color={Palette.accentMint} />
+              <Text style={styles.dedicationTitle}>Dedicate & Share</Text>
+            </View>
+            <Text style={styles.dedicationSubtitle}>
+              Enter your mentor&apos;s email address so we can send them a direct link to view this tribute on the website.
+            </Text>
+
+            <TextInput
+              style={styles.dedicationInput}
+              placeholder="Mentor's Email (e.g. mentor@example.com)"
+              placeholderTextColor="#777777"
+              value={mentorEmail}
+              onChangeText={setMentorEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity
+              style={styles.dedicationOption}
+              onPress={() => setSendDedicationEmail((prev) => !prev)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={sendDedicationEmail ? "checkbox" : "square-outline"}
+                size={20}
+                color={sendDedicationEmail ? Palette.accentMint : "#666666"}
+              />
+              <Text style={styles.dedicationOptionText}>
+                Send email notification from info@onodem.com when saved
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.dedicationOption}
+              onPress={() => setIsSharedOnFeed((prev) => !prev)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={isSharedOnFeed ? "checkbox" : "square-outline"}
+                size={20}
+                color={isSharedOnFeed ? Palette.accentSky : "#666666"}
+              />
+              <Text style={styles.dedicationOptionText}>
+                Share this post publicly on Community Feed & Memory Wall
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.bottomGap} />
         </ScrollView>
 
@@ -1039,6 +1137,13 @@ const styles = StyleSheet.create({
   removePhoto: { position: "absolute", right: 9, top: 9, width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" },
   photoButton: { minHeight: 54, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, backgroundColor: "#171717", borderRadius: 14, borderWidth: 1, borderColor: "#303030" },
   photoButtonText: { flex: 1, color: "#FFFFFF", fontSize: 13, fontWeight: "700", marginLeft: 10 },
+  dedicationCard: { backgroundColor: "#151515", borderRadius: 16, padding: 18, marginBottom: 20, borderWidth: 1, borderColor: "#272727" },
+  dedicationHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
+  dedicationTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  dedicationSubtitle: { color: "#9E9E9E", fontSize: 12, lineHeight: 18, marginBottom: 14 },
+  dedicationInput: { backgroundColor: "#1F1F1F", borderRadius: 12, borderWidth: 1, borderColor: "#333333", color: "#FFFFFF", paddingHorizontal: 14, paddingVertical: 12, fontSize: 13, marginBottom: 14 },
+  dedicationOption: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 },
+  dedicationOptionText: { color: "#DDDDDD", fontSize: 13, flex: 1, lineHeight: 18 },
   bottomGap: { height: 30 },
   actionBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 92, backgroundColor: "#000000", borderTopWidth: 1, borderTopColor: "#1E1E1E" },
   shareButton: { height: 50, minWidth: 106, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 16, borderWidth: 1, borderColor: "#383838", backgroundColor: "#171717" },

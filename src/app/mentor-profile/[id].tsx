@@ -83,6 +83,7 @@ export default function MentorProfileScreen() {
     transcript?: string;
   } | null>(null);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [voiceModalMode, setVoiceModalMode] = useState<"listen" | "record">("listen");
 
   // Creative Action Pill State
   const [tributeStatus, setTributeStatus] = useState<"sent" | "voice" | "heart">("sent");
@@ -540,7 +541,7 @@ export default function MentorProfileScreen() {
     setIsEditModalVisible(false);
   };
 
-  const handleOpenVoiceMemo = (item: VoiceLessonItem) => {
+  const handleOpenVoiceMemo = (item: VoiceLessonItem, mode: "listen" | "record" = "listen") => {
     setActiveVoiceModal({
       title: item.title,
       mentorName: item.mentorName,
@@ -549,6 +550,7 @@ export default function MentorProfileScreen() {
       transcript:
         item.description ? `“${item.description}”` : undefined,
     });
+    setVoiceModalMode(mode);
     setIsVoiceModalOpen(true);
   };
 
@@ -921,22 +923,45 @@ export default function MentorProfileScreen() {
         {/* 4. VOICE NOTES SECTION                                   */}
         {/* ======================================================== */}
         <View style={styles.sectionHeader}>
-          <View>
+          <View style={{ flex: 1, paddingRight: 8 }}>
             <Text style={styles.sectionTitle}>Voice Notes & Audio Memos</Text>
             <Text style={styles.sectionSub}>
-              Listen to the advice and words that guided you
+              Listen to or record voice memories for {mentor.name}
             </Text>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              if (mentorVoiceNotes[0]) handleOpenVoiceMemo(mentorVoiceNotes[0]);
-            }}
-            style={styles.viewAllBtn}
-          >
-            <Text style={styles.viewAllText}>Listen All</Text>
-            <Ionicons name="chevron-forward" size={13} color={Palette.accentSky} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                setActiveVoiceModal({
+                  title: `Voice Note for ${mentor.name}`,
+                  mentorName: mentor.name,
+                  duration: "00:45",
+                  description: `Heartfelt voice note dedicated to ${mentor.name}`,
+                });
+                setVoiceModalMode("record");
+                setIsVoiceModalOpen(true);
+              }}
+              style={[styles.viewAllBtn, { backgroundColor: "#20191D", borderColor: Palette.accentPink }]}
+            >
+              <Ionicons name="mic" size={13} color={Palette.accentPink} />
+              <Text style={[styles.viewAllText, { color: Palette.accentPink }]}>Record</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                if (mentorVoiceNotes[0]) {
+                  setVoiceModalMode("listen");
+                  handleOpenVoiceMemo(mentorVoiceNotes[0]);
+                }
+              }}
+              style={styles.viewAllBtn}
+            >
+              <Text style={styles.viewAllText}>Listen All</Text>
+              <Ionicons name="chevron-forward" size={13} color={Palette.accentSky} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -1125,7 +1150,7 @@ export default function MentorProfileScreen() {
         visible={isVoiceModalOpen}
         onClose={() => setIsVoiceModalOpen(false)}
         voiceNote={activeVoiceModal}
-        mode="listen"
+        mode={voiceModalMode}
       />
 
       {/* Image Fullscreen Preview Modal */}

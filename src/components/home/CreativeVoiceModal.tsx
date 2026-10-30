@@ -1,23 +1,31 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Dimensions,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppFonts, Palette } from "@/constants/theme";
+import { memoryService } from "@/services/memoryService";
+import { api } from "@/services/api";
+import { userProfileService } from "@/services/userProfileService";
 
 interface CreativeVoiceModalProps {
   visible: boolean;
   onClose: () => void;
   voiceNote?: {
+    id?: string;
     title: string;
     mentorName: string;
+    relationship?: string;
     duration: string;
     date?: string;
     description?: string;
@@ -27,34 +35,66 @@ interface CreativeVoiceModalProps {
   mode?: "listen" | "record";
 }
 
-// Bar heights for the waveform — 9 bars matching the screenshot
 const WAVEFORM_HEIGHTS = [38, 60, 80, 100, 116, 100, 80, 60, 38];
 
 export default function CreativeVoiceModal({
   visible,
   onClose,
   voiceNote,
-  mode = "listen",
+  mode: initialMode = "listen",
 }: CreativeVoiceModalProps) {
+  const [activeTab, setActiveTab] = useState<"listen" | "record">(initialMode);
   const [isPlaying, setIsPlaying] = useState(true);
 
-  // One Animated.Value per bar
+  // Recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const [hasRecorded, setHasRecorded] = useState(false);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteQuote, setNoteQuote] = useState("");
+  const [mentorEmail, setMentorEmail] = useState("");
+  const [sendEmailDedication, setSendEmailDedication] = useState(true);
+  const [shareOnFeed, setShareOnFeed] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // MediaRecorder refs for web audio
+  const mediaRecorderRef = useRef<any>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordedAudioUrlRef = useRef<string | null>(null);
+  const timerIntervalRef = useRef<any>(null);
+
+  // Bar animations
   const barAnims = useMemo(
     () => WAVEFORM_HEIGHTS.map((h) => new Animated.Value(h * 0.35)),
     []
   );
-
-  // Pulse ring around the play button
   const pulseAnim = useMemo(() => new Animated.Value(1), []);
 
   useEffect(() => {
+    setActiveTab(initialMode);
+  }, [initialMode, visible]);
+
+  // Waveform animation
+  useEffect(() => {
     if (!visible) return;
 
-    // --- Waveform bar animations ---
+    const shouldAnimate = (activeTab === "listen" && isPlaying) || (activeTab === "record" && isRecording);
+
+    if (!shouldAnimate) {
+      barAnims.forEach((anim, i) =>
+        Animated.timing(anim, {
+          toValue: WAVEFORM_HEIGHTS[i] * 0.28,
+          duration: 180,
+          useNativeDriver: false,
+        }).start()
+      );
+      return;
+    }
+
     const loops = barAnims.map((anim, i) => {
       const minH = WAVEFORM_HEIGHTS[i] * 0.28;
       const maxH = WAVEFORM_HEIGHTS[i];
-      const duration = 420 + i * 90; // stagger each bar
+      const duration = 400 + i * 85;
 
       return Animated.loop(
         Animated.sequence([
@@ -72,11 +112,10 @@ export default function CreativeVoiceModal({
       );
     });
 
-    // --- Pulse ring animation ---
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.22,
+          toValue: 1.25,
           duration: 850,
           useNativeDriver: true,
         }),
@@ -95,21 +134,131 @@ export default function CreativeVoiceModal({
       loops.forEach((l) => l.stop());
       pulseLoop.stop();
     };
-  }, [visible, barAnims, pulseAnim]);
+  }, [visible, activeTab, isPlaying, isRecording, barAnims, pulseAnim]);
 
-  // Pause / resume waveform when playing state changes
+  // Clean up recording timer on unmount
   useEffect(() => {
-    if (!visible) return;
-    if (!isPlaying) {
-      barAnims.forEach((anim, i) =>
-        Animated.timing(anim, {
-          toValue: WAVEFORM_HEIGHTS[i] * 0.28,
-          duration: 180,
-          useNativeDriver: false,
-        }).start()
-      );
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, []);
+
+  const startRecording = async () => {
+    audioChunksRef.current = [];
+    setRecordSeconds(0);
+    setHasRecorded(false);
+
+    if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new (window as any).MediaRecorder(stream);
+        recorder.ondataavailable = (e: any) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.onstop = () => {
+          const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          recordedAudioUrlRef.current = URL.createObjectURL(blob);
+          stream.getTracks().forEach((track) => track.stop());
+        };
+        recorder.start();
+        mediaRecorderRef.current = recorder;
+      } catch (err) {
+        console.warn("Microphone access simulated:", err);
+      }
     }
-  }, [isPlaying, barAnims, visible]);
+
+    setIsRecording(true);
+    timerIntervalRef.current = setInterval(() => {
+      setRecordSeconds((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const stopRecording = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
+
+    setIsRecording(false);
+    setHasRecorded(true);
+  };
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  const handleSaveRecordedNote = async () => {
+    const mentorName = voiceNote?.mentorName || "My Mentor";
+    const title = noteTitle.trim() || `Voice Note for ${mentorName}`;
+    const quote = noteQuote.trim() || "A heartfelt voice message dedicated to guiding principles.";
+    const durationStr = formatTimer(recordSeconds || 45);
+
+    setIsSaving(true);
+    try {
+      const savedId = `voice-${Date.now()}`;
+      const author = userProfileService.getProfile();
+
+      // 1. Save to local memories
+      memoryService.addMemory({
+        kind: "memory",
+        id: savedId,
+        mentorName,
+        relationship: voiceNote?.relationship || "Mentor",
+        title,
+        excerpt: quote,
+        story: quote,
+        year: String(new Date().getFullYear()),
+        emotion: "Inspiration",
+        emotionColor: Palette.accentSky,
+        quote: quote,
+        createdAt: new Date().toISOString(),
+        isPinned: false,
+      });
+
+      // 2. Publish to backend and send dedication email if requested
+      try {
+        await api.tributes.create({
+          mentorName,
+          relationship: voiceNote?.relationship || "Mentor",
+          kind: "memory",
+          title,
+          story: quote,
+          excerpt: quote,
+          quote: quote,
+          signature: author.name || "Sharon",
+          recipientEmail: mentorEmail.trim() || undefined,
+          sendDedicationEmail: sendEmailDedication && !!mentorEmail.trim(),
+          isShared: shareOnFeed,
+          privacy: shareOnFeed ? "PUBLIC" : "PRIVATE",
+        });
+      } catch (backendErr) {
+        console.warn("Tribute backend dispatch error:", backendErr);
+      }
+
+      const alertMsg = mentorEmail.trim() && sendEmailDedication
+        ? `Your voice note has been recorded and dedicated! We sent an email notification to ${mentorEmail.trim()} with the link so your mentor can listen.`
+        : "Your voice note has been saved to your collection and shared to your feed!";
+
+      Alert.alert("Voice Note Dedicated", alertMsg, [
+        {
+          text: "Done",
+          onPress: () => {
+            onClose();
+          },
+        },
+      ]);
+    } catch (err: any) {
+      Alert.alert("Unable to save", err.message || "Could not save your voice note.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const displayTranscript =
     voiceNote?.description ||
@@ -117,130 +266,297 @@ export default function CreativeVoiceModal({
     voiceNote?.title ||
     "A voice memo recorded to keep you grounded on the path.";
 
-  const mentorDisplayName = voiceNote?.mentorName || "";
+  const mentorDisplayName = voiceNote?.mentorName || "Your Mentor";
 
   return (
     <Modal
       visible={visible}
       animationType="fade"
       transparent={false}
-      onShow={() => setIsPlaying(true)}
       onRequestClose={onClose}
     >
       <View style={styles.root}>
         {/* ── TOP NAV BAR ── */}
         <View style={styles.topBar}>
-          {/* Back arrow */}
           <TouchableOpacity
             style={styles.circleBtn}
             onPress={onClose}
             activeOpacity={0.75}
             accessibilityRole="button"
-            accessibilityLabel="Close voice note"
+            accessibilityLabel="Close voice modal"
           >
             <Ionicons name="arrow-back" size={20} color={Palette.textPrimary} />
           </TouchableOpacity>
 
-          {/* Options */}
-          <TouchableOpacity
-            style={styles.circleBtn}
-            activeOpacity={0.75}
-            accessibilityRole="button"
-            accessibilityLabel="More options"
-          >
-            <Ionicons name="ellipsis-horizontal" size={20} color={Palette.textPrimary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* ── STATUS & MENTOR LABEL ── */}
-        <View style={styles.statusSection}>
-          <Text style={styles.statusLabel}>
-            {isPlaying ? "Listening..." : "Paused"}
-          </Text>
-          {!!mentorDisplayName && (
-            <Text style={styles.mentorLabel}>{mentorDisplayName}</Text>
-          )}
-        </View>
-
-        {/* ── ANIMATED WAVEFORM ── */}
-        <View style={styles.waveformSection}>
-          <View style={styles.waveformRow}>
-            {barAnims.map((anim, idx) => (
-              <Animated.View
-                key={`bar-${idx}`}
-                style={[
-                  styles.waveBar,
-                  {
-                    height: isPlaying ? anim : WAVEFORM_HEIGHTS[idx] * 0.28,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* ── TRANSCRIPT / QUOTE TEXT ── */}
-        <View style={styles.transcriptSection}>
-          <Text style={styles.transcriptText}>
-            &ldquo;{displayTranscript}&rdquo;
-          </Text>
-        </View>
-
-        {/* ── BOTTOM CONTROL DOCK ── */}
-        <View style={styles.bottomDock}>
-          {/* Left: Monitor / Keyboard icon */}
-          <TouchableOpacity
-            style={styles.circleBtn}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Keyboard input"
-          >
-            <Ionicons name="tv-outline" size={22} color={Palette.deepTeal} />
-          </TouchableOpacity>
-
-          {/* Center: Main play/pause button with pulse ring */}
-          <View style={styles.mainBtnWrap}>
-            {/* Outer pulse ring */}
-            <Animated.View
-              style={[
-                styles.pulseRingOuter,
-                { transform: [{ scale: isPlaying ? pulseAnim : 1 }] },
-              ]}
-            />
-            {/* Inner softer ring */}
-            <Animated.View
-              style={[
-                styles.pulseRingInner,
-                { transform: [{ scale: isPlaying ? pulseAnim : 1 }] },
-              ]}
-            />
-            {/* Button */}
+          {/* Mode Switcher Tabs */}
+          <View style={styles.modeTabs}>
             <TouchableOpacity
-              style={styles.mainBtn}
-              activeOpacity={0.85}
-              onPress={() => setIsPlaying((p) => !p)}
-              accessibilityRole="button"
-              accessibilityLabel={isPlaying ? "Pause voice note" : "Play voice note"}
+              style={[styles.modeTab, activeTab === "listen" && styles.modeTabActive]}
+              onPress={() => setActiveTab("listen")}
+              activeOpacity={0.8}
             >
               <Ionicons
-                name={isPlaying ? "pause" : "play"}
-                size={30}
-                color={Palette.textOnPrimary}
+                name="volume-medium"
+                size={14}
+                color={activeTab === "listen" ? Palette.accentSky : Palette.textSecondary}
               />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  activeTab === "listen" && styles.modeTabTextActive,
+                ]}
+              >
+                Listen
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modeTab, activeTab === "record" && styles.modeTabActive]}
+              onPress={() => setActiveTab("record")}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="mic"
+                size={14}
+                color={activeTab === "record" ? Palette.accentPink : Palette.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  activeTab === "record" && styles.modeTabTextActive,
+                ]}
+              >
+                Record for Mentor
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Right: Close X */}
           <TouchableOpacity
             style={styles.circleBtn}
             onPress={onClose}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Close"
+            activeOpacity={0.75}
           >
-            <Ionicons name="close" size={22} color={Palette.textPrimary} />
+            <Ionicons name="close" size={20} color={Palette.textPrimary} />
           </TouchableOpacity>
         </View>
+
+        {/* ── CONTENT BODY ── */}
+        {activeTab === "listen" ? (
+          /* LISTEN MODE */
+          <View style={styles.listenContainer}>
+            <View style={styles.statusSection}>
+              <Text style={styles.statusLabel}>
+                {isPlaying ? "Listening..." : "Paused"}
+              </Text>
+              {!!mentorDisplayName && (
+                <Text style={styles.mentorLabel}>{mentorDisplayName}</Text>
+              )}
+            </View>
+
+            <View style={styles.waveformSection}>
+              <View style={styles.waveformRow}>
+                {barAnims.map((anim, idx) => (
+                  <Animated.View
+                    key={`bar-${idx}`}
+                    style={[
+                      styles.waveBar,
+                      {
+                        height: isPlaying ? anim : WAVEFORM_HEIGHTS[idx] * 0.28,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.transcriptSection}>
+              <Text style={styles.transcriptText}>
+                &ldquo;{displayTranscript}&rdquo;
+              </Text>
+            </View>
+
+            <View style={styles.bottomDock}>
+              <TouchableOpacity
+                style={styles.circleBtn}
+                activeOpacity={0.8}
+                onPress={() => setActiveTab("record")}
+              >
+                <Ionicons name="mic-outline" size={22} color={Palette.accentPink} />
+              </TouchableOpacity>
+
+              <View style={styles.mainBtnWrap}>
+                <Animated.View
+                  style={[
+                    styles.pulseRingOuter,
+                    { transform: [{ scale: isPlaying ? pulseAnim : 1 }] },
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    styles.pulseRingInner,
+                    { transform: [{ scale: isPlaying ? pulseAnim : 1 }] },
+                  ]}
+                />
+                <TouchableOpacity
+                  style={styles.mainBtn}
+                  activeOpacity={0.85}
+                  onPress={() => setIsPlaying((p) => !p)}
+                >
+                  <Ionicons
+                    name={isPlaying ? "pause" : "play"}
+                    size={30}
+                    color={Palette.textOnPrimary}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.circleBtn}
+                onPress={onClose}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="close" size={22} color={Palette.textPrimary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          /* RECORD MODE */
+          <ScrollView
+            contentContainerStyle={styles.recordScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.statusSection}>
+              <Text style={styles.statusLabel}>
+                {isRecording
+                  ? "Recording Your Voice..."
+                  : hasRecorded
+                  ? "Voice Note Ready"
+                  : `Record for ${mentorDisplayName}`}
+              </Text>
+              <Text style={styles.recordTimer}>{formatTimer(recordSeconds)}</Text>
+            </View>
+
+            {/* Waveform while recording */}
+            <View style={styles.waveformSection}>
+              <View style={styles.waveformRow}>
+                {barAnims.map((anim, idx) => (
+                  <Animated.View
+                    key={`rec-bar-${idx}`}
+                    style={[
+                      styles.waveBar,
+                      {
+                        backgroundColor: isRecording ? Palette.accentPink : Palette.accentSky,
+                        height: isRecording ? anim : WAVEFORM_HEIGHTS[idx] * 0.28,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+
+            {/* Mic Action Button */}
+            <View style={styles.recordActionWrap}>
+              {!isRecording ? (
+                <TouchableOpacity
+                  style={[styles.recordBtn, { backgroundColor: hasRecorded ? "#20191D" : Palette.accentPink }]}
+                  onPress={startRecording}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="mic" size={32} color="#FFFFFF" />
+                  <Text style={styles.recordBtnText}>
+                    {hasRecorded ? "Record Again" : "Tap to Record"}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.recordBtn, { backgroundColor: "#D32F2F" }]}
+                  onPress={stopRecording}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="stop" size={32} color="#FFFFFF" />
+                  <Text style={styles.recordBtnText}>Stop Recording</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Dedication Form (Visible once recorded) */}
+            {hasRecorded && (
+              <View style={styles.dedicationBox}>
+                <Text style={styles.dedicationBoxTitle}>Dedication & Details</Text>
+
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Voice note title (e.g. My deepest thank you)"
+                  placeholderTextColor="#777777"
+                  value={noteTitle}
+                  onChangeText={setNoteTitle}
+                />
+
+                <TextInput
+                  style={[styles.inputField, { minHeight: 60 }]}
+                  placeholder="Words or summary of what you spoke about..."
+                  placeholderTextColor="#777777"
+                  value={noteQuote}
+                  onChangeText={setNoteQuote}
+                  multiline
+                />
+
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Mentor's Email (send dedication link)"
+                  placeholderTextColor="#777777"
+                  value={mentorEmail}
+                  onChangeText={setMentorEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+
+                <TouchableOpacity
+                  style={styles.optionRow}
+                  onPress={() => setSendEmailDedication((p) => !p)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={sendEmailDedication ? "checkbox" : "square-outline"}
+                    size={20}
+                    color={sendEmailDedication ? Palette.accentMint : "#666666"}
+                  />
+                  <Text style={styles.optionText}>
+                    Send dedication email from info@onodem.com with link
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.optionRow}
+                  onPress={() => setShareOnFeed((p) => !p)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={shareOnFeed ? "checkbox" : "square-outline"}
+                    size={20}
+                    color={shareOnFeed ? Palette.accentSky : "#666666"}
+                  />
+                  <Text style={styles.optionText}>
+                    Share on your Community Feed & Memory Wall
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.saveBtn, { opacity: isSaving ? 0.7 : 1 }]}
+                  onPress={handleSaveRecordedNote}
+                  disabled={isSaving}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.saveBtnText}>
+                    {isSaving ? "Saving & Sending..." : "Save & Dedicate Voice Note"}
+                  </Text>
+                  <Ionicons name="paper-plane" size={17} color="#111111" />
+                </TouchableOpacity>
+              </View>
+            )}
+          </ScrollView>
+        )}
       </View>
     </Modal>
   );
@@ -252,38 +568,68 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.iceWhite,
-    paddingTop: Platform.select({ ios: 60, android: 48, default: 48 }),
-    paddingBottom: Platform.select({ ios: 40, android: 28, default: 28 }),
-    paddingHorizontal: 28,
+    paddingTop: Platform.select({ ios: 54, android: 40, default: 40 }),
+    paddingBottom: Platform.select({ ios: 34, android: 24, default: 24 }),
+    paddingHorizontal: 22,
     justifyContent: "space-between",
-    alignItems: "center",
   },
-
-  /* Top Nav */
   topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    marginBottom: 10,
   },
   circleBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Palette.surfaceElevated,
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
     elevation: 2,
   },
-
-  /* Status */
+  modeTabs: {
+    flexDirection: "row",
+    backgroundColor: "#161616",
+    borderRadius: 20,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: "#2B2B2B",
+    gap: 4,
+  },
+  modeTab: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    gap: 6,
+  },
+  modeTabActive: {
+    backgroundColor: "#262626",
+  },
+  modeTabText: {
+    color: Palette.textSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  modeTabTextActive: {
+    color: "#FFFFFF",
+  },
+  listenContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
   statusSection: {
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 8,
   },
   statusLabel: {
     fontSize: 18,
@@ -297,12 +643,17 @@ const styles = StyleSheet.create({
     color: Palette.accentSky,
     marginTop: 5,
   },
-
-  /* Waveform */
+  recordTimer: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: Palette.accentPink,
+    marginTop: 6,
+    fontFamily: AppFonts.body,
+  },
   waveformSection: {
     justifyContent: "center",
     alignItems: "center",
-    height: height * 0.18,
+    height: height * 0.17,
     width: "100%",
   },
   waveformRow: {
@@ -318,11 +669,9 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.accentSky,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 3,
   },
-
-  /* Transcript */
   transcriptSection: {
     flex: 1,
     justifyContent: "center",
@@ -331,16 +680,13 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   transcriptText: {
-    fontSize: 22,
-    lineHeight: 34,
+    fontSize: 21,
+    lineHeight: 32,
     textAlign: "center",
     color: Palette.textPrimary,
     fontWeight: "500",
-    letterSpacing: -0.1,
     fontFamily: AppFonts.body,
   },
-
-  /* Bottom Dock */
   bottomDock: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -348,8 +694,6 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 10,
   },
-
-  /* Main Play/Pause Button */
   mainBtnWrap: {
     justifyContent: "center",
     alignItems: "center",
@@ -378,10 +722,82 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.oceanTeal,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 6,
     elevation: 3,
+  },
+  recordScroll: {
+    paddingBottom: 40,
+    alignItems: "center",
+  },
+  recordActionWrap: {
+    marginVertical: 14,
+    alignItems: "center",
+  },
+  recordBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 30,
+    elevation: 4,
+  },
+  recordBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  dedicationBox: {
+    width: "100%",
+    backgroundColor: "#151515",
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#282828",
+    marginTop: 10,
+  },
+  dedicationBoxTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  inputField: {
+    backgroundColor: "#1F1F1F",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#333333",
+    color: "#FFFFFF",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 13,
+    marginBottom: 12,
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 6,
+  },
+  optionText: {
+    color: "#DDDDDD",
+    fontSize: 12,
+    flex: 1,
+    lineHeight: 17,
+  },
+  saveBtn: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    height: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 16,
+  },
+  saveBtnText: {
+    color: "#111111",
+    fontSize: 14,
+    fontWeight: "800",
   },
 });

@@ -46,6 +46,16 @@ export default function Register() {
     setErrorMessage(null);
 
     try {
+      // Immediately initialize local profile with entered details
+      await userProfileService.updateProfile({
+        name: trimmedName,
+        username: trimmedEmail.split("@")[0] || "user",
+        email: trimmedEmail,
+        bio: "Remembering the mentors and guides who shaped my life.",
+        avatarUri:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+      });
+
       const res = await api.auth.register({
         name: trimmedName,
         email: trimmedEmail,
@@ -56,10 +66,10 @@ export default function Register() {
         await setAuthToken(res.data.accessToken, res.data.refreshToken);
         if (res.data.user) {
           await userProfileService.updateProfile({
-            name: res.data.user.name,
-            username: res.data.user.username || res.data.user.email?.split("@")[0] || "user",
-            email: res.data.user.email,
-            bio: res.data.user.bio || "Grateful mentee",
+            name: res.data.user.name || trimmedName,
+            username: res.data.user.username || res.data.user.email?.split("@")[0] || trimmedEmail.split("@")[0],
+            email: res.data.user.email || trimmedEmail,
+            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
             avatarUri:
               res.data.user.avatarUri ||
               "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
