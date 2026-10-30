@@ -17,7 +17,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
-import { AppleLogo, FacebookLogo, GoogleLogo } from "@/components/SocialLogos";
 import { api, setAuthToken } from "@/services/api";
 import { userProfileService } from "@/services/userProfileService";
 
@@ -216,42 +215,6 @@ export default function Login() {
               </View>
             </TouchableOpacity>
 
-            {/* "or continue with" Divider */}
-            <Text style={styles.orText}>or continue with</Text>
-
-            {/* Social Login Buttons: Google, Apple, Facebook */}
-            <View style={styles.socialRow}>
-              <TouchableOpacity
-                style={styles.socialCircle}
-                activeOpacity={0.75}
-                onPress={handleLogin}
-                accessibilityRole="button"
-                accessibilityLabel="Sign in with Google"
-              >
-                <GoogleLogo size={24} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialCircle}
-                activeOpacity={0.75}
-                onPress={handleLogin}
-                accessibilityRole="button"
-                accessibilityLabel="Sign in with Apple"
-              >
-                <AppleLogo size={26} color="#FFFFFF" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.socialCircle}
-                activeOpacity={0.75}
-                onPress={handleLogin}
-                accessibilityRole="button"
-                accessibilityLabel="Sign in with Facebook"
-              >
-                <FacebookLogo size={28} />
-              </TouchableOpacity>
-            </View>
-
             {/* Don't have an account link */}
             <View style={styles.registerRow}>
               <Text style={styles.registerPrompt}>Don&apos;t have an account? </Text>
@@ -430,40 +393,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.3,
-  },
-
-  /* "or continue with" */
-  orText: {
-    color: Palette.textSecondary,
-    fontSize: 13.5,
-    textAlign: "center",
-    marginTop: 22,
-    marginBottom: 18,
-    fontWeight: "500",
-  },
-
-  /* Social Buttons */
-  socialRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-    marginBottom: 22,
-  },
-  socialCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: Palette.pureWhite,
-    borderWidth: 1.2,
-    borderColor: Palette.borderSubtle,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
   },
 
   /* Register link row */

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
+  Platform,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,11 +19,11 @@ import { useResponsive } from "@/hooks/useResponsive";
 import { useQrModal } from "@/context/QrModalContext";
 
 export default function OnboardingScreen() {
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const { isDesktop, isTablet } = useResponsive();
+  const { width: windowWidth, height: windowHeight, isDesktop, isTablet, isMounted } = useResponsive();
   const { openQrModal } = useQrModal();
 
-  const isWideScreen = isDesktop || isTablet;
+  const isWideScreen = isMounted && (isDesktop || isTablet);
+  const useNative = Platform.OS !== "web";
 
   // Smooth entrance animation
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
@@ -40,12 +40,12 @@ export default function OnboardingScreen() {
           Animated.timing(value, {
             toValue: index === 1 ? -6 : 6,
             duration: 2400 + index * 200,
-            useNativeDriver: true,
+            useNativeDriver: useNative,
           }),
           Animated.timing(value, {
             toValue: index === 1 ? 6 : -6,
             duration: 2400 + index * 200,
-            useNativeDriver: true,
+            useNativeDriver: useNative,
           }),
         ])
       )
@@ -56,19 +56,19 @@ export default function OnboardingScreen() {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 700,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 700,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
     ]).start();
 
     return () => {
       floatAnimations.forEach((animation) => animation.stop());
     };
-  }, [collageFloat, fadeAnim, slideAnim]);
+  }, [collageFloat, fadeAnim, slideAnim, useNative]);
 
   // Card dimensions
   const cardWidth = isWideScreen

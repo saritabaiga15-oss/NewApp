@@ -16,14 +16,16 @@ import PwaInstallBanner from "@/components/web/PwaInstallBanner";
 import { useResponsive } from "@/hooks/useResponsive";
 
 function LayoutContent() {
-  const { isDesktop, isTablet, isWeb } = useResponsive();
+  const { isDesktop, isTablet, isWeb, isMounted } = useResponsive();
   const { openQrModal } = useQrModal();
+
+  const isWide = isMounted && isWeb && (isDesktop || isTablet);
 
   return (
     <View style={styles.rootWrapper}>
       {isWeb && <PwaInstallBanner onOpenQrModal={() => openQrModal("https://onodem.com")} />}
       {isWeb && <ResponsiveHeader onOpenQrModal={() => openQrModal("https://onodem.com")} />}
-      <View style={[styles.mainShell, isWeb && (isDesktop || isTablet) && styles.desktopShell]}>
+      <View style={[styles.mainShell, isWide && styles.desktopShell]}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="onboarding" />

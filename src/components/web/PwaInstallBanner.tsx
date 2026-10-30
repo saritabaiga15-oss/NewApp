@@ -18,10 +18,17 @@ function checkIsStandalone(): boolean {
 export default function PwaInstallBanner({ onOpenQrModal }: PwaInstallBannerProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(checkIsStandalone);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS !== "web" || typeof window === "undefined" || isInstalled) return;
+    setIsMounted(true);
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+
+    if (checkIsStandalone()) {
+      setIsInstalled(true);
+      return;
+    }
 
     const handler = (e: any) => {
       e.preventDefault();
@@ -39,7 +46,7 @@ export default function PwaInstallBanner({ onOpenQrModal }: PwaInstallBannerProp
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
     };
-  }, [isInstalled]);
+  }, []);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
@@ -55,7 +62,7 @@ export default function PwaInstallBanner({ onOpenQrModal }: PwaInstallBannerProp
     setIsVisible(false);
   };
 
-  if (isInstalled || !isVisible) {
+  if (!isMounted || isInstalled || !isVisible) {
     return null;
   }
 

@@ -3,9 +3,11 @@ import {
   Animated,
   Easing,
   Image,
+  Platform,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +20,7 @@ const SPLASH_DURATION = 4200;
 export default function SplashScreen() {
   const insets = useSafeAreaInsets();
   const hasNavigated = useRef(false);
+  const useNative = Platform.OS !== "web";
 
   // Animations
   const logoOpacity   = useMemo(() => new Animated.Value(0), []);
@@ -45,8 +48,8 @@ export default function SplashScreen() {
     // Orb ambient glow pulse
     const glowLoop = Animated.loop(
       Animated.sequence([
-        Animated.timing(glowAnim, { toValue: 1,   duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(glowAnim, { toValue: 0.6, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 1,   duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: useNative }),
+        Animated.timing(glowAnim, { toValue: 0.6, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: useNative }),
       ])
     );
     glowLoop.start();
@@ -55,22 +58,22 @@ export default function SplashScreen() {
     Animated.sequence([
       // 1. logo springs in
       Animated.parallel([
-        Animated.spring(logoScale,   { toValue: 1, friction: 5, tension: 26, useNativeDriver: true }),
-        Animated.timing(logoOpacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.spring(logoScale,   { toValue: 1, friction: 5, tension: 26, useNativeDriver: useNative }),
+        Animated.timing(logoOpacity, { toValue: 1, duration: 800, useNativeDriver: useNative }),
       ]),
       // 2. heading block rises
       Animated.parallel([
-        Animated.timing(contentFade,  { toValue: 1, duration: 600, useNativeDriver: true }),
-        Animated.timing(contentSlide, { toValue: 0, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(contentFade,  { toValue: 1, duration: 600, useNativeDriver: useNative }),
+        Animated.timing(contentSlide, { toValue: 0, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: useNative }),
       ]),
       // 3. pills stagger
       Animated.stagger(120, [
-        Animated.timing(pill1Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.timing(pill2Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.timing(pill3Anim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(pill1Anim, { toValue: 1, duration: 400, useNativeDriver: useNative }),
+        Animated.timing(pill2Anim, { toValue: 1, duration: 400, useNativeDriver: useNative }),
+        Animated.timing(pill3Anim, { toValue: 1, duration: 400, useNativeDriver: useNative }),
       ]),
       // 4. footer text + dots
-      Animated.timing(footerFade, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.timing(footerFade, { toValue: 1, duration: 400, useNativeDriver: useNative }),
     ]).start();
 
     // Progress bar over full splash duration (no native driver — uses width %)
@@ -85,16 +88,16 @@ export default function SplashScreen() {
     const dotLoop = Animated.loop(
       Animated.stagger(200, [
         Animated.sequence([
-          Animated.timing(dot1Anim, { toValue: 1,   duration: 350, useNativeDriver: true }),
-          Animated.timing(dot1Anim, { toValue: 0.3, duration: 350, useNativeDriver: true }),
+          Animated.timing(dot1Anim, { toValue: 1,   duration: 350, useNativeDriver: useNative }),
+          Animated.timing(dot1Anim, { toValue: 0.3, duration: 350, useNativeDriver: useNative }),
         ]),
         Animated.sequence([
-          Animated.timing(dot2Anim, { toValue: 1,   duration: 350, useNativeDriver: true }),
-          Animated.timing(dot2Anim, { toValue: 0.3, duration: 350, useNativeDriver: true }),
+          Animated.timing(dot2Anim, { toValue: 1,   duration: 350, useNativeDriver: useNative }),
+          Animated.timing(dot2Anim, { toValue: 0.3, duration: 350, useNativeDriver: useNative }),
         ]),
         Animated.sequence([
-          Animated.timing(dot3Anim, { toValue: 1,   duration: 350, useNativeDriver: true }),
-          Animated.timing(dot3Anim, { toValue: 0.3, duration: 350, useNativeDriver: true }),
+          Animated.timing(dot3Anim, { toValue: 1,   duration: 350, useNativeDriver: useNative }),
+          Animated.timing(dot3Anim, { toValue: 0.3, duration: 350, useNativeDriver: useNative }),
         ]),
       ])
     );
@@ -105,7 +108,7 @@ export default function SplashScreen() {
       dotLoop.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [useNative]);
 
   const progressWidth = progressAnim.interpolate({
     inputRange: [0, 1],

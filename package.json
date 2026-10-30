@@ -49,8 +49,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "build": "expo export -p web",
-    "build:web": "expo export -p web",
+    "build": "node ./scripts/clean-dist.js && expo export -p web --clear",
+    "build:web": "node ./scripts/clean-dist.js && expo export -p web --clear",
     "build:all": "expo export"
   },
   "private": true

@@ -11,12 +11,13 @@ interface ResponsiveHeaderProps {
 }
 
 export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProps) {
-  const { isDesktop, isTablet, isWeb } = useResponsive();
+  const { isDesktop, isTablet, isWeb, isMounted } = useResponsive();
   const { openQrModal } = useQrModal();
   const pathname = usePathname();
 
-  // Only show desktop top bar on Web when screen is tablet or desktop
-  if (!isWeb || (!isDesktop && !isTablet)) {
+  // Only show desktop top bar on Web when screen is tablet or desktop, and only after client mount
+  // to avoid React 19 hydration mismatch (Error #418) during SSR static export
+  if (!isWeb || !isMounted || (!isDesktop && !isTablet)) {
     return null;
   }
 

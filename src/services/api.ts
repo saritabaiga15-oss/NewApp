@@ -5,15 +5,35 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-// In production, connects directly to onodem.com; in local dev, connects to localhost / emulator
-const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : true;
-const DEFAULT_HOST = isDev
-  ? Platform.OS === "android"
-    ? "http://10.0.2.2:8080"
-    : "http://localhost:8080"
-  : "https://api.onodem.com";
+// Resolves the backend API base URL dynamically based on environment and platform.
+export function getApiBaseUrl(): string {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || `${DEFAULT_HOST}/api/v1`;
+  // Web Browser: use same-origin /api/v1 in production, or localhost:8080 in local dev
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.location) {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:8080/api/v1";
+    }
+    // When served from onodem.com or www.onodem.com, route to the same origin /api/v1
+    // Nginx reverse-proxies /api/ directly to the Spring Boot backend on 127.0.0.1:8080
+    // This avoids DNS subdomain resolution failures (ERR_NAME_NOT_RESOLVED) and CORS blocks
+    return `${window.location.origin}/api/v1`;
+  }
+
+  // Native Mobile (iOS / Android)
+  const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : false;
+  if (isDev) {
+    return Platform.OS === "android" ? "http://10.0.2.2:8080/api/v1" : "http://localhost:8080/api/v1";
+  }
+
+  // Production native app fallback
+  return "https://onodem.com/api/v1";
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const TOKEN_KEY = "@honour-your-mentor/token";
 const REFRESH_TOKEN_KEY = "@honour-your-mentor/refresh_token";
@@ -48,7 +68,8 @@ export async function apiRequest<T = any>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
   const response = await fetch(url, {
     ...options,
@@ -178,7 +199,8 @@ export const api = {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch(`${API_BASE_URL}/media/upload`, {
+      const baseUrl = getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/media/upload`, {
         method: "POST",
         body: formData,
         headers,
