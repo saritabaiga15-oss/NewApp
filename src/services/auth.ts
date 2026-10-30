@@ -2,8 +2,10 @@
  * Authentication Service Module
  *
  * Keeps UI components decoupled from backend authentication logic.
- * Supports integration with Firebase Auth, Supabase, or custom REST APIs.
+ * Integrates with onodemBackend (Spring Boot + Supabase) or runs in demo mode.
  */
+
+import { api, clearAuthToken } from "./api";
 
 export interface PasswordResetResponse {
   success: boolean;
@@ -11,7 +13,7 @@ export interface PasswordResetResponse {
 }
 
 /**
- * TOGGLE THIS FLAG ONCE YOU HAVE CONNECTED A REAL BACKEND.
+ * TOGGLE THIS FLAG ONCE YOU HAVE RUN YOUR SPRING BOOT BACKEND.
  */
 export let IS_BACKEND_CONFIGURED = false;
 
@@ -24,12 +26,7 @@ export let IS_BACKEND_CONFIGURED = false;
 export let DEMO_MODE = true;
 
 export async function signOut(): Promise<void> {
-  if (!IS_BACKEND_CONFIGURED) {
-    throw new Error(
-      "Sign out is unavailable because this app has no connected authentication backend."
-    );
-  }
-  throw new Error("No authentication provider sign-out handler has been configured.");
+  await clearAuthToken();
 }
 
 export async function deleteAccount(): Promise<void> {
@@ -48,31 +45,23 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
   const normalizedEmail = email.trim().toLowerCase();
 
   try {
-    if (!IS_BACKEND_CONFIGURED && !DEMO_MODE) {
+    if (IS_BACKEND_CONFIGURED) {
+      const res = await api.auth.forgotPassword(normalizedEmail);
+      return {
+        success: true,
+        message: res.message || `We sent a reset code to ${normalizedEmail}.`,
+      };
+    }
+
+    if (!DEMO_MODE) {
       await new Promise((resolve) => setTimeout(resolve, 600));
       throw new Error(
-        `No authentication backend is connected yet for ${normalizedEmail}. Please configure Firebase, Supabase, or your backend in src/services/auth.ts.`
+        `No authentication backend is connected yet for ${normalizedEmail}. Please configure your backend in src/services/auth.ts.`
       );
     }
 
     // Simulate network delay in demo mode
     await new Promise((resolve) => setTimeout(resolve, 750));
-
-    // =========================================================================
-    // OPTION 1: FIREBASE AUTHENTICATION INTEGRATION
-    // =========================================================================
-    // import { getAuth, sendPasswordResetEmail } from "firebase/auth";
-    // const auth = getAuth();
-    // await sendPasswordResetEmail(auth, normalizedEmail);
-
-    // =========================================================================
-    // OPTION 2: SUPABASE AUTH INTEGRATION
-    // =========================================================================
-    // import { supabase } from "@/lib/supabase";
-    // const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-    //   redirectTo: "mynewapp://reset-password",
-    // });
-    // if (error) throw error;
 
     return {
       success: true,
@@ -91,7 +80,15 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
  */
 export async function verifyResetCode(email: string, code: string): Promise<PasswordResetResponse> {
   try {
-    if (!IS_BACKEND_CONFIGURED && !DEMO_MODE) {
+    if (IS_BACKEND_CONFIGURED) {
+      const res = await api.auth.verifyOtp(email.trim().toLowerCase(), code.trim());
+      return {
+        success: true,
+        message: res.message || "Code verified successfully.",
+      };
+    }
+
+    if (!DEMO_MODE) {
       await new Promise((resolve) => setTimeout(resolve, 500));
       throw new Error("Authentication backend not configured.");
     }
@@ -115,9 +112,17 @@ export async function verifyResetCode(email: string, code: string): Promise<Pass
 /**
  * 3. Update / Set New Password
  */
-export async function updatePassword(password: string): Promise<PasswordResetResponse> {
+export async function updatePassword(password: string, email = "sarita@example.com", code = "12345"): Promise<PasswordResetResponse> {
   try {
-    if (!IS_BACKEND_CONFIGURED && !DEMO_MODE) {
+    if (IS_BACKEND_CONFIGURED) {
+      const res = await api.auth.resetPassword(email.trim().toLowerCase(), code.trim(), password);
+      return {
+        success: true,
+        message: res.message || "Congratulations! Your password has been changed.",
+      };
+    }
+
+    if (!DEMO_MODE) {
       await new Promise((resolve) => setTimeout(resolve, 500));
       throw new Error("Authentication backend not configured.");
     }
