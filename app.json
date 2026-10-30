@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MyNewApp",
-    "slug": "MyNewApp",
+    "name": "Honour Your Mentor",
+    "slug": "honour-your-mentor",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,7 +21,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Honour Your Mentor",
+      "shortName": "HonourMentor",
+      "themeColor": "#1B4D3E",
+      "backgroundColor": "#F8FAFC",
+      "display": "standalone",
+      "orientation": "any",
+      "description": "Remember and celebrate the mentors who shaped your journey."
     },
     "plugins": [
       "expo-router",

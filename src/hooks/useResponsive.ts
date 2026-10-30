@@ -39,3 +39,4 @@ export function useResponsive(): ResponsiveInfo {
     columns,
   };
 }
+

@@ -38,6 +38,9 @@ import { memoryService } from "@/services/memoryService";
 import { userProfileService } from "@/services/userProfileService";
 import type { UserProfile } from "@/services/userProfileService";
 import type { WallItem, WallMemory } from "@/types/memoryWall";
+import { useResponsive } from "@/hooks/useResponsive";
+import { useQrModal } from "@/context/QrModalContext";
+import QRCodeSvg from "@/components/web/QRCodeSvg";
 
 // Mock Data: Mentors
 const MENTORS_DATA: MentorData[] = [
@@ -473,6 +476,8 @@ export default function HomeScreen() {
   );
   const [profile, setProfile] = useState<UserProfile>(() => userProfileService.getProfile());
   const [homeSearch, setHomeSearch] = useState("");
+  const { isWeb } = useResponsive();
+  const { openQrModal } = useQrModal();
   const [reflectionInput, setReflectionInput] = useState("");
   const [hasSubmittedReflection, setHasSubmittedReflection] = useState(false);
 
@@ -722,6 +727,50 @@ export default function HomeScreen() {
               </TouchableOpacity>
             )}
           </View>
+
+          
+          {/* Responsive QR Code Hero Card on Web */}
+          {isWeb && (
+            <View style={styles.webQrHeroCard}>
+              <View style={styles.webQrHeroLeft}>
+                <View style={styles.webQrBadge}>
+                  <Ionicons name="phone-portrait-outline" size={13} color={Palette.oceanTeal} />
+                  <Text style={styles.webQrBadgeText}>MOBILE APP & PWA READY</Text>
+                </View>
+                <Text style={styles.webQrHeroTitle}>Experience Honour Your Mentor on your phone</Text>
+                <Text style={styles.webQrHeroDesc}>
+                  Scan this QR code with your mobile camera to access your tributes, receive birthday reminders, and install as an app.
+                </Text>
+                <View style={styles.webQrHeroActionRow}>
+                  <TouchableOpacity
+                    style={styles.webQrHeroBtn}
+                    onPress={() => openQrModal("https://onodem.com")}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="qr-code" size={15} color="#FFFFFF" />
+                    <Text style={styles.webQrHeroBtnText}>Scan QR Code</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.webQrHeroSecondaryBtn}
+                    onPress={() => openQrModal("https://onodem.com")}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="camera-outline" size={15} color={Palette.oceanTeal} />
+                    <Text style={styles.webQrHeroSecondaryBtnText}>Camera Scanner</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.webQrHeroRight}
+                onPress={() => openQrModal("https://onodem.com")}
+                activeOpacity={0.9}
+              >
+                <QRCodeSvg value="https://onodem.com" size={114} color={Palette.oceanTeal} />
+                <Text style={styles.webQrScanLabel}>Click to scan / enlarge</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {featuredMentor && (
             <View style={styles.featuredStory}>
@@ -1559,6 +1608,111 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 6,
   },
+  webQrHeroCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 18,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 2,
+    flexWrap: "wrap",
+  },
+  webQrHeroLeft: {
+    flex: 1,
+    minWidth: 240,
+  },
+  webQrBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Palette.mintMist,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+    marginBottom: 8,
+  },
+  webQrBadgeText: {
+    fontSize: 10.5,
+    fontWeight: "800",
+    color: Palette.oceanTeal,
+    letterSpacing: 0.8,
+  },
+  webQrHeroTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: Palette.textPrimary,
+    lineHeight: 22,
+    marginBottom: 6,
+  },
+  webQrHeroDesc: {
+    fontSize: 12.5,
+    color: Palette.textSecondary,
+    lineHeight: 18,
+    marginBottom: 14,
+  },
+  webQrHeroActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  webQrHeroBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Palette.oceanTeal,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  webQrHeroBtnText: {
+    color: "#FFFFFF",
+    fontSize: 12.5,
+    fontWeight: "700",
+  },
+  webQrHeroSecondaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Palette.mintMist,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#CFE3DC",
+  },
+  webQrHeroSecondaryBtnText: {
+    color: Palette.oceanTeal,
+    fontSize: 12.5,
+    fontWeight: "700",
+  },
+  webQrHeroRight: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  webQrScanLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Palette.textMuted,
+    marginTop: 6,
+  },
+
   achievementsScroll: {
     paddingLeft: 20,
     paddingRight: 6,
