@@ -63,7 +63,7 @@ export default function PwaInstallBanner({ onOpenQrModal }: PwaInstallBannerProp
     <View style={styles.bannerContainer}>
       <View style={styles.bannerInner}>
         <View style={styles.iconCircle}>
-          <Ionicons name="download-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="download-outline" size={17} color="#000000" />
         </View>
 
         <View style={styles.textColumn}>
@@ -75,7 +75,7 @@ export default function PwaInstallBanner({ onOpenQrModal }: PwaInstallBannerProp
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.installBtn} onPress={handleInstallClick} activeOpacity={0.85}>
-            <Ionicons name="sparkles" size={14} color="#FFFFFF" />
+            <Ionicons name="sparkles" size={13} color="#000000" />
             <Text style={styles.installBtnText}>Install PWA</Text>
           </TouchableOpacity>
 
@@ -91,14 +91,15 @@ export default function PwaInstallBanner({ onOpenQrModal }: PwaInstallBannerProp
 const styles = StyleSheet.create({
   bannerContainer: {
     width: "100%",
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "#111111",
     borderBottomWidth: 1,
-    borderBottomColor: "#CFE3DC",
+    borderBottomColor: "#222222",
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    zIndex: 99,
   },
   bannerInner: {
-    maxWidth: 1200,
+    maxWidth: 1240,
     marginHorizontal: "auto",
     width: "100%",
     flexDirection: "row",
@@ -109,8 +110,8 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 32,
     height: 32,
-    borderRadius: 10,
-    backgroundColor: Palette.oceanTeal,
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: "700",
-    color: Palette.oceanTeal,
+    color: "#FFFFFF",
   },
   subtitle: {
     fontSize: 12,
@@ -136,19 +137,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Palette.oceanTeal,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 10,
-    shadowColor: Palette.oceanTeal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 13,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   installBtnText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#000000",
   },
   dismissBtn: {
     padding: 4,

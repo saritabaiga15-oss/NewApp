@@ -95,18 +95,20 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   rootWrapper: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#000000",
   },
   mainShell: {
     flex: 1,
+    backgroundColor: "#000000",
   },
   desktopShell: {
     maxWidth: 1240,
     width: "100%",
     marginHorizontal: "auto",
+    backgroundColor: "#000000",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
   },
 });

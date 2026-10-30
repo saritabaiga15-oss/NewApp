@@ -25,6 +25,13 @@ export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProp
     else openQrModal("https://onodem.com");
   };
 
+  const isAuthRoute =
+    pathname === "/onboarding" ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/";
+
   const navLinks = [
     { label: "Home", path: "/home", icon: "home-outline" as const },
     { label: "Memory Wall", path: "/memory-wall", icon: "images-outline" as const },
@@ -38,7 +45,7 @@ export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProp
         {/* Left: Brand Identity */}
         <TouchableOpacity
           style={styles.brandRow}
-          onPress={() => router.push("/home")}
+          onPress={() => router.push(isAuthRoute ? "/onboarding" : "/home")}
           activeOpacity={0.8}
         >
           <Image
@@ -52,48 +59,87 @@ export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProp
           </View>
         </TouchableOpacity>
 
-        {/* Center: Navigation Links */}
-        <View style={styles.navLinks}>
-          {navLinks.map((link) => {
-            const isActive = pathname === link.path || (link.path === "/home" && pathname === "/");
-            return (
-              <TouchableOpacity
-                key={link.path}
-                style={[styles.navItem, isActive && styles.navItemActive]}
-                onPress={() => router.push(link.path as any)}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={link.icon}
-                  size={16}
-                  color={isActive ? Palette.oceanTeal : Palette.textSecondary}
-                />
-                <Text style={[styles.navText, isActive && styles.navTextActive]}>
-                  {link.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Center: Navigation Links (Only for authenticated internal routes) */}
+        {!isAuthRoute && (
+          <View style={styles.navLinks}>
+            {navLinks.map((link) => {
+              const isActive = pathname === link.path || (link.path === "/home" && pathname === "/");
+              return (
+                <TouchableOpacity
+                  key={link.path}
+                  style={[styles.navItem, isActive && styles.navItemActive]}
+                  onPress={() => router.push(link.path as any)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={link.icon}
+                    size={16}
+                    color={isActive ? "#FFFFFF" : Palette.textSecondary}
+                  />
+                  <Text style={[styles.navText, isActive && styles.navTextActive]}>
+                    {link.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
-        {/* Right: Actions (QR Code Modal + Profile) */}
+        {/* Right: Actions */}
         <View style={styles.rightActions}>
-          <TouchableOpacity
-            style={styles.qrButton}
-            onPress={handleOpenQr}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="qr-code-outline" size={16} color={Palette.oceanTeal} />
-            <Text style={styles.qrButtonText}>Open on Phone</Text>
-          </TouchableOpacity>
+          {isAuthRoute ? (
+            // Landing / Auth quick actions
+            <View style={styles.authActionsRow}>
+              {pathname !== "/login" && (
+                <TouchableOpacity
+                  style={styles.authGhostBtn}
+                  onPress={() => router.push("/login")}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.authGhostText}>Log In</Text>
+                </TouchableOpacity>
+              )}
 
-          <TouchableOpacity
-            style={styles.profileBtn}
-            onPress={() => router.push("/profile")}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="person-circle-outline" size={26} color={Palette.oceanTeal} />
-          </TouchableOpacity>
+              {pathname !== "/register" && (
+                <TouchableOpacity
+                  style={styles.authPrimaryBtn}
+                  onPress={() => router.push("/register")}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.authPrimaryText}>Get Started</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={handleOpenQr}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="qr-code-outline" size={15} color="#FFFFFF" />
+                <Text style={styles.qrButtonText}>Open on Phone</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            // Internal app actions
+            <>
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={handleOpenQr}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="qr-code-outline" size={15} color="#FFFFFF" />
+                <Text style={styles.qrButtonText}>Open on Phone</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.profileBtn}
+                onPress={() => router.push("/profile")}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="person-circle-outline" size={26} color="#FFFFFF" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </View>
@@ -103,17 +149,17 @@ export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProp
 const styles = StyleSheet.create({
   headerWrapper: {
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.96)",
+    backgroundColor: "#000000",
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "#1F1F1F",
     zIndex: 100,
   },
   container: {
-    maxWidth: 1200,
+    maxWidth: 1240,
     marginHorizontal: "auto",
     width: "100%",
     height: 64,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -124,23 +170,23 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
   },
   brandName: {
     fontSize: 16,
     fontWeight: "800",
-    color: Palette.oceanTeal,
+    color: "#FFFFFF",
     letterSpacing: -0.3,
   },
   brandTagline: {
     fontSize: 11,
-    color: Palette.textMuted,
+    color: "#8C7570",
   },
   navLinks: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
   navItem: {
     flexDirection: "row",
@@ -151,7 +197,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   navItemActive: {
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "#1C1C1C",
+    borderWidth: 1,
+    borderColor: "#2D2D2D",
   },
   navText: {
     fontSize: 13,
@@ -159,29 +207,55 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
   },
   navTextActive: {
-    color: Palette.oceanTeal,
+    color: "#FFFFFF",
     fontWeight: "700",
   },
   rightActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
+  },
+  authActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  authGhostBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  authGhostText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  authPrimaryBtn: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 15,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  authPrimaryText: {
+    color: "#000000",
+    fontSize: 13,
+    fontWeight: "700",
   },
   qrButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: Palette.mintMist,
+    backgroundColor: "#171717",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#CFE3DC",
+    borderColor: "#2D2D2D",
   },
   qrButtonText: {
     fontSize: 12,
     fontWeight: "700",
-    color: Palette.oceanTeal,
+    color: "#FFFFFF",
   },
   profileBtn: {
     padding: 2,
