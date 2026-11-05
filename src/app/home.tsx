@@ -654,6 +654,23 @@ export default function HomeScreen() {
     );
   }, [homeSearch, mentorsList]);
 
+    // Dynamic Greeting based on time of day
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning!";
+    if (hour < 17) return "Good afternoon!";
+    return "Good evening!";
+  }, []);
+
+  const currentDateString = useMemo(() => {
+    try {
+      const options: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
+      return new Date().toLocaleDateString("en-US", options);
+    } catch {
+      return "Today";
+    }
+  }, []);
+
   const featuredMentor = mentorsList[0];
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -662,67 +679,91 @@ export default function HomeScreen() {
       {/* Pure Cloud Canvas */}
       <View style={styles.paperCanvas} />
 
+      {/* Ambient Aura */} 
+      <View style={styles.ambientAura} />
+
       <Animated.View style={[styles.mainContainer, { opacity: fadeAnim }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.welcomeRow}>
-            <View style={styles.welcomeCopy}>
-              <Text style={styles.welcomeTitle}>
-                Good morning,{"\n"}
-                {profile.name.split(" ")[0]}
-              </Text>
-              <Text style={styles.welcomeSubtitle}>
-                Keep the people who shaped you close.
-              </Text>
+          {/* Top Brand Header Bar */}
+          <View style={styles.topBrandRow}>
+            <View style={styles.brandTitleWrap}>
+              <Image
+                source={require("../../assets/images/logo_transparent.png")}
+                style={styles.brandLogoFull}
+                resizeMode="contain"
+              />
             </View>
+
             <View style={styles.headerActions}>
               <TouchableOpacity
-                style={styles.notificationButton}
+                style={styles.headerCircleBtn}
                 activeOpacity={0.75}
-                onPress={() =>
-                  Alert.alert(
-                    "Notifications",
-                    "You’re all caught up on your memories."
-                  )
-                }
+                onPress={() => setIsNotificationsOpen(true)}
                 accessibilityRole="button"
                 accessibilityLabel="Notifications"
               >
                 <Ionicons
                   name="notifications-outline"
-                  size={22}
-                  color={Palette.textPrimary}
+                  size={20}
+                  color="#FFFFFF"
                 />
-                <View style={styles.notificationDot} />
+                {unreadNotificationsCount > 0 && <View style={styles.notificationDot} />}
               </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.profileAvatarBtn}
-              activeOpacity={0.8}
-              onPress={() => router.push("/profile")}
-              accessibilityRole="button"
-              accessibilityLabel="Open your profile"
-            >
-              <Image
-                source={{ uri: profile.avatarUri }}
-                style={styles.profileAvatar}
-              />
-            </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.headerCircleBtn}
+                activeOpacity={0.8}
+                onPress={() => router.push("/profile")}
+                accessibilityRole="button"
+                accessibilityLabel="Open your profile"
+              >
+                {profile.avatarUri ? (
+                  <Image
+                    source={{ uri: profile.avatarUri }}
+                    style={styles.headerAvatar}
+                  />
+                ) : (
+                  <Ionicons name="person-outline" size={19} color="#FFFFFF" />
+                )}
+              </TouchableOpacity>
             </View>
           </View>
 
+          {/* Aesthetic Separator */}
+          <View style={styles.headerDivider} />
+
+          {/* Aesthetic Dynamic Greeting Section */}
+          <View style={styles.greetingSection}>
+            <View style={styles.greetingHeaderRow}>
+              <Text style={styles.greetingTimeText}>{greeting}</Text>
+              <View style={styles.datePill}>
+                <Ionicons name="sparkles" size={11} color={Palette.accentAmber} />
+                <Text style={styles.datePillText}>{currentDateString}</Text>
+              </View>
+            </View>
+            <Text style={styles.greetingNameText}>
+              Welcome back, <Text style={styles.greetingNameHighlight}>{profile.name ? profile.name.split(" ")[0] : "Friend"}</Text>
+            </Text>
+            <Text style={styles.greetingSubText}>
+              Celebrate and keep the people who shaped you close.
+            </Text>
+          </View>
+
+          {/* Sleek Search Bar */}
           <View style={styles.homeSearch}>
             <Ionicons
               name="search-outline"
               size={17}
-              color={Palette.textSecondary}
+              color="#888888"
             />
             <TextInput
               value={homeSearch}
               onChangeText={setHomeSearch}
-              placeholder="Search mentors, stories, lessons"
-              placeholderTextColor={Palette.textSecondary}
+              placeholder="Search mentors, stories, lessons..."
+              placeholderTextColor="#737373"
               style={styles.homeSearchInput}
               autoCapitalize="none"
               autoCorrect={false}
@@ -740,13 +781,12 @@ export default function HomeScreen() {
                 <Ionicons
                   name="close-circle"
                   size={18}
-                  color={Palette.textSecondary}
+                  color="#888888"
                 />
               </TouchableOpacity>
             )}
           </View>
 
-          
           {/* Open the app install popup from this compact home banner. */}
           {isWeb && (
             <View
@@ -1201,6 +1241,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Palette.iceWhite, // Ice White base background
   },
+  ambientAura: {
+    position: "absolute",
+    top: -80,
+    left: -40,
+    width: 320,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(84, 197, 235, 0.08)",
+  },
   paperCanvas: {
     ...StyleSheet.absoluteFill,
     backgroundColor: Palette.iceWhite,
@@ -1212,45 +1261,43 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
 
-  welcomeRow: {
+  /* Top Brand Header Bar */
+  topBrandRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 18,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
   },
-  welcomeCopy: {
+  brandTitleWrap: {
+    justifyContent: "center",
     flex: 1,
-    paddingRight: 10,
   },
-  welcomeTitle: {
-    color: Palette.textPrimary,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.7,
-    fontWeight: "800",
-  },
-  welcomeSubtitle: {
-    color: Palette.textSecondary,
-    fontSize: 14,
-    lineHeight: 21,
-    marginTop: 7,
+  brandLogoFull: {
+    width: 240,
+    height: 86,
   },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  headerCircleBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#171719",
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.10)",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Palette.surfaceCard,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
     position: "relative",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
   },
   notificationDot: {
     position: "absolute",
@@ -1258,38 +1305,92 @@ const styles = StyleSheet.create({
     right: 9,
     width: 7,
     height: 7,
-    borderRadius: 4,
-    backgroundColor: Palette.accentSky,
+    borderRadius: 3.5,
+    backgroundColor: "#54C5EB",
   },
-  profileAvatarBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-    overflow: "hidden",
-    marginLeft: 12,
-  },
-  profileAvatar: {
+  headerAvatar: {
     width: "100%",
     height: "100%",
+    borderRadius: 21,
   },
-  homeSearch: {
-    height: 43,
+  headerDivider: {
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    marginHorizontal: 20,
+    marginBottom: 14,
+  },
+
+  /* Greeting Section */
+  greetingSection: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  greetingHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 9,
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  greetingTimeText: {
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -0.8,
+    fontFamily: AppFonts.displaySans,
+  },
+  datePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  datePillText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#D1D5DB",
+  },
+  greetingNameText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#B3B3B3",
+    marginTop: 4,
+  },
+  greetingNameHighlight: {
+    fontWeight: "800",
+    color: "#54C5EB",
+  },
+  greetingSubText: {
+    fontSize: 12.5,
+    color: "#737373",
+    marginTop: 4,
+    lineHeight: 18,
+  },
+
+  /* Sleek Dark Search Bar */
+  homeSearch: {
+    height: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     marginHorizontal: 20,
-    paddingHorizontal: 14,
-    backgroundColor: Palette.surfaceElevated,
-    borderRadius: 17,
-    marginBottom: 13,
+    paddingHorizontal: 16,
+    backgroundColor: "#161619",
+    borderRadius: 23,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   homeSearchInput: {
     flex: 1,
     paddingVertical: 0,
-    fontSize: 12,
-    color: Palette.textPrimary,
+    fontSize: 13,
+    color: "#FFFFFF",
   },
   featuredStory: {
     height: 332,

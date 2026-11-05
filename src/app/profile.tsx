@@ -219,6 +219,7 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentPink}
               icon="heart"
               title="Tributes"
+              count={3}
               subtitle="Published tributes"
               onPress={() => router.push("/tributes")}
             />
@@ -228,6 +229,7 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentMint}
               icon="sparkles"
               title="Appreciation Posts"
+              count={2}
               subtitle="Gratitude dedications"
               onPress={() => router.push("/memory-wall")}
             />
@@ -237,6 +239,7 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentLavender}
               icon="document-text"
               title="Notes"
+              count={4}
               subtitle="Stationery & thoughts"
               onPress={() => router.push({ pathname: "/creation-studio", params: { mode: "note" } })}
             />
@@ -246,6 +249,7 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentPeach}
               icon="mail"
               title="Letters"
+              count={2}
               subtitle="Heartfelt messages"
               onPress={() => router.push({ pathname: "/creation-studio", params: { mode: "letter" } })}
             />
@@ -255,6 +259,7 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentSky}
               icon="videocam"
               title="Videos"
+              count={1}
               subtitle="Spoken reflections"
               onPress={() => setIsVideoModalOpen(true)}
             />
@@ -264,6 +269,7 @@ export default function ProfileScreen() {
               badgeBg="#FDE047"
               icon="time"
               title="Saved Drafts"
+              count={1}
               subtitle="Works in progress"
               onPress={() => router.push("/saved-items")}
             />
@@ -337,12 +343,14 @@ function ActivityCard({
   badgeBg,
   icon,
   title,
+  count,
   subtitle,
   onPress,
 }: {
   badgeBg: string;
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
+  count: number;
   subtitle: string;
   onPress: () => void;
 }) {
@@ -352,12 +360,13 @@ function ActivityCard({
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${subtitle}`}
+      accessibilityLabel={`${title}, ${count} items. ${subtitle}`}
     >
       <View style={styles.activityCardTop}>
         <View style={[styles.activityIconWrap, { backgroundColor: badgeBg }]}>
           <Ionicons name={icon} size={16} color="#111111" />
         </View>
+        <Text style={styles.activityCount}>{count}</Text>
       </View>
       <Text style={styles.activityTitle}>{title}</Text>
       <Text style={styles.activitySub} numberOfLines={1}>
@@ -646,6 +655,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+  },
+  activityCount: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    fontFamily: AppFonts.body,
   },
   activityTitle: {
     fontSize: 13.5,

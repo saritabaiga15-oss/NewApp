@@ -3,7 +3,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Palette } from "@/constants/theme";
 
 export type NavTab =
   | "home"
@@ -26,15 +25,14 @@ interface TabItem {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   activeIcon: keyof typeof Ionicons.glyphMap;
-  activeColor: string;
 }
 
 const FIVE_TABS: TabItem[] = [
-  { key: "home", label: "Home", icon: "home-outline", activeIcon: "home", activeColor: "#111111" },
-  { key: "discover", label: "Discover", icon: "compass-outline", activeIcon: "compass", activeColor: "#111111" },
-  { key: "create", label: "Create", icon: "add", activeIcon: "add", activeColor: "#111111" },
-  { key: "saved", label: "Saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: "#111111" },
-  { key: "profile", label: "Profile", icon: "person-outline", activeIcon: "person", activeColor: "#111111" },
+  { key: "home",     label: "Home",     icon: "home-outline",     activeIcon: "home"     },
+  { key: "discover", label: "Discover", icon: "compass-outline",  activeIcon: "compass"  },
+  { key: "create",   label: "Create",   icon: "add",              activeIcon: "add"      },
+  { key: "saved",    label: "Saved",    icon: "bookmark-outline", activeIcon: "bookmark" },
+  { key: "profile",  label: "Profile",  icon: "person-outline",   activeIcon: "person"   },
 ];
 
 export default function BottomNavigation({
@@ -45,78 +43,74 @@ export default function BottomNavigation({
   const insets = useSafeAreaInsets();
 
   const handleTabPress = (tabKey: NavTab) => {
-    if (onTabChange) {
-      onTabChange(tabKey);
-    }
+    if (onTabChange) onTabChange(tabKey);
 
     if (tabKey === "create") {
-      if (onCreatePress) {
-        onCreatePress();
-        return;
-      }
-      if (activeTab !== "create") {
-        router.push("/create");
-      }
+      if (onCreatePress) { onCreatePress(); return; }
+      if (activeTab !== "create") router.push("/create");
       return;
     }
 
-    if (tabKey === "home" && activeTab !== "home") {
-      router.push("/home");
-    } else if (tabKey === "discover" && activeTab !== "discover") {
-      router.push("/discover");
-    } else if (tabKey === "saved" && activeTab !== "saved") {
-      router.push("/saved-items");
-    } else if (tabKey === "profile" && activeTab !== "profile") {
-      router.push("/profile");
-    }
+    if (tabKey === "home"     && activeTab !== "home")     router.push("/home");
+    else if (tabKey === "discover" && activeTab !== "discover") router.push("/discover");
+    else if (tabKey === "saved"    && activeTab !== "saved")    router.push("/saved-items");
+    else if (tabKey === "profile"  && activeTab !== "profile")  router.push("/profile");
   };
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      {/* Thin top divider */}
+      <View style={styles.topBorder} />
+
       <View style={styles.container}>
         {FIVE_TABS.map((tab) => {
           const isActive =
             activeTab === tab.key ||
-            (activeTab === "wall" && tab.key === "home") ||
-            (activeTab === "mentors" && tab.key === "discover") ||
+            (activeTab === "wall"      && tab.key === "home")     ||
+            (activeTab === "mentors"   && tab.key === "discover") ||
             (activeTab === "gratitude" && tab.key === "saved");
 
           const isCreate = tab.key === "create";
-          const iconColor = isActive || isCreate ? tab.activeColor : "#777777";
 
           return (
             <TouchableOpacity
               key={tab.key}
-              activeOpacity={0.75}
+              activeOpacity={0.7}
               onPress={() => handleTabPress(tab.key)}
-              style={[styles.tabButton, isCreate && styles.createTabButton]}
+              style={[styles.tabButton, isCreate && styles.createTabOuter]}
               accessibilityRole="button"
               accessibilityLabel={tab.label}
               accessibilityState={{ selected: isActive }}
             >
-              {isActive && !isCreate && (
-                <View style={[styles.activePillIndicator, { backgroundColor: tab.activeColor }]} />
-              )}
               {isCreate ? (
-                <View style={styles.createButtonCircle}>
-                  <Ionicons name="add" size={25} color={Palette.textOnPrimary} />
+                /* Raised circle Create button */
+                <View style={styles.createCircle}>
+                  <Ionicons name="add" size={28} color="#111111" />
                 </View>
               ) : (
-                <Ionicons
-                  name={isActive ? tab.activeIcon : tab.icon}
-                  size={21}
-                  color={iconColor}
-                />
+                <>
+                  <Ionicons
+                    name={isActive ? tab.activeIcon : tab.icon}
+                    size={22}
+                    color={isActive ? "#111111" : "#9A9A9A"}
+                  />
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      isActive && styles.tabLabelActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {tab.label}
+                  </Text>
+                </>
               )}
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isActive && { color: tab.activeColor, fontWeight: "800" },
-                ]}
-                numberOfLines={1}
-              >
-                {tab.label}
-              </Text>
+              {/* Show label below Create too */}
+              {isCreate && (
+                <Text style={styles.tabLabel} numberOfLines={1}>
+                  {tab.label}
+                </Text>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -131,56 +125,65 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: 6,
     backgroundColor: "#FFFFFF",
     zIndex: 99,
-    borderTopWidth: 1,
-    borderTopColor: "#E8E8E8",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  topBorder: {
+    height: 1,
+    backgroundColor: "#EBEBEB",
   },
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
-    height: 58,
+    alignItems: "flex-end",
+    height: 60,
+    paddingHorizontal: 4,
+    paddingBottom: 4,
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 6,
   },
   tabButton: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 6,
-    position: "relative",
+    justifyContent: "flex-end",
+    paddingBottom: 4,
+    gap: 3,
   },
-  createTabButton: {
-    transform: [{ translateY: -5 }],
+  /* Create button lifts above the bar */
+  createTabOuter: {
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingBottom: 4,
+    gap: 3,
+    transform: [{ translateY: -6 }],
   },
-  createButtonCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#FFFFFF",
+  createCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#F0F0F0",
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: "#E0E0E0",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  activePillIndicator: {
-    position: "absolute",
-    top: 0,
-    width: 20,
-    height: 3,
-    borderRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 4,
   },
   tabLabel: {
     fontSize: 10,
-    fontWeight: "600",
-    color: "#777777",
-    marginTop: 3,
+    fontWeight: "500",
+    color: "#9A9A9A",
+    letterSpacing: 0.1,
+  },
+  tabLabelActive: {
+    color: "#111111",
+    fontWeight: "700",
   },
 });

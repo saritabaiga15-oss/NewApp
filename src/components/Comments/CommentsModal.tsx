@@ -80,6 +80,13 @@ export default function CommentsModal({
   };
 
   const handleDelete = (commentId: string) => {
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined" && window.confirm("Are you sure you want to delete your comment?")) {
+        commentService.deleteComment(commentId);
+      }
+      return;
+    }
+
     Alert.alert("Delete Comment", "Are you sure you want to delete your comment?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -88,6 +95,12 @@ export default function CommentsModal({
         onPress: () => commentService.deleteComment(commentId),
       },
     ]);
+  };
+
+  const handleToggleLike = (commentId: string) => {
+    if (commentService.toggleLike(commentId)) {
+      setComments(commentService.getComments(targetId));
+    }
   };
 
   const handleReport = (comment: CommentItem) => {
@@ -165,9 +178,11 @@ export default function CommentsModal({
           {/* Action Row */}
           <View style={styles.actionsBar}>
             <TouchableOpacity
-              onPress={() => commentService.toggleLike(item.id)}
+              onPress={() => handleToggleLike(item.id)}
               style={styles.actionBtn}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={item.isLiked ? "Unlike comment" : "Like comment"}
             >
               <Ionicons
                 name={item.isLiked ? "heart" : "heart-outline"}
