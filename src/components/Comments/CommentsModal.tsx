@@ -115,6 +115,22 @@ export default function CommentsModal({
     );
   };
 
+  const handleHide = (comment: CommentItem) => {
+    Alert.alert(
+      "Hide Comment",
+      "Hide this comment from your view?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Hide",
+          onPress: () => {
+            commentService.hideComment(comment.id);
+          },
+        },
+      ]
+    );
+  };
+
   const renderComment = ({ item }: { item: CommentItem }) => {
     const isReply = Boolean(item.parentId);
 
@@ -193,16 +209,26 @@ export default function CommentsModal({
                 </TouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity
-                onPress={() => handleReport(item)}
-                style={styles.actionBtn}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="flag-outline" size={13} color={Palette.textMuted} />
-                <Text style={styles.actionLabel}>Report</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+              <>
+                <TouchableOpacity
+                  onPress={() => handleHide(item)}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="eye-off-outline" size={13} color={Palette.textMuted} />
+                  <Text style={styles.actionLabel}>Hide</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleReport(item)}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="flag-outline" size={13} color={Palette.textMuted} />
+                  <Text style={styles.actionLabel}>Report</Text>
+                </TouchableOpacity>
+              </>
+            )}          </View>
         </View>
       </View>
     );

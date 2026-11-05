@@ -15,70 +15,90 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/constants/theme";
+import { AppFonts, Palette } from "@/constants/theme";
 import { api, setAuthToken } from "@/services/api";
 import { userProfileService } from "@/services/userProfileService";
+import { GoogleLogo, AppleLogo, FacebookLogo } from "@/components/SocialLogos";
 
 export default function Login() {
   const insets = useSafeAreaInsets();
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [authMode, setAuthMode] = useState<"email" | "phone">("email");
+
+  // Email form fields
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Phone form fields
+  const countryCode = "+91";
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = async () => {
-    const trimmed = usernameOrEmail.trim();
-    if (!trimmed || !password) {
-      setErrorMessage("Please enter your email, username, or phone number and password.");
-      return;
-    }
-
+  // Instant Default Email Login Handler (local mode until backend is connected)
+  const handleEmailLogin = async () => {
+    const trimmedEmail = email.trim() || "mentor@example.com";
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      const res = await api.auth.login({
-        emailOrUsername: trimmed,
-        password: password,
+      await setAuthToken("default-token-" + Date.now());
+      const userName = trimmedEmail.includes("@")
+        ? trimmedEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+        : trimmedEmail;
+
+      await userProfileService.updateProfile({
+        name: userName || "Anita Sharma's Student",
+        username: trimmedEmail.split("@")[0] || "mentor_student",
+        email: trimmedEmail.includes("@") ? trimmedEmail : `${trimmedEmail}@example.com`,
+        bio: "Remembering the mentors and guides who shaped my life.",
       });
 
-      if (res?.data?.accessToken) {
-        await setAuthToken(res.data.accessToken, res.data.refreshToken);
-        if (res.data.user) {
-          await userProfileService.updateProfile({
-            name: res.data.user.name || trimmed.split("@")[0],
-            username: res.data.user.username || res.data.user.email?.split("@")[0] || trimmed.split("@")[0],
-            email: res.data.user.email || (trimmed.includes("@") ? trimmed : ""),
-            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
-            avatarUri:
-              res.data.user.avatarUri ||
-              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
-          });
-        }
-        await userProfileService.syncWithBackend();
-        router.replace("/home");
-      } else {
-        router.replace("/home");
-      }
-    } catch (err: any) {
-      const errMsg = (err.message || "").toLowerCase();
-      if (
-        errMsg.includes("bad credentials") ||
-        errMsg.includes("401") ||
-        errMsg.includes("invalid") ||
-        errMsg.includes("unauthorized")
-      ) {
-        setErrorMessage("Invalid email, username, phone number, or password. Please try again.");
-      } else {
-        // No backend/network available — auto-proceed in demo mode
-        await userProfileService.updateProfile({
-          name: trimmed.split("@")[0],
-          username: trimmed.split("@")[0],
-          email: trimmed.includes("@") ? trimmed : "",
-        });
-        router.replace("/home");
-      }
+      router.replace("/home");
+    } catch {
+      router.replace("/home");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Instant Default Phone Login Handler
+  const handlePhoneLogin = async () => {
+    const trimmedPhone = phoneNumber.trim().replace(/\s+/g, "") || "9876543210";
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      await setAuthToken("default-token-phone-" + Date.now());
+      await userProfileService.updateProfile({
+        name: "Mentor Explorer",
+        username: `user_${trimmedPhone.slice(-4)}`,
+        phone: `${countryCode} ${trimmedPhone}`,
+        bio: "Remembering the mentors and guides who shaped my life.",
+      });
+      router.replace("/home");
+    } catch {
+      router.replace("/home");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Instant Default Social Login Handler
+  const handleSocialLogin = async (provider: string) => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      await setAuthToken(`default-token-${provider.toLowerCase()}-` + Date.now());
+      await userProfileService.updateProfile({
+        name: `${provider} User`,
+        username: `${provider.toLowerCase()}_user`,
+        bio: "Remembering the mentors and guides who shaped my life.",
+      });
+      router.replace("/home");
+    } catch {
+      router.replace("/home");
     } finally {
       setLoading(false);
     }
@@ -88,7 +108,7 @@ export default function Login() {
     <View style={styles.background}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Fresh Mint Mist Ambient Aura */}
+      {/* Fresh Mint Ambient Aura */}
       <View style={styles.ambientAura} />
 
       <KeyboardAvoidingView
@@ -127,66 +147,151 @@ export default function Login() {
             <Text style={styles.subtitle}>Sign in to honour those who shaped you</Text>
           </View>
 
-          {/* Input Form Fields */}
+          {/* Form Container */}
           <View style={styles.formContainer}>
-            {/* Username or Email Input */}
-            <View style={styles.inputCard}>
-              <Ionicons
-                name="person"
-                size={20}
-                color={Palette.oceanTeal}
-                style={styles.inputLeadingIcon}
-              />
-              <View style={styles.inputDivider} />
-              <TextInput
-                value={usernameOrEmail}
-                onChangeText={setUsernameOrEmail}
-                placeholder="Email, username, or phone number"
-                placeholderTextColor={Palette.textMuted}
-                style={styles.textInput}
-                autoCapitalize="none"
-                autoCorrect={false}
-                selectionColor={Palette.oceanTeal}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputCard}>
-              <Ionicons
-                name="lock-closed"
-                size={20}
-                color={Palette.oceanTeal}
-                style={styles.inputLeadingIcon}
-              />
-              <View style={styles.inputDivider} />
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                placeholderTextColor={Palette.textMuted}
-                secureTextEntry={!showPassword}
-                style={styles.textInput}
-                autoCapitalize="none"
-                autoCorrect={false}
-                selectionColor={Palette.oceanTeal}
-              />
+            {/* Mode Selector Tabs: Email / Phone */}
+            <View style={styles.tabContainer}>
               <TouchableOpacity
-                onPress={() => setShowPassword((prev) => !prev)}
-                activeOpacity={0.7}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                style={styles.eyeToggle}
-                accessibilityRole="button"
-                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                onPress={() => {
+                  setAuthMode("email");
+                  setErrorMessage(null);
+                }}
+                activeOpacity={0.8}
+                style={[styles.tabButton, authMode === "email" && styles.tabButtonActive]}
               >
                 <Ionicons
-                  name={showPassword ? "eye" : "eye-outline"}
-                  size={22}
-                  color={Palette.turquoise}
+                  name="mail-outline"
+                  size={16}
+                  color={authMode === "email" ? "#000000" : "#A0A0A0"}
                 />
+                <Text style={[styles.tabButtonText, authMode === "email" && styles.tabButtonTextActive]}>
+                  Email
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setAuthMode("phone");
+                  setErrorMessage(null);
+                }}
+                activeOpacity={0.8}
+                style={[styles.tabButton, authMode === "phone" && styles.tabButtonActive]}
+              >
+                <Ionicons
+                  name="call-outline"
+                  size={16}
+                  color={authMode === "phone" ? "#000000" : "#A0A0A0"}
+                />
+                <Text style={[styles.tabButtonText, authMode === "phone" && styles.tabButtonTextActive]}>
+                  Phone
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Error Message */}
+            {/* Mode 1: Email & Password */}
+            {authMode === "email" && (
+              <>
+                {/* Email Input */}
+                <View style={styles.inputCard}>
+                  <Ionicons
+                    name="mail-outline"
+                    size={20}
+                    color={Palette.oceanTeal}
+                    style={styles.inputLeadingIcon}
+                  />
+                  <View style={styles.inputDivider} />
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email address"
+                    placeholderTextColor={Palette.textMuted}
+                    style={styles.textInput}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="email-address"
+                    selectionColor={Palette.oceanTeal}
+                  />
+                </View>
+
+                {/* Password Input */}
+                <View style={styles.inputCard}>
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={20}
+                    color={Palette.oceanTeal}
+                    style={styles.inputLeadingIcon}
+                  />
+                  <View style={styles.inputDivider} />
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    placeholderTextColor={Palette.textMuted}
+                    secureTextEntry={!showPassword}
+                    style={styles.textInput}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    selectionColor={Palette.oceanTeal}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword((prev) => !prev)}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    style={styles.eyeToggle}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye" : "eye-outline"}
+                      size={22}
+                      color={Palette.turquoise}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Forgot Password Link */}
+                <TouchableOpacity
+                  style={styles.forgotPasswordContainer}
+                  activeOpacity={0.7}
+                  onPress={() => router.push("/forgot-password")}
+                >
+                  <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Mode 2: Phone Number */}
+            {authMode === "phone" && (
+              <>
+                <View style={styles.inputCard}>
+                  <Ionicons
+                    name="call-outline"
+                    size={20}
+                    color={Palette.oceanTeal}
+                    style={styles.inputLeadingIcon}
+                  />
+                  <View style={styles.inputDivider} />
+                  {/* Country Code Badge */}
+                  <View style={styles.countryCodeBadge}>
+                    <Text style={styles.countryCodeText}>{countryCode}</Text>
+                  </View>
+                  <TextInput
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    placeholder="Enter your mobile number"
+                    placeholderTextColor={Palette.textMuted}
+                    style={styles.textInput}
+                    keyboardType="phone-pad"
+                    selectionColor={Palette.oceanTeal}
+                  />
+                </View>
+                <Text style={styles.phoneHintText}>
+                  We will use your mobile number to sign you into your personal keepsake space.
+                </Text>
+              </>
+            )}
+
+            {/* Error Message Banner */}
             {errorMessage && (
               <View style={styles.errorContainer}>
                 <Ionicons name="alert-circle" size={16} color="#FF6B6B" />
@@ -194,19 +299,10 @@ export default function Login() {
               </View>
             )}
 
-            {/* Password Forgot Link */}
-            <TouchableOpacity
-              style={styles.forgotPasswordContainer}
-              activeOpacity={0.7}
-              onPress={() => router.push("/forgot-password")}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
-
-            {/* Primary Login Button (Ocean Teal) */}
+            {/* Primary Submit Button */}
             <TouchableOpacity
               style={[styles.loginButtonWrapper, loading && { opacity: 0.7 }]}
-              onPress={handleLogin}
+              onPress={authMode === "email" ? handleEmailLogin : handlePhoneLogin}
               activeOpacity={0.88}
               disabled={loading}
             >
@@ -214,10 +310,52 @@ export default function Login() {
                 {loading ? (
                   <ActivityIndicator color={Palette.textOnPrimary} size="small" />
                 ) : (
-                  <Text style={styles.loginButtonText}>Login</Text>
+                  <Text style={styles.loginButtonText}>
+                    {authMode === "email" ? "Login with Email" : "Continue with Phone"}
+                  </Text>
                 )}
               </View>
             </TouchableOpacity>
+
+            {/* Divider "Or continue with" */}
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or continue with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Real Social Logos (Google, Apple, Facebook) */}
+            <View style={styles.socialRow}>
+              <TouchableOpacity
+                onPress={() => handleSocialLogin("Google")}
+                activeOpacity={0.8}
+                style={styles.socialBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Google"
+              >
+                <GoogleLogo size={22} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleSocialLogin("Apple")}
+                activeOpacity={0.8}
+                style={styles.socialBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Apple"
+              >
+                <AppleLogo size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleSocialLogin("Facebook")}
+                activeOpacity={0.8}
+                style={styles.socialBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Facebook"
+              >
+                <FacebookLogo size={22} />
+              </TouchableOpacity>
+            </View>
 
             {/* Don't have an account link */}
             <View style={styles.registerRow}>
@@ -241,7 +379,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
-    backgroundColor: Palette.iceWhite, // Ice White background
+    backgroundColor: Palette.iceWhite,
   },
   ambientAura: {
     position: "absolute",
@@ -264,23 +402,24 @@ const styles = StyleSheet.create({
   /* Header / Logo */
   headerSection: {
     alignItems: "center",
-    marginBottom: 26,
+    marginBottom: 20,
   },
   logoContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   logoImage: {
-    width: 82,
-    height: 84,
+    width: 124,
+    height: 96,
   },
   title: {
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: "800",
     letterSpacing: -0.3,
     textAlign: "center",
     marginBottom: 6,
+    fontFamily: AppFonts.displaySans,
   },
   welcomeText: {
     color: Palette.cream,
@@ -291,11 +430,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   subtitle: {
-    fontSize: 14.5,
+    fontSize: 14,
     color: Palette.textSecondary,
     textAlign: "center",
     fontWeight: "500",
     letterSpacing: 0.1,
+    fontFamily: AppFonts.body,
   },
 
   /* Form */
@@ -304,11 +444,50 @@ const styles = StyleSheet.create({
     maxWidth: 390,
     alignSelf: "center",
   },
+
+  /* Mode Switcher Tabs */
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "#1C1C1C",
+    borderRadius: 24,
+    padding: 4,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  tabButtonActive: {
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabButtonText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#888888",
+    fontFamily: AppFonts.body,
+  },
+  tabButtonTextActive: {
+    color: "#000000",
+    fontWeight: "800",
+  },
+
   inputCard: {
     flexDirection: "row",
     alignItems: "center",
     height: 56,
-    backgroundColor: Palette.pureWhite, // Pure White input
+    backgroundColor: Palette.pureWhite,
     borderRadius: 28,
     borderWidth: 1.2,
     borderColor: Palette.borderSubtle,
@@ -329,17 +508,35 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(84, 0, 14, 0.14)",
     marginHorizontal: 12,
   },
+  countryCodeBadge: {
+    paddingRight: 8,
+  },
+  countryCodeText: {
+    color: Palette.deepTeal,
+    fontSize: 14.5,
+    fontWeight: "700",
+  },
   textInput: {
     flex: 1,
     color: Palette.deepTeal,
-    fontSize: 15.5,
+    fontSize: 15,
     fontWeight: "600",
     paddingVertical: 0,
+    fontFamily: AppFonts.body,
   },
   eyeToggle: {
     padding: 4,
     justifyContent: "center",
     alignItems: "center",
+  },
+  phoneHintText: {
+    color: Palette.textSecondary,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: -8,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    fontFamily: AppFonts.body,
   },
 
   /* Error Banner */
@@ -365,17 +562,17 @@ const styles = StyleSheet.create({
   /* Forgot Password */
   forgotPasswordContainer: {
     alignSelf: "flex-end",
-    marginTop: -2,
-    marginBottom: 24,
+    marginTop: -4,
+    marginBottom: 20,
     paddingVertical: 4,
   },
   forgotPasswordText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: "700",
   },
 
-  /* Primary Login Button */
+  /* Primary Button */
   loginButtonWrapper: {
     borderRadius: 28,
     overflow: "hidden",
@@ -384,19 +581,63 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 14,
     elevation: 6,
+    marginBottom: 18,
   },
   loginButton: {
-    height: 56,
-    backgroundColor: Palette.oceanTeal, // Ocean Teal primary button
+    height: 54,
+    backgroundColor: Palette.oceanTeal,
     borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
   },
   loginButtonText: {
     color: "#000000",
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 16.5,
+    fontWeight: "800",
     letterSpacing: 0.3,
+    fontFamily: AppFonts.displaySans,
+  },
+
+  /* Divider Row */
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 14,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  dividerText: {
+    color: Palette.textMuted,
+    fontSize: 12,
+    paddingHorizontal: 12,
+    fontWeight: "600",
+  },
+
+  /* Social Logins */
+  socialRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 22,
+  },
+  socialBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#181818",
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   /* Register link row */
@@ -404,7 +645,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 4,
   },
   registerPrompt: {
     fontSize: 14,

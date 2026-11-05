@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -16,21 +16,15 @@ import { Ionicons } from "@expo/vector-icons";
 
 import BottomNavigation from "@/components/home/BottomNavigation";
 import { AppFonts, MaxContentWidth, Palette } from "@/constants/theme";
-import { memoryService } from "@/services/memoryService";
-import { storyBookmarkService } from "@/services/storyBookmarkService";
-import { tributeDraftService } from "@/services/tributeDraftService";
 import { UserProfile, userProfileService } from "@/services/userProfileService";
 import { followService } from "@/services/followService";
 import ConnectionsModal from "@/components/profile/ConnectionsModal";
 import VideoUploadModal from "@/components/Create/VideoUploadModal";
-import { signOut } from "@/services/auth";import type { WallItem } from "@/types/memoryWall";
+import { signOut } from "@/services/auth";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile>(() =>
     userProfileService.getProfile()
-  );
-  const [items, setItems] = useState<WallItem[]>(() =>
-    memoryService.getUserCreatedItems()
   );
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -54,24 +48,16 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    const syncItems = () => setItems(memoryService.getUserCreatedItems());
-    const unsubscribeMemory = memoryService.subscribe(syncItems);
-    const unsubscribeTributes = tributeDraftService.subscribe(syncItems);
     const unsubscribeFollow = followService.subscribe(refreshConnections);
 
     let mounted = true;
     Promise.all([
-      memoryService.initialize(),
       userProfileService.initialize(),
-      tributeDraftService.initialize(),
-      storyBookmarkService.initialize(),
       followService.initialize(),
     ])
       .then(() => {
         if (!mounted) return;
         setProfile(userProfileService.getProfile());
-        memoryService.getAllMemories();
-        syncItems();
         refreshConnections();
         setLoadError(null);
       })
@@ -85,46 +71,9 @@ export default function ProfileScreen() {
 
     return () => {
       mounted = false;
-      unsubscribeMemory();
-      unsubscribeTributes();
       unsubscribeFollow();
     };
   }, []);
-
-  const tributes = useMemo(() => {
-    memoryService.getAllMemories();
-    return tributeDraftService
-      .getSavedKeepsakes()
-      .map((keepsake) => {
-        const currentItem = memoryService.getMemoryById(keepsake.id);
-        return {
-          kind: "tribute" as const,
-          id: keepsake.id,
-          mentorName: keepsake.mentorName,
-          relationship: keepsake.relationship,
-          photoUri: keepsake.photoUri,
-          quote: keepsake.quote,
-          title: keepsake.customTitle || `Appreciation for ${keepsake.mentorName}`,
-          story: keepsake.story,
-          createdAt: keepsake.createdAt,
-          templateId: keepsake.templateId,
-          isPinned: currentItem?.isPinned,
-          mentorId: currentItem?.mentorId,
-        };
-      })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [items]);
-
-  const draftsCount = useMemo(() => {
-    return tributeDraftService.getDrafts().length;
-  }, [items]);
-
-  const openMemory = (item: WallItem) => {
-    router.push({
-      pathname: "/memory-detail/[id]",
-      params: { id: item.id },
-    });
-  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -270,7 +219,6 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentPink}
               icon="heart"
               title="Tributes"
-              count={tributes.length || 3}
               subtitle="Published tributes"
               onPress={() => router.push("/tributes")}
             />
@@ -280,7 +228,6 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentMint}
               icon="sparkles"
               title="Appreciation Posts"
-              count={items.length || 7}
               subtitle="Gratitude dedications"
               onPress={() => router.push("/memory-wall")}
             />
@@ -290,7 +237,6 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentLavender}
               icon="document-text"
               title="Notes"
-              count={4}
               subtitle="Stationery & thoughts"
               onPress={() => router.push({ pathname: "/creation-studio", params: { mode: "note" } })}
             />
@@ -300,7 +246,6 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentPeach}
               icon="mail"
               title="Letters"
-              count={2}
               subtitle="Heartfelt messages"
               onPress={() => router.push({ pathname: "/creation-studio", params: { mode: "letter" } })}
             />
@@ -310,7 +255,6 @@ export default function ProfileScreen() {
               badgeBg={Palette.accentSky}
               icon="videocam"
               title="Videos"
-              count={1}
               subtitle="Spoken reflections"
               onPress={() => setIsVideoModalOpen(true)}
             />
@@ -320,7 +264,6 @@ export default function ProfileScreen() {
               badgeBg="#FDE047"
               icon="time"
               title="Saved Drafts"
-              count={draftsCount || 1}
               subtitle="Works in progress"
               onPress={() => router.push("/saved-items")}
             />
@@ -385,7 +328,6 @@ export default function ProfileScreen() {
       <VideoUploadModal
         visible={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onSuccess={() => setItems(memoryService.getUserCreatedItems())}
       />
     </SafeAreaView>
   );
@@ -395,14 +337,12 @@ function ActivityCard({
   badgeBg,
   icon,
   title,
-  count,
   subtitle,
   onPress,
 }: {
   badgeBg: string;
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
-  count: number;
   subtitle: string;
   onPress: () => void;
 }) {
@@ -412,13 +352,12 @@ function ActivityCard({
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
-      accessibilityLabel={`${title}, ${count} items. ${subtitle}`}
+      accessibilityLabel={`${title}. ${subtitle}`}
     >
       <View style={styles.activityCardTop}>
         <View style={[styles.activityIconWrap, { backgroundColor: badgeBg }]}>
           <Ionicons name={icon} size={16} color="#111111" />
         </View>
-        <Text style={styles.activityCount}>{count}</Text>
       </View>
       <Text style={styles.activityTitle}>{title}</Text>
       <Text style={styles.activitySub} numberOfLines={1}>
@@ -707,12 +646,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-  },
-  activityCount: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: "#FFFFFF",
-    fontFamily: AppFonts.body,
   },
   activityTitle: {
     fontSize: 13.5,

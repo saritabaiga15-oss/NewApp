@@ -32,6 +32,7 @@ import TimelinePreview, { TimelineNode } from "../components/home/TimelinePrevie
 import QuickAction from "../components/home/QuickAction";
 import BottomNavigation, { NavTab } from "../components/home/BottomNavigation";
 import AddMemoryModal from "../components/home/AddMemoryModal";
+import NotificationsModal from "../components/home/NotificationsModal";
 import VoiceRecorderModal, {
   RecordedVoiceNote,
 } from "../components/home/VoiceRecorderModal";
@@ -469,6 +470,8 @@ export default function HomeScreen() {
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [mentorsList, setMentorsList] = useState<MentorData[]>(MENTORS_DATA);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(3);
   const [isVoiceRecorderOpen, setIsVoiceRecorderOpen] = useState(false);
   const [selectedAchievementModal, setSelectedAchievementModal] = useState<AchievementData | null>(null);
   const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
@@ -1167,6 +1170,11 @@ export default function HomeScreen() {
         visible={isVoiceRecorderOpen}
         onClose={() => setIsVoiceRecorderOpen(false)}
         onSave={handleSaveVoiceRecording}
+      />
+      <NotificationsModal
+        visible={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        onUnreadCountChange={setUnreadNotificationsCount}
       />
       <AchievementDetailModal
         visible={isAchievementModalOpen}

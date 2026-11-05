@@ -63,6 +63,7 @@ class CommentService {
   private comments: CommentItem[] = [...DEFAULT_COMMENTS];
   private listeners: Array<() => void> = [];
   private initialized = false;
+  private hiddenCommentIds = new Set<string>();
 
   async initialize() {
     if (this.initialized) return;
@@ -90,10 +91,11 @@ class CommentService {
 
   getComments(targetId?: string): CommentItem[] {
     if (!targetId || targetId === "default") {
-      return this.comments;
+      return this.comments.filter((c) => !this.hiddenCommentIds.has(c.id));
     }
     const specific = this.comments.filter((c) => c.targetId === targetId);
-    return specific.length > 0 ? specific : this.comments;
+    const active = specific.length > 0 ? specific : this.comments;
+    return active.filter((c) => !this.hiddenCommentIds.has(c.id));
   }
 
   addComment(params: {
@@ -159,6 +161,12 @@ class CommentService {
       return true;
     }
     return false;
+  }
+
+  hideComment(id: string): boolean {
+    this.hiddenCommentIds.add(id);
+    this.notify();
+    return true;
   }
 
   reportComment(id: string, reason: string): boolean {

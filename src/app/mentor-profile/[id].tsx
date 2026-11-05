@@ -515,6 +515,30 @@ export default function MentorProfileScreen() {
     }
   };
 
+  const handleRemoveMentor = () => {
+    setIsMenuVisible(false);
+    if (!mentor) return;
+    Alert.alert(
+      "Remove Mentor",
+      `Are you sure you want to remove ${mentor.name} from your mentors? Associated memories will remain preserved.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => {
+            memoryService.deleteMentor(mentor.id);
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/home");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleOpenEditModal = () => {
     setIsMenuVisible(false);
     if (!mentor) return;
@@ -1140,6 +1164,14 @@ export default function MentorProfileScreen() {
             >
               <Ionicons name="share-social-outline" size={18} color={Palette.textPrimary} />
               <Text style={styles.menuItemText}>Share Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleRemoveMentor}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+              <Text style={[styles.menuItemText, { color: "#FF6B6B" }]}>Remove Mentor</Text>
             </TouchableOpacity>
           </View>
         </>

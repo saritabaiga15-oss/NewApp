@@ -49,8 +49,7 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         String identifier = request.getEmailOrUsername().trim();
 
-        User user = userRepository.findByEmail(identifier.toLowerCase())
-                .or(() -> userRepository.findByUsername(identifier.toLowerCase()))
+        User user = findUserByIdentifier(identifier)
                 .orElseThrow(() -> new UnauthorizedException("Invalid email/username or password"));
 
         authenticationManager.authenticate(
@@ -152,30 +151,6 @@ public class AuthService {
                 .build();
     }
 
-<<<<<<< HEAD
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
-        String identifier = request.getEmailOrUsername().trim();
-
-        User user = findUserByIdentifier(identifier)
-                .orElseThrow(() -> new UnauthorizedException("Invalid email/username or password"));
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword())
-        );
-
-        String accessToken = jwtService.generateAccessToken(user, user.getId());
-        String refreshToken = jwtService.generateRefreshToken(user);
-
-        UserProfileDto userDto = userService.getProfileByUserId(user.getId());
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .user(userDto)
-                .build();
-    }
-
     private java.util.Optional<User> findUserByIdentifier(String identifier) {
         if (isPhoneIdentifier(identifier)) {
             java.util.Optional<User> phoneUser = userProfileRepository.findByPhone(normalizePhone(identifier))
@@ -206,30 +181,6 @@ public class AuthService {
         return normalized;
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String refreshToken = request.getRefreshToken();
-        String username = jwtService.extractUsername(refreshToken);
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
-
-        if (!jwtService.isTokenValid(refreshToken, user)) {
-            throw new UnauthorizedException("Expired or invalid refresh token");
-        }
-
-        String newAccessToken = jwtService.generateAccessToken(user, user.getId());
-        UserProfileDto userDto = userService.getProfileByUserId(user.getId());
-
-        return AuthResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
-                .user(userDto)
-                .build();
-    }
-
-=======
->>>>>>> 1a6857c79cdb99c03b439158ca0bd78966c6c94e
     @Transactional
     public String requestPasswordReset(ForgotPasswordRequest request) {
         String email = request.getEmail().trim().toLowerCase();

@@ -105,11 +105,8 @@ export default function TributePreviewScreen() {
       await tributeDraftService.saveCompletedTribute(design);
       setIsSaved(true);
       showToast("Appreciation card saved to your collection!");
-      Alert.alert(
-        "Appreciation Saved",
-        `Your card for ${design.mentorName} is now safely preserved in your personal collection.`,
-        [{ text: "Cherish It", style: "default" }]
-      );
+      // Saved & dedication email dispatched — immediately close to Memory Wall
+      router.replace("/memory-wall");
     } catch (error) {
       console.error("Unable to save appreciation card:", error);
       Alert.alert("Could not save card", "Please try again.");
@@ -144,18 +141,8 @@ export default function TributePreviewScreen() {
       await tributeDraftService.saveCompletedTribute(design);
       setIsSaved(true);
       showToast("Added to Memory Wall!");
-      Alert.alert(
-        "Memory Wall",
-        `Your appreciation card for ${design.mentorName} has been added to your Memory Wall.`,
-        [
-          {
-            text: "View Memory Wall",
-            onPress: () => {
-              router.push("/memory-wall");
-            },
-          },
-        ]
-      );
+      // Saved & dedication email dispatched — immediately close to Memory Wall
+      router.replace("/memory-wall");
     } catch (error) {
       console.error("Unable to add tribute to the Memory Wall:", error);
       Alert.alert("Could not save appreciation card", "Please try again.");

@@ -4,7 +4,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,15 +30,6 @@ export default function FeelingPrompts({
             Explore stories guided by human emotion and memory
           </Text>
         </View>
-        {selectedThemeId && (
-          <TouchableOpacity
-            onPress={() => onSelectTheme(selectedThemeId)}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.resetText}>Clear</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       <View style={styles.grid}>
@@ -202,12 +192,6 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: Palette.textSecondary,
     marginTop: 3,
-  },
-  resetText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Palette.turquoise,
-    marginTop: 2,
   },
   grid: {
     flexDirection: "row",

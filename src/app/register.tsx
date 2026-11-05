@@ -57,60 +57,17 @@ export default function Register() {
     setErrorMessage(null);
 
     try {
-      // Immediately initialize local profile with entered details
+      await setAuthToken("default-token-" + Date.now());
       await userProfileService.updateProfile({
         name: trimmedName,
         username: trimmedEmail.split("@")[0] || "user",
         email: trimmedEmail,
         phone: normalizedPhone,
         bio: "Remembering the mentors and guides who shaped my life.",
-        avatarUri:
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
       });
-
-      const res = await api.auth.register({
-        name: trimmedName,
-        email: trimmedEmail,
-        phone: normalizedPhone || undefined,
-        password: password,
-      });
-
-      if (res?.data?.accessToken) {
-        await setAuthToken(res.data.accessToken, res.data.refreshToken);
-        if (res.data.user) {
-          await userProfileService.updateProfile({
-            name: res.data.user.name || trimmedName,
-            username: res.data.user.username || res.data.user.email?.split("@")[0] || trimmedEmail.split("@")[0],
-            email: res.data.user.email || trimmedEmail,
-            phone: res.data.user.phone || normalizedPhone,
-            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
-            avatarUri:
-              res.data.user.avatarUri ||
-              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
-          });
-        }
-        router.replace("/home");
-      } else {
-        router.replace("/home");
-      }
-    } catch (err: any) {
-      const msg = err.message || "Registration failed";
-      if (
-        msg.toLowerCase().includes("already registered") ||
-        msg.toLowerCase().includes("already exists") ||
-        msg.toLowerCase().includes("duplicate")
-      ) {
-        setErrorMessage("An account with this email or phone number already exists. Try logging in.");
-      } else {
-        Alert.alert(
-          "Registration Notice",
-          `${msg}. Would you like to proceed to Home in demo mode?`,
-          [
-            { text: "Proceed to Home", onPress: () => router.replace("/home") },
-            { text: "Retry", style: "cancel" },
-          ]
-        );
-      }
+      router.replace("/home");
+    } catch {
+      router.replace("/home");
     } finally {
       setLoading(false);
     }
