@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,6 +21,10 @@ public class UserProfileDto {
     private String coverColor;
     private String phone;
     private String location;
+    private String birthday;
+    private String gender;
+    private List<String> honouring;
+    private boolean setupComplete;
 
     // Privacy Settings
     private String profileVisibility;

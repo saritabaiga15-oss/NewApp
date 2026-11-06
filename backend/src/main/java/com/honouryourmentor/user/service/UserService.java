@@ -2,6 +2,7 @@ package com.honouryourmentor.user.service;
 
 import com.honouryourmentor.common.exception.BadRequestException;
 import com.honouryourmentor.common.exception.ResourceNotFoundException;
+import com.honouryourmentor.common.util.SanitizationUtil;
 import com.honouryourmentor.user.dto.UpdateProfileRequest;
 import com.honouryourmentor.user.dto.UpdateSettingsRequest;
 import com.honouryourmentor.user.dto.UserProfileDto;
@@ -13,6 +14,13 @@ import com.honouryourmentor.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -68,13 +76,14 @@ public class UserService {
                     });
         }
 
-        profile.setBio(request.getBio());
+        profile.setBio(SanitizationUtil.sanitize(request.getBio()));
         profile.setAvatarUri(request.getAvatarUri());
         if (request.getCoverColor() != null && !request.getCoverColor().isBlank()) {
             profile.setCoverColor(request.getCoverColor());
         }
         profile.setPhone(phone);
-        profile.setLocation(request.getLocation());
+        profile.setLocation(SanitizationUtil.sanitize(request.getLocation()));
+        applySetupFields(profile, request);
 
         // Privacy and Notification settings updates if present
         if (request.getProfileVisibility() != null) profile.setProfileVisibility(request.getProfileVisibility());
@@ -91,6 +100,51 @@ public class UserService {
         userProfileRepository.save(profile);
 
         return mapToDto(user, profile);
+    }
+
+    /** Minimum age to hold an account (also enforced in the app). */
+    private static final int MIN_AGE = 10;
+    private static final Set<String> GENDERS = Set.of("female", "male");
+
+    private void applySetupFields(UserProfile profile, UpdateProfileRequest request) {
+        if (request.getBirthday() != null && !request.getBirthday().isBlank()) {
+            LocalDate birthday;
+            try {
+                birthday = LocalDate.parse(request.getBirthday());
+            } catch (DateTimeParseException e) {
+                throw new BadRequestException("Birthday must be a valid date (YYYY-MM-DD)");
+            }
+            LocalDate today = LocalDate.now();
+            if (birthday.isAfter(today)) {
+                throw new BadRequestException("Birthday can't be in the future");
+            }
+            if (Period.between(birthday, today).getYears() < MIN_AGE) {
+                throw new BadRequestException("You need to be at least " + MIN_AGE + " to use Honour Your Mentor");
+            }
+            profile.setBirthday(birthday);
+        }
+
+        if (request.getGender() != null) {
+            String g = request.getGender().trim().toLowerCase();
+            if (!g.isEmpty() && !GENDERS.contains(g)) {
+                throw new BadRequestException("Gender must be 'female' or 'male'");
+            }
+            profile.setGender(g.isEmpty() ? null : g);
+        }
+
+        if (request.getHonouring() != null) {
+            List<String> cleaned = request.getHonouring().stream()
+                    .filter(s -> s != null && !s.isBlank())
+                    .map(String::trim)
+                    .map(SanitizationUtil::sanitize)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+            profile.setHonouring(cleaned.isEmpty() ? null : String.join(",", cleaned));
+        }
+
+        if (request.getSetupComplete() != null) {
+            profile.setSetupComplete(request.getSetupComplete());
+        }
     }
 
     @Transactional
@@ -156,6 +210,12 @@ public class UserService {
                 .coverColor(profile != null ? profile.getCoverColor() : "#54000E")
                 .phone(profile != null ? profile.getPhone() : "")
                 .location(profile != null ? profile.getLocation() : "")
+                .birthday(profile != null && profile.getBirthday() != null ? profile.getBirthday().toString() : null)
+                .gender(profile != null ? profile.getGender() : null)
+                .honouring(profile != null && profile.getHonouring() != null
+                        ? Arrays.asList(profile.getHonouring().split(","))
+                        : List.of())
+                .setupComplete(profile != null && profile.isSetupComplete())
                 .profileVisibility(profile != null && profile.getProfileVisibility() != null ? profile.getProfileVisibility() : "PUBLIC")
                 .defaultTributePrivacy(profile != null && profile.getDefaultTributePrivacy() != null ? profile.getDefaultTributePrivacy() : "PUBLIC")
                 .connectionsVisibility(profile != null && profile.getConnectionsVisibility() != null ? profile.getConnectionsVisibility() : "EVERYONE")
