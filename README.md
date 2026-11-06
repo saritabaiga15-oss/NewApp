@@ -1,56 +1,49 @@
-# Welcome to your Expo app 👋
+# Honour Your Mentor
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A place to honour the teachers, mentors and guides who shaped you: tributes,
+letters, photos, videos and voice notes, shared with the people who follow you.
 
-## Get started
+## Repository layout
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+frontend/   Expo / React Native app (web, iOS, Android)
+backend/    Spring Boot API (Java 21) + Neon PostgreSQL
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Run it locally
 
-### Other setup steps
+### 1. Backend
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+cd backend
+cp .env.example .env      # then fill in the Neon URL, user, password and a JWT_SECRET
+mvn spring-boot:run       # needs JDK 21 + Maven
+```
 
-## Learn more
+The API runs on http://localhost:8080 and applies database migrations
+(`backend/src/main/resources/db/migration`) on startup.
+For a throwaway in-memory database instead of Neon:
+`mvn spring-boot:run -Dspring-boot.run.profiles=dev`.
 
-To learn more about developing your project with Expo, look at the following resources:
+### 2. Frontend
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+cd frontend
+npm install
+npx expo start --web --port 8081
+```
 
-## Join the community
+On localhost the app talks to the backend at http://localhost:8080/api/v1.
+The backend's CORS settings allow http://localhost:8081.
 
-Join our community of developers creating universal apps.
+## Checks
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+cd frontend && npx tsc --noEmit && npx expo lint
+cd backend && mvn test
+```
+
+## Secrets
+
+Never commit real credentials. `backend/.env` is git-ignored;
+`backend/.env.example` documents the variables with placeholders only.

@@ -64,6 +64,20 @@ target/
 
 example
 
-# generated native folders
+# generated native folders (Expo app lives in frontend/)
 /ios
 /android
+frontend/ios
+frontend/android
+
+# Files uploaded to a locally running backend (photos, voice notes, videos)
+uploads/
+backend/uploads/
+
+# Logs and build archives
+*.log
+*.tgz
+
+# Accidental local files
+tatus
+Microsoft/
