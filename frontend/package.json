@@ -51,6 +51,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
     "build": "node ./scripts/clean-dist.js && expo export -p web --clear",
     "build:web": "node ./scripts/clean-dist.js && expo export -p web --clear",
     "build:all": "expo export"

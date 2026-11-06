@@ -1,0 +1,15 @@
+{
+  "name": "honour-your-mentor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Honour Your Mentor - Cross-platform mobile and web application",
+  "scripts": {
+    "start": "npm start --prefix frontend",
+    "web": "npm run web --prefix frontend",
+    "android": "npm run android --prefix frontend",
+    "ios": "npm run ios --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "typecheck": "npm run --prefix frontend typecheck"
+  }
+}
