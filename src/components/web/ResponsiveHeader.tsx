@@ -134,6 +134,17 @@ export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProp
               </TouchableOpacity>
 
               <TouchableOpacity
+                style={styles.bellBtn}
+                onPress={() => router.push("/notifications" as any)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Notifications"
+              >
+                <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
+                <View style={styles.unreadBadgeDot} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.profileBtn}
                 onPress={() => router.push("/profile")}
                 activeOpacity={0.8}
@@ -276,6 +287,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: "#FFFFFF",
+  },
+  bellBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#171717",
+    borderWidth: 1,
+    borderColor: "#2D2D2D",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  unreadBadgeDot: {
+    position: "absolute",
+    top: 6,
+    right: 7,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Palette.accentPink,
+    borderWidth: 1.5,
+    borderColor: "#171717",
   },
   profileBtn: {
     padding: 2,

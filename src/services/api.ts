@@ -106,13 +106,33 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ email, code, newPassword }),
       }),
+    sendPhoneOtp: (phone: string) =>
+      apiRequest("/auth/phone/send-otp", {
+        method: "POST",
+        body: JSON.stringify({ phone }),
+      }),
+    verifyPhoneOtp: (phone: string, code: string) =>
+      apiRequest<{ accessToken: string; refreshToken?: string; user?: any; isNewUser?: boolean; message?: string }>(
+        "/auth/phone/verify-otp",
+        {
+          method: "POST",
+          body: JSON.stringify({ phone, code }),
+        }
+      ),
+    completePhoneProfile: (data: { name: string; email?: string; bio?: string; avatarUri?: string }) =>
+      apiRequest("/auth/phone/complete-profile", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
 
   // Users
   users: {
     me: () => apiRequest("/users/me"),
-    updateMe: (data: { name?: string; bio?: string; avatarUri?: string }) =>
+    updateMe: (data: { name?: string; bio?: string; avatarUri?: string; phone?: string; location?: string }) =>
       apiRequest("/users/me", { method: "PUT", body: JSON.stringify(data) }),
+    updateSettings: (data: Record<string, any>) =>
+      apiRequest("/users/settings", { method: "PUT", body: JSON.stringify(data) }),
   },
 
   // Mentors
@@ -168,6 +188,18 @@ export const api = {
     getComments: (tributeId: string) => apiRequest(`/tributes/${tributeId}/comments`),
     deleteComment: (commentId: string) =>
       apiRequest(`/comments/${commentId}`, { method: "DELETE" }),
+    toggleCommentLike: (commentId: string) =>
+      apiRequest(`/comments/${commentId}/like`, { method: "POST" }),
+    hideComment: (commentId: string) =>
+      apiRequest(`/comments/${commentId}/hide`, { method: "POST" }),
+  },
+
+  // Notifications
+  notifications: {
+    list: () => apiRequest<any[]>("/notifications"),
+    markRead: (id: string) => apiRequest(`/notifications/${id}/read`, { method: "PUT" }),
+    markAllRead: () => apiRequest("/notifications/mark-all-read", { method: "PUT" }),
+    delete: (id: string) => apiRequest(`/notifications/${id}`, { method: "DELETE" }),
   },
 
   // Reminders

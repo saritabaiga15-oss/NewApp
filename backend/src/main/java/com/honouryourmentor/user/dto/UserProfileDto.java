@@ -19,4 +19,18 @@ public class UserProfileDto {
     private String coverColor;
     private String phone;
     private String location;
+
+    // Privacy Settings
+    private String profileVisibility;
+    private String defaultTributePrivacy;
+    private String connectionsVisibility;
+    private Boolean activityStatusEnabled;
+
+    // Notification Preferences
+    private Boolean notifLikes;
+    private Boolean notifComments;
+    private Boolean notifFollowers;
+    private Boolean notifMentorConnections;
+    private Boolean notifMentions;
+    private Boolean notifMessages;
 }

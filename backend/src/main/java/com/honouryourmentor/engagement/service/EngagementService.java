@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,9 @@ public class EngagementService {
     private final TributeRepository tributeRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+
+    // Track user comment likes in memory for fast lookup
+    private final Map<String, Boolean> userCommentLikes = new ConcurrentHashMap<>();
 
     @Transactional
     public LikeStatusDto toggleLike(String tributeId, String userId) {
@@ -98,6 +103,7 @@ public class EngagementService {
                 .userId(userId)
                 .tributeId(tributeId)
                 .content(sanitizedContent)
+                .likesCount(0)
                 .build();
 
         TributeComment saved = commentRepository.save(comment);
@@ -116,6 +122,8 @@ public class EngagementService {
                 .authorName(user.getName())
                 .authorAvatar(avatar)
                 .content(saved.getContent())
+                .likesCount(0)
+                .isLiked(false)
                 .createdAt(saved.getCreatedAt())
                 .build();
     }
@@ -136,10 +144,36 @@ public class EngagementService {
                             .authorName(user != null ? user.getName() : "Anonymous")
                             .authorAvatar(avatar)
                             .content(cmt.getContent())
+                            .likesCount(cmt.getLikesCount())
+                            .isLiked(false)
                             .createdAt(cmt.getCreatedAt())
                             .build();
                 })
                 .toList();
+    }
+
+    @Transactional
+    public LikeStatusDto toggleCommentLike(String commentId, String userId) {
+        TributeComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found: " + commentId));
+
+        String key = userId + ":" + commentId;
+        boolean currentlyLiked = Boolean.TRUE.equals(userCommentLikes.get(key));
+
+        if (currentlyLiked) {
+            userCommentLikes.remove(key);
+            comment.setLikesCount(Math.max(0, comment.getLikesCount() - 1));
+        } else {
+            userCommentLikes.put(key, true);
+            comment.setLikesCount(comment.getLikesCount() + 1);
+        }
+
+        commentRepository.save(comment);
+
+        return LikeStatusDto.builder()
+                .liked(!currentlyLiked)
+                .likesCount(comment.getLikesCount())
+                .build();
     }
 
     @Transactional

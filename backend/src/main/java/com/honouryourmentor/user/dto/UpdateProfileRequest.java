@@ -31,4 +31,18 @@ public class UpdateProfileRequest {
     @Pattern(regexp = "^$|^\\+?[0-9][0-9\\s().-]{5,28}[0-9]$", message = "Invalid phone number")
     private String phone;
     private String location;
+
+    // Privacy Settings
+    private String profileVisibility;
+    private String defaultTributePrivacy;
+    private String connectionsVisibility;
+    private Boolean activityStatusEnabled;
+
+    // Notification Preferences
+    private Boolean notifLikes;
+    private Boolean notifComments;
+    private Boolean notifFollowers;
+    private Boolean notifMentorConnections;
+    private Boolean notifMentions;
+    private Boolean notifMessages;
 }

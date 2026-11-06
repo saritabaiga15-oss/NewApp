@@ -2,6 +2,7 @@ package com.honouryourmentor.user.controller;
 
 import com.honouryourmentor.common.ApiResponse;
 import com.honouryourmentor.user.dto.UpdateProfileRequest;
+import com.honouryourmentor.user.dto.UpdateSettingsRequest;
 import com.honouryourmentor.user.dto.UserProfileDto;
 import com.honouryourmentor.user.dto.UserSummaryDto;
 import com.honouryourmentor.user.entity.User;
@@ -37,6 +38,16 @@ public class UserController {
     ) {
         UserProfileDto updated = userService.updateProfile(currentUser.getId(), request);
         return ResponseEntity.ok(ApiResponse.ok("Profile updated successfully", updated));
+    }
+
+    @PutMapping("/settings")
+    @Operation(summary = "Update user privacy and notification preferences")
+    public ResponseEntity<ApiResponse<UserProfileDto>> updateSettings(
+            @AuthenticationPrincipal User currentUser,
+            @RequestBody UpdateSettingsRequest request
+    ) {
+        UserProfileDto updated = userService.updateSettings(currentUser.getId(), request);
+        return ResponseEntity.ok(ApiResponse.ok("Settings updated successfully", updated));
     }
 
     @GetMapping("/{id}")

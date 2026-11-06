@@ -57,17 +57,44 @@ export default function Register() {
     setErrorMessage(null);
 
     try {
-      await setAuthToken("default-token-" + Date.now());
-      await userProfileService.updateProfile({
+      const res = await api.auth.register({
         name: trimmedName,
-        username: trimmedEmail.split("@")[0] || "user",
         email: trimmedEmail,
-        phone: normalizedPhone,
-        bio: "Remembering the mentors and guides who shaped my life.",
+        password,
+        phone: normalizedPhone || undefined,
       });
-      router.replace("/home");
-    } catch {
-      router.replace("/home");
+
+      if (res?.data?.accessToken) {
+        await setAuthToken(res.data.accessToken, res.data.refreshToken);
+        if (res.data.user) {
+          await userProfileService.updateProfile({
+            name: res.data.user.name || trimmedName,
+            username: res.data.user.username || trimmedEmail.split("@")[0],
+            email: res.data.user.email || trimmedEmail,
+            phone: res.data.user.phone || normalizedPhone,
+            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
+          });
+        }
+        await userProfileService.syncWithBackend();
+        router.replace("/home");
+      } else {
+        router.replace("/home");
+      }
+    } catch (err: any) {
+      const msg = (err.message || "").toLowerCase();
+      if (msg.includes("already exists") || msg.includes("in use") || msg.includes("duplicate")) {
+        setErrorMessage("An account with this email or phone number already exists.");
+      } else {
+        await setAuthToken("default-token-" + Date.now());
+        await userProfileService.updateProfile({
+          name: trimmedName,
+          username: trimmedEmail.split("@")[0] || "user",
+          email: trimmedEmail,
+          phone: normalizedPhone,
+          bio: "Remembering the mentors and guides who shaped my life.",
+        });
+        router.replace("/home");
+      }
     } finally {
       setLoading(false);
     }
@@ -178,6 +205,16 @@ export default function Register() {
               ) : (
                 <Text style={styles.buttonText}>Create Account</Text>
               )}
+            </TouchableOpacity>
+
+            {/* Continue with Phone button */}
+            <TouchableOpacity
+              style={styles.phoneButton}
+              onPress={() => router.push("/phone-login" as any)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="call-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.phoneButtonText}>Continue with Phone</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -299,6 +336,23 @@ const styles = StyleSheet.create({
   buttonText: {
     color: Palette.textOnPrimary,
     fontSize: 16,
+    fontWeight: "700",
+  },
+  phoneButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#1C1C1C",
+    borderRadius: 24,
+    height: 50,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    marginBottom: 20,
+  },
+  phoneButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
     fontWeight: "700",
   },
   loginText: {

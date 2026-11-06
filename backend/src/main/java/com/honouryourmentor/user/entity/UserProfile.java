@@ -39,6 +39,48 @@ public class UserProfile extends BaseEntity {
     @Column(name = "location", length = 120)
     private String location;
 
+    // Privacy Settings
+    @Column(name = "profile_visibility", length = 30)
+    @Builder.Default
+    private String profileVisibility = "PUBLIC";
+
+    @Column(name = "default_tribute_privacy", length = 30)
+    @Builder.Default
+    private String defaultTributePrivacy = "PUBLIC";
+
+    @Column(name = "connections_visibility", length = 30)
+    @Builder.Default
+    private String connectionsVisibility = "EVERYONE";
+
+    @Column(name = "activity_status_enabled")
+    @Builder.Default
+    private Boolean activityStatusEnabled = true;
+
+    // Notification Preferences
+    @Column(name = "notif_likes")
+    @Builder.Default
+    private Boolean notifLikes = true;
+
+    @Column(name = "notif_comments")
+    @Builder.Default
+    private Boolean notifComments = true;
+
+    @Column(name = "notif_followers")
+    @Builder.Default
+    private Boolean notifFollowers = true;
+
+    @Column(name = "notif_mentor_connections")
+    @Builder.Default
+    private Boolean notifMentorConnections = true;
+
+    @Column(name = "notif_mentions")
+    @Builder.Default
+    private Boolean notifMentions = true;
+
+    @Column(name = "notif_messages")
+    @Builder.Default
+    private Boolean notifMessages = true;
+
     @PrePersist
     @Override
     protected void onCreate() {

@@ -32,6 +32,21 @@ public class Notification extends BaseEntity {
     @Builder.Default
     private String type = "GENERAL";
 
+    @Column(name = "actor_id", length = 64)
+    private String actorId;
+
+    @Column(name = "actor_name", length = 120)
+    private String actorName;
+
+    @Column(name = "actor_avatar", columnDefinition = "TEXT")
+    private String actorAvatar;
+
+    @Column(name = "target_id", length = 64)
+    private String targetId;
+
+    @Column(name = "target_type", length = 40)
+    private String targetType;
+
     @Column(name = "is_read", nullable = false)
     @Builder.Default
     private boolean isRead = false;

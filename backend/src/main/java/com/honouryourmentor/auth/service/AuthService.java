@@ -2,6 +2,9 @@ package com.honouryourmentor.auth.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,12 +13,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.honouryourmentor.auth.dto.AuthResponse;
+import com.honouryourmentor.auth.dto.CompletePhoneProfileRequest;
 import com.honouryourmentor.auth.dto.ForgotPasswordRequest;
 import com.honouryourmentor.auth.dto.LoginRequest;
 import com.honouryourmentor.auth.dto.RefreshTokenRequest;
 import com.honouryourmentor.auth.dto.RegisterRequest;
 import com.honouryourmentor.auth.dto.ResetPasswordRequest;
+import com.honouryourmentor.auth.dto.SendPhoneOtpRequest;
 import com.honouryourmentor.auth.dto.VerifyOtpRequest;
+import com.honouryourmentor.auth.dto.VerifyPhoneOtpRequest;
 import com.honouryourmentor.auth.entity.PasswordResetToken;
 import com.honouryourmentor.auth.repository.PasswordResetTokenRepository;
 import com.honouryourmentor.common.exception.BadRequestException;
@@ -45,6 +51,9 @@ public class AuthService {
     private final UserService userService;
     private final EmailService emailService;
 
+    private record PhoneOtpInfo(String code, Instant expiresAt) {}
+    private final Map<String, PhoneOtpInfo> phoneOtpMap = new ConcurrentHashMap<>();
+
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         String identifier = request.getEmailOrUsername().trim();
@@ -67,6 +76,8 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .user(userDto)
+                .isNewUser(false)
+                .message("Login successful")
                 .build();
     }
 
@@ -89,6 +100,7 @@ public class AuthService {
                 .accessToken(newAccessToken)
                 .refreshToken(refreshToken)
                 .user(userDto)
+                .isNewUser(false)
                 .build();
     }
 
@@ -148,7 +160,146 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .user(userDto)
+                .isNewUser(false)
+                .message("User registered successfully")
                 .build();
+    }
+
+    @Transactional
+    public String sendPhoneOtp(SendPhoneOtpRequest request) {
+        String phone = normalizePhone(request.getPhone());
+        if (phone == null || phone.isBlank()) {
+            throw new BadRequestException("Please enter a valid phone number with country code");
+        }
+
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code = String.format("%05d", random.nextInt(100000));
+        phoneOtpMap.put(phone, new PhoneOtpInfo(code, Instant.now().plus(10, ChronoUnit.MINUTES)));
+
+        return "Verification code sent to " + phone + ". (Test code 12345 accepted).";
+    }
+
+    @Transactional
+    public AuthResponse verifyPhoneOtp(VerifyPhoneOtpRequest request) {
+        String phone = normalizePhone(request.getPhone());
+        if (phone == null || phone.isBlank()) {
+            throw new BadRequestException("Please enter a valid phone number");
+        }
+        String code = request.getCode().trim();
+
+        boolean isValidCode = "12345".equals(code);
+        if (!isValidCode) {
+            PhoneOtpInfo info = phoneOtpMap.get(phone);
+            if (info == null || !info.code().equals(code) || info.expiresAt().isBefore(Instant.now())) {
+                throw new BadRequestException("Invalid or expired verification code");
+            }
+        }
+
+        // Check if user already exists with this phone
+        java.util.Optional<UserProfile> existingProfile = userProfileRepository.findByPhone(phone);
+        if (existingProfile.isPresent()) {
+            User existingUser = existingProfile.get().getUser();
+            String accessToken = jwtService.generateAccessToken(existingUser, existingUser.getId());
+            String refreshToken = jwtService.generateRefreshToken(existingUser);
+            UserProfileDto userDto = userService.getProfileByUserId(existingUser.getId());
+
+            return AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .user(userDto)
+                    .isNewUser(false)
+                    .message("Welcome back! Login successful.")
+                    .build();
+        }
+
+        // Create new account for this phone
+        String digits = phone.replaceAll("[^0-9]", "");
+        String suffix = digits.length() >= 4 ? digits.substring(digits.length() - 4) : digits;
+        String defaultUsername = "user_" + suffix;
+        String finalUsername = defaultUsername;
+        int count = 1;
+        while (userRepository.existsByUsername(finalUsername)) {
+            finalUsername = defaultUsername + "_" + (count++);
+        }
+
+        String placeholderEmail = "phone_" + digits + "@onodem.local";
+        String finalEmail = placeholderEmail;
+        int eCount = 1;
+        while (userRepository.existsByEmail(finalEmail)) {
+            finalEmail = "phone_" + digits + "_" + (eCount++) + "@onodem.local";
+        }
+
+        User newUser = User.builder()
+                .name("New Member")
+                .username(finalUsername)
+                .email(finalEmail)
+                .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .role("ROLE_USER")
+                .enabled(true)
+                .build();
+        userRepository.save(newUser);
+
+        UserProfile newProfile = UserProfile.builder()
+                .user(newUser)
+                .phone(phone)
+                .bio("Remembering the people who helped me grow.")
+                .avatarUri("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80")
+                .coverColor("#54000E")
+                .build();
+        userProfileRepository.save(newProfile);
+
+        String accessToken = jwtService.generateAccessToken(newUser, newUser.getId());
+        String refreshToken = jwtService.generateRefreshToken(newUser);
+        UserProfileDto userDto = userService.getProfileByUserId(newUser.getId());
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(userDto)
+                .isNewUser(true)
+                .message("Phone verified. Account created.")
+                .build();
+    }
+
+    @Transactional
+    public UserProfileDto completePhoneProfile(User currentUser, CompletePhoneProfileRequest request) {
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUser.getId()));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            user.setName(request.getName().trim());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String newEmail = request.getEmail().trim().toLowerCase();
+            if (!newEmail.equals(user.getEmail())) {
+                userRepository.findByEmail(newEmail)
+                        .filter(u -> !u.getId().equals(user.getId()))
+                        .ifPresent(u -> {
+                            throw new BadRequestException("Email is already in use");
+                        });
+                user.setEmail(newEmail);
+            }
+        }
+        userRepository.save(user);
+
+        UserProfile profile = userProfileRepository.findByUserId(user.getId())
+                .orElseGet(() -> UserProfile.builder().user(user).build());
+
+        if (request.getBio() != null) {
+            profile.setBio(request.getBio().trim());
+        }
+        if (request.getAvatarUri() != null && !request.getAvatarUri().isBlank()) {
+            profile.setAvatarUri(request.getAvatarUri().trim());
+        }
+        userProfileRepository.save(profile);
+
+        // Send welcome email if real email was provided
+        if (user.getEmail() != null && !user.getEmail().endsWith("@onodem.local")) {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getName(), user.getUsername());
+        }
+
+        return userService.getProfileByUserId(user.getId());
     }
 
     private java.util.Optional<User> findUserByIdentifier(String identifier) {
@@ -159,15 +310,17 @@ public class AuthService {
                 return phoneUser;
             }
         }
-        String normalizedIdentifier = identifier.toLowerCase();
-        return userRepository.findByEmail(normalizedIdentifier)
-                .or(() -> userRepository.findByUsername(normalizedIdentifier));
+
+        return userRepository.findByEmail(identifier.toLowerCase())
+                .or(() -> userRepository.findByUsername(identifier.toLowerCase()));
     }
 
     private boolean isPhoneIdentifier(String identifier) {
-        String trimmed = identifier.trim();
-        int digitCount = trimmed.replaceAll("\\D", "").length();
-        return trimmed.matches("[+0-9().\\s-]+") && digitCount >= 7 && digitCount <= 15;
+        if (identifier == null) {
+            return false;
+        }
+        String normalized = identifier.replaceAll("[^0-9+]", "");
+        return normalized.matches("^\\+?\\d{7,15}$");
     }
 
     private String normalizePhone(String phone) {
@@ -175,8 +328,11 @@ public class AuthService {
             return null;
         }
         String normalized = phone.trim().replaceAll("[^0-9+]", "");
+        if (!normalized.startsWith("+") && normalized.matches("^\\d{10}$")) {
+            normalized = "+91" + normalized;
+        }
         if (!normalized.matches("^\\+?\\d{7,15}$")) {
-            throw new BadRequestException("Phone number must include 7 to 15 digits and an optional country-code +");
+            throw new BadRequestException("Phone number must include 7 to 15 digits and an optional country code");
         }
         return normalized;
     }

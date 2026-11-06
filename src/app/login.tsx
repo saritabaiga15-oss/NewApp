@@ -36,53 +36,73 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Instant Default Email Login Handler (local mode until backend is connected)
+  // Email Login Handler
   const handleEmailLogin = async () => {
-    const trimmedEmail = email.trim() || "mentor@example.com";
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      setErrorMessage("Please enter your email and password.");
+      return;
+    }
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      await setAuthToken("default-token-" + Date.now());
-      const userName = trimmedEmail.includes("@")
-        ? trimmedEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-        : trimmedEmail;
-
-      await userProfileService.updateProfile({
-        name: userName || "Anita Sharma's Student",
-        username: trimmedEmail.split("@")[0] || "mentor_student",
-        email: trimmedEmail.includes("@") ? trimmedEmail : `${trimmedEmail}@example.com`,
-        bio: "Remembering the mentors and guides who shaped my life.",
+      const res = await api.auth.login({
+        emailOrUsername: trimmedEmail,
+        password: password,
       });
 
-      router.replace("/home");
-    } catch {
-      router.replace("/home");
+      if (res?.data?.accessToken) {
+        await setAuthToken(res.data.accessToken, res.data.refreshToken);
+        if (res.data.user) {
+          await userProfileService.updateProfile({
+            name: res.data.user.name || trimmedEmail.split("@")[0],
+            username: res.data.user.username || trimmedEmail.split("@")[0],
+            email: res.data.user.email || trimmedEmail,
+            phone: res.data.user.phone || "",
+            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
+            avatarUri:
+              res.data.user.avatarUri ||
+              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+          });
+        }
+        await userProfileService.syncWithBackend();
+        router.replace("/home");
+      } else {
+        router.replace("/home");
+      }
+    } catch (err: any) {
+      const errMsg = (err.message || "").toLowerCase();
+      if (
+        errMsg.includes("bad credentials") ||
+        errMsg.includes("401") ||
+        errMsg.includes("invalid") ||
+        errMsg.includes("unauthorized")
+      ) {
+        setErrorMessage("Invalid email or password. Please try again.");
+      } else {
+        // Fallback for demo or offline mode
+        const userName = trimmedEmail.includes("@")
+          ? trimmedEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+          : trimmedEmail;
+
+        await setAuthToken("default-token-" + Date.now());
+        await userProfileService.updateProfile({
+          name: userName,
+          username: trimmedEmail.split("@")[0] || "mentor_student",
+          email: trimmedEmail.includes("@") ? trimmedEmail : `${trimmedEmail}@example.com`,
+          bio: "Remembering the mentors and guides who shaped my life.",
+        });
+        router.replace("/home");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Instant Default Phone Login Handler
+  // Continue with Phone Handler
   const handlePhoneLogin = async () => {
-    const trimmedPhone = phoneNumber.trim().replace(/\s+/g, "") || "9876543210";
-    setLoading(true);
-    setErrorMessage(null);
-
-    try {
-      await setAuthToken("default-token-phone-" + Date.now());
-      await userProfileService.updateProfile({
-        name: "Mentor Explorer",
-        username: `user_${trimmedPhone.slice(-4)}`,
-        phone: `${countryCode} ${trimmedPhone}`,
-        bio: "Remembering the mentors and guides who shaped my life.",
-      });
-      router.replace("/home");
-    } catch {
-      router.replace("/home");
-    } finally {
-      setLoading(false);
-    }
+    router.push("/phone-login" as any);
   };
 
   // Instant Default Social Login Handler

@@ -18,5 +18,7 @@ public class CommentDto {
     private String authorName;
     private String authorAvatar;
     private String content;
+    private int likesCount;
+    private boolean isLiked;
     private Instant createdAt;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
@@ -15,11 +15,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { AppFonts, Palette } from "@/constants/theme";
 import { deleteAccount, signOut } from "@/services/auth";
+import { api } from "@/services/api";
 
 type SettingsIcon = keyof typeof Ionicons.glyphMap;
+
+const SETTINGS_STORAGE_KEY = "@honour-your-mentor/settings_v2";
 
 export default function SettingsScreen() {
   // Modal states for settings
@@ -27,22 +31,107 @@ export default function SettingsScreen() {
     "privacy" | "notifications" | "autocorrect" | "blocked" | "help" | null
   >(null);
 
-  // Preference switches
+  // Preference switches: Writing aids
   const [autoCorrectEnabled, setAutoCorrectEnabled] = useState(true);
   const [grammarCheckEnabled, setGrammarCheckEnabled] = useState(true);
   const [writingSuggestionsEnabled, setWritingSuggestionsEnabled] = useState(true);
 
-  const [tributeReminders, setTributeReminders] = useState(true);
-  const [mentorMilestones, setMentorMilestones] = useState(true);
-  const [weeklyReflections, setWeeklyReflections] = useState(false);
+  // 1. Notification Preferences (the 6 types requested)
+  const [notifLikes, setNotifLikes] = useState(true);
+  const [notifComments, setNotifComments] = useState(true);
+  const [notifFollowers, setNotifFollowers] = useState(true);
+  const [notifMentorConnections, setNotifMentorConnections] = useState(true);
+  const [notifMentions, setNotifMentions] = useState(true);
+  const [notifMessages, setNotifMessages] = useState(true);
 
-  const [isProfilePublic, setIsProfilePublic] = useState(true);
-  const [allowConnectionsOnly, setAllowConnectionsOnly] = useState(false);
+  // 2. Privacy Settings
+  const [profileVisibility, setProfileVisibility] = useState<"PUBLIC" | "CONNECTIONS_ONLY" | "PRIVATE">("PUBLIC");
+  const [defaultTributePrivacy, setDefaultTributePrivacy] = useState<"PUBLIC" | "CONNECTIONS_ONLY" | "PRIVATE">("PUBLIC");
+  const [connectionsVisibility, setConnectionsVisibility] = useState<"EVERYONE" | "CONNECTIONS_ONLY" | "HIDDEN">("EVERYONE");
+  const [activityStatusEnabled, setActivityStatusEnabled] = useState(true);
 
   const [blockedUsers, setBlockedUsers] = useState<string[]>([
     "spammer_bot_99",
     "unwanted_contact",
   ]);
+
+  // Load saved preferences
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.notifLikes !== undefined) setNotifLikes(parsed.notifLikes);
+        if (parsed.notifComments !== undefined) setNotifComments(parsed.notifComments);
+        if (parsed.notifFollowers !== undefined) setNotifFollowers(parsed.notifFollowers);
+        if (parsed.notifMentorConnections !== undefined) setNotifMentorConnections(parsed.notifMentorConnections);
+        if (parsed.notifMentions !== undefined) setNotifMentions(parsed.notifMentions);
+        if (parsed.notifMessages !== undefined) setNotifMessages(parsed.notifMessages);
+
+        if (parsed.profileVisibility) setProfileVisibility(parsed.profileVisibility);
+        if (parsed.defaultTributePrivacy) setDefaultTributePrivacy(parsed.defaultTributePrivacy);
+        if (parsed.connectionsVisibility) setConnectionsVisibility(parsed.connectionsVisibility);
+        if (parsed.activityStatusEnabled !== undefined) setActivityStatusEnabled(parsed.activityStatusEnabled);
+      }
+
+      // Check backend profile settings if logged in
+      const res = await api.users.me().catch(() => null);
+      if (res?.data) {
+        const u = res.data;
+        if (u.notifLikes !== undefined) setNotifLikes(u.notifLikes);
+        if (u.notifComments !== undefined) setNotifComments(u.notifComments);
+        if (u.notifFollowers !== undefined) setNotifFollowers(u.notifFollowers);
+        if (u.notifMentorConnections !== undefined) setNotifMentorConnections(u.notifMentorConnections);
+        if (u.notifMentions !== undefined) setNotifMentions(u.notifMentions);
+        if (u.notifMessages !== undefined) setNotifMessages(u.notifMessages);
+        if (u.profileVisibility) setProfileVisibility(u.profileVisibility);
+        if (u.defaultTributePrivacy) setDefaultTributePrivacy(u.defaultTributePrivacy);
+        if (u.connectionsVisibility) setConnectionsVisibility(u.connectionsVisibility);
+        if (u.activityStatusEnabled !== undefined) setActivityStatusEnabled(u.activityStatusEnabled);
+      }
+    } catch {
+      // non-fatal
+    }
+  };
+
+  const saveSettings = async (overrides: Record<string, any> = {}) => {
+    const payload = {
+      notifLikes,
+      notifComments,
+      notifFollowers,
+      notifMentorConnections,
+      notifMentions,
+      notifMessages,
+      profileVisibility,
+      defaultTributePrivacy,
+      connectionsVisibility,
+      activityStatusEnabled,
+      ...overrides,
+    };
+
+    try {
+      await AsyncStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(payload));
+      await api.users.updateSettings(payload).catch(() => {});
+    } catch {
+      // non-fatal
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    await saveSettings();
+    setActiveModal(null);
+    Alert.alert("Preferences Saved", "Your notification preferences have been updated.");
+  };
+
+  const handleSavePrivacy = async () => {
+    await saveSettings();
+    setActiveModal(null);
+    Alert.alert("Privacy Updated", "Your privacy controls have been saved.");
+  };
 
   const confirmSignOut = () => {
     Alert.alert(
@@ -124,7 +213,7 @@ export default function SettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.intro}>
-          Customize your experience, privacy, and account security.
+          Customize your experience, notification alerts, privacy, and account security.
         </Text>
 
         {/* Section 1: Account & Core Preferences */}
@@ -138,18 +227,25 @@ export default function SettingsScreen() {
             onPress={() => router.push("/profile-edit")}
           />
           <SettingsRow
+            icon="notifications-outline"
+            iconColor={Palette.accentPink}
+            title="Notifications"
+            subtitle="View all activity, mentions, and updates"
+            onPress={() => router.push("/notifications" as any)}
+          />
+          <SettingsRow
+            icon="options-outline"
+            iconColor={Palette.oceanTeal}
+            title="Notification Preferences"
+            subtitle="Likes, comments, followers, connections, mentions"
+            onPress={() => setActiveModal("notifications")}
+          />
+          <SettingsRow
             icon="shield-checkmark-outline"
             iconColor={Palette.accentMint}
             title="Privacy Settings"
-            subtitle="Manage story visibility and profile access"
+            subtitle="Profile visibility, tribute sharing, connection lists"
             onPress={() => setActiveModal("privacy")}
-          />
-          <SettingsRow
-            icon="notifications-outline"
-            iconColor={Palette.accentPink}
-            title="Notification Preferences"
-            subtitle="Tribute reminders and milestone alerts"
-            onPress={() => setActiveModal("notifications")}
           />
           <SettingsRow
             icon="color-wand-outline"
@@ -180,17 +276,17 @@ export default function SettingsScreen() {
           />
           <SettingsRow
             icon="log-out-outline"
-            iconColor={Palette.accentCoral}
+            iconColor={Palette.textPrimary}
             title="Log Out"
             subtitle="Sign out from this device"
             onPress={confirmSignOut}
           />
           <SettingsRow
             icon="trash-outline"
-            iconColor="#FF4D4D"
+            iconColor="#FF4D6D"
             title="Delete Account"
-            subtitle="Permanently remove your account and data"
-            titleColor="#FF4D4D"
+            subtitle="Permanently remove your account and stored tributes"
+            titleColor="#FF4D6D"
             onPress={confirmDeleteAccount}
             last
           />
@@ -206,34 +302,106 @@ export default function SettingsScreen() {
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Privacy Settings</Text>
-            <Text style={styles.modalSubtitle}>Control who can read your tributes and profile</Text>
+            <Text style={styles.modalSubtitle}>Control who can read your tributes and view your profile</Text>
 
-            <View style={styles.settingItemRow}>
-              <View style={styles.settingTextCol}>
-                <Text style={styles.settingItemTitle}>Public Tribute Wall</Text>
-                <Text style={styles.settingItemSub}>Anyone on Honour Your Mentor can read your tributes</Text>
+            <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+              {/* Profile Visibility Selector */}
+              <View style={styles.privacyOptionGroup}>
+                <Text style={styles.privacyOptionLabel}>Profile Visibility</Text>
+                <View style={styles.radioGroup}>
+                  {(["PUBLIC", "CONNECTIONS_ONLY", "PRIVATE"] as const).map((mode) => (
+                    <TouchableOpacity
+                      key={mode}
+                      style={[styles.radioItem, profileVisibility === mode && styles.radioItemActive]}
+                      onPress={() => setProfileVisibility(mode)}
+                    >
+                      <Ionicons
+                        name={profileVisibility === mode ? "radio-button-on" : "radio-button-off"}
+                        size={17}
+                        color={profileVisibility === mode ? Palette.oceanTeal : Palette.textMuted}
+                      />
+                      <Text style={[styles.radioItemText, profileVisibility === mode && styles.radioItemTextActive]}>
+                        {mode === "PUBLIC"
+                          ? "Public (Everyone)"
+                          : mode === "CONNECTIONS_ONLY"
+                          ? "Connections Only"
+                          : "Private (Hidden)"}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-              <Switch
-                value={isProfilePublic}
-                onValueChange={setIsProfilePublic}
-                trackColor={{ false: "#333333", true: Palette.accentMint }}
-              />
-            </View>
 
-            <View style={styles.settingItemRow}>
-              <View style={styles.settingTextCol}>
-                <Text style={styles.settingItemTitle}>Connections-Only Stories</Text>
-                <Text style={styles.settingItemSub}>Limit personal notes to people you follow</Text>
+              {/* Default Tribute Privacy */}
+              <View style={styles.privacyOptionGroup}>
+                <Text style={styles.privacyOptionLabel}>Default Tribute Visibility</Text>
+                <View style={styles.radioGroup}>
+                  {(["PUBLIC", "CONNECTIONS_ONLY", "PRIVATE"] as const).map((mode) => (
+                    <TouchableOpacity
+                      key={mode}
+                      style={[styles.radioItem, defaultTributePrivacy === mode && styles.radioItemActive]}
+                      onPress={() => setDefaultTributePrivacy(mode)}
+                    >
+                      <Ionicons
+                        name={defaultTributePrivacy === mode ? "radio-button-on" : "radio-button-off"}
+                        size={17}
+                        color={defaultTributePrivacy === mode ? Palette.accentMint : Palette.textMuted}
+                      />
+                      <Text style={[styles.radioItemText, defaultTributePrivacy === mode && styles.radioItemTextActive]}>
+                        {mode === "PUBLIC"
+                          ? "Public Tribute Wall"
+                          : mode === "CONNECTIONS_ONLY"
+                          ? "Followers & Connections Only"
+                          : "Private Keepsake (Only Mentor & You)"}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-              <Switch
-                value={allowConnectionsOnly}
-                onValueChange={setAllowConnectionsOnly}
-                trackColor={{ false: "#333333", true: Palette.accentSky }}
-              />
-            </View>
 
-            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={() => setActiveModal(null)}>
-              <Text style={styles.modalPrimaryBtnText}>Save Preferences</Text>
+              {/* Connection List Visibility */}
+              <View style={styles.privacyOptionGroup}>
+                <Text style={styles.privacyOptionLabel}>Followers & Mentor List Visibility</Text>
+                <View style={styles.radioGroup}>
+                  {(["EVERYONE", "CONNECTIONS_ONLY", "HIDDEN"] as const).map((mode) => (
+                    <TouchableOpacity
+                      key={mode}
+                      style={[styles.radioItem, connectionsVisibility === mode && styles.radioItemActive]}
+                      onPress={() => setConnectionsVisibility(mode)}
+                    >
+                      <Ionicons
+                        name={connectionsVisibility === mode ? "radio-button-on" : "radio-button-off"}
+                        size={17}
+                        color={connectionsVisibility === mode ? Palette.accentSky : Palette.textMuted}
+                      />
+                      <Text style={[styles.radioItemText, connectionsVisibility === mode && styles.radioItemTextActive]}>
+                        {mode === "EVERYONE"
+                          ? "Show to everyone"
+                          : mode === "CONNECTIONS_ONLY"
+                          ? "Connections only"
+                          : "Hide from everyone"}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Activity Status Toggle */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>Activity Status</Text>
+                  <Text style={styles.settingItemSub}>Show active status to your mentor & mentee circles</Text>
+                </View>
+                <Switch
+                  value={activityStatusEnabled}
+                  onValueChange={setActivityStatusEnabled}
+                  trackColor={{ false: "#333333", true: Palette.oceanTeal }}
+                />
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={handleSavePrivacy}>
+              <Text style={styles.modalPrimaryBtnText}>Save Privacy Settings</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -248,45 +416,95 @@ export default function SettingsScreen() {
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Notification Preferences</Text>
-            <Text style={styles.modalSubtitle}>Choose which memories and alerts reach you</Text>
+            <Text style={styles.modalSubtitle}>Enable or disable alerts for specific interactions</Text>
 
-            <View style={styles.settingItemRow}>
-              <View style={styles.settingTextCol}>
-                <Text style={styles.settingItemTitle}>Tribute Reminders</Text>
-                <Text style={styles.settingItemSub}>Gentle nudges to celebrate someone meaningful</Text>
+            <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+              {/* 1. Likes */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>Likes</Text>
+                  <Text style={styles.settingItemSub}>
+                    When someone likes your memory, memo, note, open letter or appreciation
+                  </Text>
+                </View>
+                <Switch
+                  value={notifLikes}
+                  onValueChange={setNotifLikes}
+                  trackColor={{ false: "#333333", true: "#FF4D6D" }}
+                />
               </View>
-              <Switch
-                value={tributeReminders}
-                onValueChange={setTributeReminders}
-                trackColor={{ false: "#333333", true: Palette.accentPink }}
-              />
-            </View>
 
-            <View style={styles.settingItemRow}>
-              <View style={styles.settingTextCol}>
-                <Text style={styles.settingItemTitle}>Mentor Milestones</Text>
-                <Text style={styles.settingItemSub}>Celebrate anniversary of guidance and lessons</Text>
+              {/* 2. Comments and replies */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>Comments & Replies</Text>
+                  <Text style={styles.settingItemSub}>
+                    When someone comments on your content or replies to your comment
+                  </Text>
+                </View>
+                <Switch
+                  value={notifComments}
+                  onValueChange={setNotifComments}
+                  trackColor={{ false: "#333333", true: Palette.accentSky }}
+                />
               </View>
-              <Switch
-                value={mentorMilestones}
-                onValueChange={setMentorMilestones}
-                trackColor={{ false: "#333333", true: Palette.accentSky }}
-              />
-            </View>
 
-            <View style={styles.settingItemRow}>
-              <View style={styles.settingTextCol}>
-                <Text style={styles.settingItemTitle}>Weekly Reflections</Text>
-                <Text style={styles.settingItemSub}>Weekly digest of wisdom lessons you saved</Text>
+              {/* 3. New Followers */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>New Followers</Text>
+                  <Text style={styles.settingItemSub}>When someone follows your mentor or mentee profile</Text>
+                </View>
+                <Switch
+                  value={notifFollowers}
+                  onValueChange={setNotifFollowers}
+                  trackColor={{ false: "#333333", true: Palette.accentMint }}
+                />
               </View>
-              <Switch
-                value={weeklyReflections}
-                onValueChange={setWeeklyReflections}
-                trackColor={{ false: "#333333", true: Palette.accentMint }}
-              />
-            </View>
 
-            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={() => setActiveModal(null)}>
+              {/* 4. Mentor Connection Requests */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>Mentor Connection Requests</Text>
+                  <Text style={styles.settingItemSub}>
+                    When someone sends, accepts, or declines a mentor connection request
+                  </Text>
+                </View>
+                <Switch
+                  value={notifMentorConnections}
+                  onValueChange={setNotifMentorConnections}
+                  trackColor={{ false: "#333333", true: Palette.accentGold }}
+                />
+              </View>
+
+              {/* 5. Mentions and Tags */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>Mentions and Tags</Text>
+                  <Text style={styles.settingItemSub}>When someone mentions or tags you in content</Text>
+                </View>
+                <Switch
+                  value={notifMentions}
+                  onValueChange={setNotifMentions}
+                  trackColor={{ false: "#333333", true: Palette.oceanTeal }}
+                />
+              </View>
+
+              {/* 6. Messages */}
+              <View style={styles.settingItemRow}>
+                <View style={styles.settingTextCol}>
+                  <Text style={styles.settingItemTitle}>Messages</Text>
+                  <Text style={styles.settingItemSub}>When you receive direct messages or guidance notes</Text>
+                </View>
+                <Switch
+                  value={notifMessages}
+                  onValueChange={setNotifMessages}
+                  trackColor={{ false: "#333333", true: "#FFA726" }}
+                />
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={handleSaveNotifications}>
               <Text style={styles.modalPrimaryBtnText}>Save Preferences</Text>
             </TouchableOpacity>
           </View>
@@ -356,29 +574,28 @@ export default function SettingsScreen() {
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Blocked Users</Text>
-            <Text style={styles.modalSubtitle}>Accounts you have prevented from interacting with you</Text>
+            <Text style={styles.modalSubtitle}>Accounts you’ve prevented from interacting with your profile</Text>
 
             {blockedUsers.length === 0 ? (
               <View style={styles.emptyBlocked}>
-                <Ionicons name="checkmark-circle-outline" size={36} color={Palette.accentMint} />
-                <Text style={styles.emptyBlockedTitle}>No Blocked Users</Text>
-                <Text style={styles.emptyBlockedSub}>You haven&apos;t blocked anyone.</Text>
+                <Ionicons name="shield-checkmark-outline" size={40} color={Palette.accentMint} />
+                <Text style={styles.emptyBlockedTitle}>No blocked users</Text>
+                <Text style={styles.emptyBlockedSub}>You haven't blocked anyone yet.</Text>
               </View>
             ) : (
-              blockedUsers.map((username) => (
-                <View key={username} style={styles.blockedRow}>
-                  <View style={styles.blockedUserMeta}>
-                    <Ionicons name="person-circle" size={32} color={Palette.textSecondary} />
-                    <Text style={styles.blockedUsername}>@{username}</Text>
+              <ScrollView style={{ maxHeight: 280 }}>
+                {blockedUsers.map((u) => (
+                  <View key={u} style={styles.blockedRow}>
+                    <View style={styles.blockedUserMeta}>
+                      <Ionicons name="person-circle-outline" size={24} color={Palette.textMuted} />
+                      <Text style={styles.blockedUsername}>@{u}</Text>
+                    </View>
+                    <TouchableOpacity style={styles.unblockBtn} onPress={() => handleUnblock(u)}>
+                      <Text style={styles.unblockBtnText}>Unblock</Text>
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => handleUnblock(username)}
-                    style={styles.unblockBtn}
-                  >
-                    <Text style={styles.unblockBtnText}>Unblock</Text>
-                  </TouchableOpacity>
-                </View>
-              ))
+                ))}
+              </ScrollView>
             )}
 
             <TouchableOpacity style={styles.modalPrimaryBtn} onPress={() => setActiveModal(null)}>
@@ -389,14 +606,14 @@ export default function SettingsScreen() {
       </Modal>
 
       {/* ======================================================== */}
-      {/* 5. Help and Support Modal                                */}
+      {/* 5. Help & Support Modal                                  */}
       {/* ======================================================== */}
       <Modal visible={activeModal === "help"} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <Pressable style={styles.modalBackdrop} onPress={() => setActiveModal(null)} />
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Help and Support</Text>
+            <Text style={styles.modalTitle}>Help & Support</Text>
             <Text style={styles.modalSubtitle}>How can we assist your gratitude journey?</Text>
 
             <View style={styles.helpList}>
@@ -420,7 +637,7 @@ export default function SettingsScreen() {
                 <Ionicons name="mail-outline" size={20} color={Palette.accentPink} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.helpCardTitle}>Contact Team</Text>
-                  <Text style={styles.helpCardText}>support@honouryourmentor.com</Text>
+                  <Text style={styles.helpCardText}>info@onodem.com</Text>
                 </View>
               </View>
             </View>
@@ -598,6 +815,43 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     marginBottom: 6,
     fontFamily: AppFonts.body,
+  },
+  privacyOptionGroup: {
+    marginBottom: 16,
+    gap: 8,
+  },
+  privacyOptionLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    fontFamily: AppFonts.body,
+  },
+  radioGroup: {
+    gap: 6,
+  },
+  radioItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.06)",
+  },
+  radioItemActive: {
+    backgroundColor: "rgba(0, 168, 150, 0.1)",
+    borderColor: "rgba(0, 168, 150, 0.35)",
+  },
+  radioItemText: {
+    fontSize: 13,
+    color: Palette.textSecondary,
+    fontFamily: AppFonts.body,
+  },
+  radioItemTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
   settingItemRow: {
     flexDirection: "row",

@@ -3,6 +3,7 @@ package com.honouryourmentor.user.service;
 import com.honouryourmentor.common.exception.BadRequestException;
 import com.honouryourmentor.common.exception.ResourceNotFoundException;
 import com.honouryourmentor.user.dto.UpdateProfileRequest;
+import com.honouryourmentor.user.dto.UpdateSettingsRequest;
 import com.honouryourmentor.user.dto.UserProfileDto;
 import com.honouryourmentor.user.dto.UserSummaryDto;
 import com.honouryourmentor.user.entity.User;
@@ -74,8 +75,45 @@ public class UserService {
         }
         profile.setPhone(phone);
         profile.setLocation(request.getLocation());
+
+        // Privacy and Notification settings updates if present
+        if (request.getProfileVisibility() != null) profile.setProfileVisibility(request.getProfileVisibility());
+        if (request.getDefaultTributePrivacy() != null) profile.setDefaultTributePrivacy(request.getDefaultTributePrivacy());
+        if (request.getConnectionsVisibility() != null) profile.setConnectionsVisibility(request.getConnectionsVisibility());
+        if (request.getActivityStatusEnabled() != null) profile.setActivityStatusEnabled(request.getActivityStatusEnabled());
+        if (request.getNotifLikes() != null) profile.setNotifLikes(request.getNotifLikes());
+        if (request.getNotifComments() != null) profile.setNotifComments(request.getNotifComments());
+        if (request.getNotifFollowers() != null) profile.setNotifFollowers(request.getNotifFollowers());
+        if (request.getNotifMentorConnections() != null) profile.setNotifMentorConnections(request.getNotifMentorConnections());
+        if (request.getNotifMentions() != null) profile.setNotifMentions(request.getNotifMentions());
+        if (request.getNotifMessages() != null) profile.setNotifMessages(request.getNotifMessages());
+
         userProfileRepository.save(profile);
 
+        return mapToDto(user, profile);
+    }
+
+    @Transactional
+    public UserProfileDto updateSettings(String userId, UpdateSettingsRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseGet(() -> UserProfile.builder().user(user).build());
+
+        if (request.getProfileVisibility() != null) profile.setProfileVisibility(request.getProfileVisibility());
+        if (request.getDefaultTributePrivacy() != null) profile.setDefaultTributePrivacy(request.getDefaultTributePrivacy());
+        if (request.getConnectionsVisibility() != null) profile.setConnectionsVisibility(request.getConnectionsVisibility());
+        if (request.getActivityStatusEnabled() != null) profile.setActivityStatusEnabled(request.getActivityStatusEnabled());
+
+        if (request.getNotifLikes() != null) profile.setNotifLikes(request.getNotifLikes());
+        if (request.getNotifComments() != null) profile.setNotifComments(request.getNotifComments());
+        if (request.getNotifFollowers() != null) profile.setNotifFollowers(request.getNotifFollowers());
+        if (request.getNotifMentorConnections() != null) profile.setNotifMentorConnections(request.getNotifMentorConnections());
+        if (request.getNotifMentions() != null) profile.setNotifMentions(request.getNotifMentions());
+        if (request.getNotifMessages() != null) profile.setNotifMessages(request.getNotifMessages());
+
+        userProfileRepository.save(profile);
         return mapToDto(user, profile);
     }
 
@@ -118,6 +156,16 @@ public class UserService {
                 .coverColor(profile != null ? profile.getCoverColor() : "#54000E")
                 .phone(profile != null ? profile.getPhone() : "")
                 .location(profile != null ? profile.getLocation() : "")
+                .profileVisibility(profile != null && profile.getProfileVisibility() != null ? profile.getProfileVisibility() : "PUBLIC")
+                .defaultTributePrivacy(profile != null && profile.getDefaultTributePrivacy() != null ? profile.getDefaultTributePrivacy() : "PUBLIC")
+                .connectionsVisibility(profile != null && profile.getConnectionsVisibility() != null ? profile.getConnectionsVisibility() : "EVERYONE")
+                .activityStatusEnabled(profile != null && profile.getActivityStatusEnabled() != null ? profile.getActivityStatusEnabled() : true)
+                .notifLikes(profile != null && profile.getNotifLikes() != null ? profile.getNotifLikes() : true)
+                .notifComments(profile != null && profile.getNotifComments() != null ? profile.getNotifComments() : true)
+                .notifFollowers(profile != null && profile.getNotifFollowers() != null ? profile.getNotifFollowers() : true)
+                .notifMentorConnections(profile != null && profile.getNotifMentorConnections() != null ? profile.getNotifMentorConnections() : true)
+                .notifMentions(profile != null && profile.getNotifMentions() != null ? profile.getNotifMentions() : true)
+                .notifMessages(profile != null && profile.getNotifMessages() != null ? profile.getNotifMessages() : true)
                 .build();
     }
 }

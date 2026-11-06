@@ -17,6 +17,11 @@ public class NotificationDto {
     private String title;
     private String message;
     private String type;
+    private String actorId;
+    private String actorName;
+    private String actorAvatar;
+    private String targetId;
+    private String targetType;
     private boolean isRead;
     private Instant createdAt;
 }
