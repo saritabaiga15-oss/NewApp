@@ -16,9 +16,28 @@ backend/    Spring Boot API (Java 21) + Neon PostgreSQL
 
 ```bash
 cd backend
-cp .env.example .env      # then fill in the Neon URL, user, password and a JWT_SECRET
-mvn spring-boot:run       # needs JDK 21 + Maven
+cp .env.example .env          # then fill in the Neon URL, user, password and a JWT_SECRET
+.\mvnw.cmd spring-boot:run    # Windows (PowerShell / cmd)
+./mvnw spring-boot:run        # macOS / Linux / Git Bash
 ```
+
+No Maven install needed: the wrapper downloads Maven 3.9.16 on first run.
+
+**Java 21 (one-time setup).** The backend must be built with JDK 21, even if a newer
+Java is your default. Install a JDK 21, then create `~/.m2/toolchains.xml`
+(`C:\Users\<you>\.m2\toolchains.xml` on Windows) pointing at it:
+
+```xml
+<toolchains>
+  <toolchain>
+    <type>jdk</type>
+    <provides><version>21</version></provides>
+    <configuration><jdkHome>C:\path\to\jdk-21</jdkHome></configuration>
+  </toolchain>
+</toolchains>
+```
+
+Maven then uses that JDK automatically for this project only.
 
 The API runs on http://localhost:8080 and applies database migrations
 (`backend/src/main/resources/db/migration`) on startup.
