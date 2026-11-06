@@ -4,6 +4,7 @@ import com.honouryourmentor.common.exception.BadRequestException;
 import com.honouryourmentor.common.exception.ResourceNotFoundException;
 import com.honouryourmentor.common.util.SanitizationUtil;
 import com.honouryourmentor.user.dto.UpdateProfileRequest;
+import com.honouryourmentor.user.dto.UpdateSettingsRequest;
 import com.honouryourmentor.user.dto.UserProfileDto;
 import com.honouryourmentor.user.dto.UserSummaryDto;
 import com.honouryourmentor.user.entity.User;
@@ -13,6 +14,13 @@ import com.honouryourmentor.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +59,7 @@ public class UserService {
                     throw new BadRequestException("Email is already in use");
                 });
 
-        user.setName(SanitizationUtil.sanitize(request.getName().trim()));
+        user.setName(request.getName().trim());
         user.setUsername(request.getUsername().trim().replace("@", ""));
         user.setEmail(request.getEmail().trim().toLowerCase());
         userRepository.save(user);
@@ -76,6 +84,19 @@ public class UserService {
         profile.setPhone(phone);
         profile.setLocation(SanitizationUtil.sanitize(request.getLocation()));
         applySetupFields(profile, request);
+
+        // Privacy and Notification settings updates if present
+        if (request.getProfileVisibility() != null) profile.setProfileVisibility(request.getProfileVisibility());
+        if (request.getDefaultTributePrivacy() != null) profile.setDefaultTributePrivacy(request.getDefaultTributePrivacy());
+        if (request.getConnectionsVisibility() != null) profile.setConnectionsVisibility(request.getConnectionsVisibility());
+        if (request.getActivityStatusEnabled() != null) profile.setActivityStatusEnabled(request.getActivityStatusEnabled());
+        if (request.getNotifLikes() != null) profile.setNotifLikes(request.getNotifLikes());
+        if (request.getNotifComments() != null) profile.setNotifComments(request.getNotifComments());
+        if (request.getNotifFollowers() != null) profile.setNotifFollowers(request.getNotifFollowers());
+        if (request.getNotifMentorConnections() != null) profile.setNotifMentorConnections(request.getNotifMentorConnections());
+        if (request.getNotifMentions() != null) profile.setNotifMentions(request.getNotifMentions());
+        if (request.getNotifMessages() != null) profile.setNotifMessages(request.getNotifMessages());
+
         userProfileRepository.save(profile);
 
         return mapToDto(user, profile);
@@ -83,43 +104,71 @@ public class UserService {
 
     /** Minimum age to hold an account (also enforced in the app). */
     private static final int MIN_AGE = 10;
-    private static final java.util.Set<String> GENDERS = java.util.Set.of("female", "male");
+    private static final Set<String> GENDERS = Set.of("female", "male");
 
     private void applySetupFields(UserProfile profile, UpdateProfileRequest request) {
         if (request.getBirthday() != null && !request.getBirthday().isBlank()) {
-            java.time.LocalDate birthday;
+            LocalDate birthday;
             try {
-                birthday = java.time.LocalDate.parse(request.getBirthday());
-            } catch (java.time.format.DateTimeParseException e) {
+                birthday = LocalDate.parse(request.getBirthday());
+            } catch (DateTimeParseException e) {
                 throw new BadRequestException("Birthday must be a valid date (YYYY-MM-DD)");
             }
-            java.time.LocalDate today = java.time.LocalDate.now();
+            LocalDate today = LocalDate.now();
             if (birthday.isAfter(today)) {
                 throw new BadRequestException("Birthday can't be in the future");
             }
-            if (java.time.Period.between(birthday, today).getYears() < MIN_AGE) {
+            if (Period.between(birthday, today).getYears() < MIN_AGE) {
                 throw new BadRequestException("You need to be at least " + MIN_AGE + " to use Honour Your Mentor");
             }
             profile.setBirthday(birthday);
         }
+
         if (request.getGender() != null) {
-            String gender = request.getGender().trim().toLowerCase();
-            if (!gender.isEmpty() && !GENDERS.contains(gender)) {
-                throw new BadRequestException("Gender must be female or male");
+            String g = request.getGender().trim().toLowerCase();
+            if (!g.isEmpty() && !GENDERS.contains(g)) {
+                throw new BadRequestException("Gender must be 'female' or 'male'");
             }
-            profile.setGender(gender.isEmpty() ? null : gender);
+            profile.setGender(g.isEmpty() ? null : g);
         }
+
         if (request.getHonouring() != null) {
-            String joined = request.getHonouring().stream()
-                    .filter(v -> v != null && v.matches("^[a-z-]{1,30}$"))
-                    .distinct()
-                    .limit(12)
-                    .collect(java.util.stream.Collectors.joining(","));
-            profile.setHonouring(joined.isEmpty() ? null : joined);
+            List<String> cleaned = request.getHonouring().stream()
+                    .filter(s -> s != null && !s.isBlank())
+                    .map(String::trim)
+                    .map(SanitizationUtil::sanitize)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
+            profile.setHonouring(cleaned.isEmpty() ? null : String.join(",", cleaned));
         }
+
         if (request.getSetupComplete() != null) {
             profile.setSetupComplete(request.getSetupComplete());
         }
+    }
+
+    @Transactional
+    public UserProfileDto updateSettings(String userId, UpdateSettingsRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseGet(() -> UserProfile.builder().user(user).build());
+
+        if (request.getProfileVisibility() != null) profile.setProfileVisibility(request.getProfileVisibility());
+        if (request.getDefaultTributePrivacy() != null) profile.setDefaultTributePrivacy(request.getDefaultTributePrivacy());
+        if (request.getConnectionsVisibility() != null) profile.setConnectionsVisibility(request.getConnectionsVisibility());
+        if (request.getActivityStatusEnabled() != null) profile.setActivityStatusEnabled(request.getActivityStatusEnabled());
+
+        if (request.getNotifLikes() != null) profile.setNotifLikes(request.getNotifLikes());
+        if (request.getNotifComments() != null) profile.setNotifComments(request.getNotifComments());
+        if (request.getNotifFollowers() != null) profile.setNotifFollowers(request.getNotifFollowers());
+        if (request.getNotifMentorConnections() != null) profile.setNotifMentorConnections(request.getNotifMentorConnections());
+        if (request.getNotifMentions() != null) profile.setNotifMentions(request.getNotifMentions());
+        if (request.getNotifMessages() != null) profile.setNotifMessages(request.getNotifMessages());
+
+        userProfileRepository.save(profile);
+        return mapToDto(user, profile);
     }
 
     private String normalizePhone(String phone) {
@@ -164,9 +213,19 @@ public class UserService {
                 .birthday(profile != null && profile.getBirthday() != null ? profile.getBirthday().toString() : null)
                 .gender(profile != null ? profile.getGender() : null)
                 .honouring(profile != null && profile.getHonouring() != null
-                        ? java.util.Arrays.asList(profile.getHonouring().split(","))
-                        : java.util.List.of())
+                        ? Arrays.asList(profile.getHonouring().split(","))
+                        : List.of())
                 .setupComplete(profile != null && profile.isSetupComplete())
+                .profileVisibility(profile != null && profile.getProfileVisibility() != null ? profile.getProfileVisibility() : "PUBLIC")
+                .defaultTributePrivacy(profile != null && profile.getDefaultTributePrivacy() != null ? profile.getDefaultTributePrivacy() : "PUBLIC")
+                .connectionsVisibility(profile != null && profile.getConnectionsVisibility() != null ? profile.getConnectionsVisibility() : "EVERYONE")
+                .activityStatusEnabled(profile != null && profile.getActivityStatusEnabled() != null ? profile.getActivityStatusEnabled() : true)
+                .notifLikes(profile != null && profile.getNotifLikes() != null ? profile.getNotifLikes() : true)
+                .notifComments(profile != null && profile.getNotifComments() != null ? profile.getNotifComments() : true)
+                .notifFollowers(profile != null && profile.getNotifFollowers() != null ? profile.getNotifFollowers() : true)
+                .notifMentorConnections(profile != null && profile.getNotifMentorConnections() != null ? profile.getNotifMentorConnections() : true)
+                .notifMentions(profile != null && profile.getNotifMentions() != null ? profile.getNotifMentions() : true)
+                .notifMessages(profile != null && profile.getNotifMessages() != null ? profile.getNotifMessages() : true)
                 .build();
     }
 }

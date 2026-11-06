@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "User registration, login, JWT refresh and password reset")
+@Tag(name = "Authentication", description = "User registration, login, phone auth, JWT refresh and password reset")
 public class AuthController {
 
     private final AuthService authService;
@@ -32,10 +32,34 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Login with email or username")
+    @Operation(summary = "Login with email, username or phone")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
+    }
+
+    @PostMapping("/phone/send-otp")
+    @Operation(summary = "Send OTP code to mobile phone number")
+    public ResponseEntity<ApiResponse<String>> sendPhoneOtp(@Valid @RequestBody SendPhoneOtpRequest request) {
+        String msg = authService.sendPhoneOtp(request);
+        return ResponseEntity.ok(ApiResponse.ok(msg, msg));
+    }
+
+    @PostMapping("/phone/verify-otp")
+    @Operation(summary = "Verify phone OTP and log in or register")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyPhoneOtp(@Valid @RequestBody VerifyPhoneOtpRequest request) {
+        AuthResponse response = authService.verifyPhoneOtp(request);
+        return ResponseEntity.ok(ApiResponse.ok(response.getMessage() != null ? response.getMessage() : "Verification successful", response));
+    }
+
+    @PostMapping("/phone/complete-profile")
+    @Operation(summary = "Complete profile setup for new phone user")
+    public ResponseEntity<ApiResponse<UserProfileDto>> completePhoneProfile(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody CompletePhoneProfileRequest request
+    ) {
+        UserProfileDto updated = authService.completePhoneProfile(currentUser, request);
+        return ResponseEntity.ok(ApiResponse.ok("Profile setup completed successfully", updated));
     }
 
     @PostMapping("/refresh")

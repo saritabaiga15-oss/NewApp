@@ -529,6 +529,16 @@ class MemoryService {
     return { ...mentor };
   }
 
+  public deleteMentor(id: string): boolean {
+    const prevLen = this.mentors.length;
+    this.mentors = this.mentors.filter((m) => m.id !== id);
+    if (this.mentors.length !== prevLen) {
+      this.notify();
+      return true;
+    }
+    return false;
+  }
+
   public updateMentorProfile(
     updated: Partial<WallMentorProfile> & { id: string }
   ): void {

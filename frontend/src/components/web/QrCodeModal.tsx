@@ -285,15 +285,15 @@ export default function QrCodeModal({
                 <View style={styles.installSteps}>
                   <View style={styles.installStep}>
                     <Text style={[styles.stepNumber, styles.stepNumberMint]}>1</Text>
-                    <Text style={styles.stepLabel}>Open your camera</Text>
+                    <Text style={styles.stepLabel} numberOfLines={1}>Open your camera</Text>
                   </View>
                   <View style={styles.installStep}>
                     <Text style={[styles.stepNumber, styles.stepNumberPink]}>2</Text>
-                    <Text style={styles.stepLabel}>Point at the code</Text>
+                    <Text style={styles.stepLabel} numberOfLines={1}>Point at the code</Text>
                   </View>
                   <View style={styles.installStep}>
                     <Text style={[styles.stepNumber, styles.stepNumberPeach]}>3</Text>
-                    <Text style={styles.stepLabel}>Tap Install</Text>
+                    <Text style={styles.stepLabel} numberOfLines={1}>Tap Install</Text>
                   </View>
                 </View>
 
@@ -525,21 +525,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   benefitPills: {
+    width: "100%",
     flexDirection: "row",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: 6,
-    paddingHorizontal: 12,
+    justifyContent: "space-between",
+    flexWrap: "nowrap",
+    gap: 4,
+    paddingHorizontal: 0,
     marginBottom: 14,
   },
   benefitPill: {
     overflow: "hidden",
-    paddingHorizontal: 11,
+    flexShrink: 1,
+    paddingHorizontal: 7,
     paddingVertical: 7,
     borderRadius: 16,
-    fontSize: 10.5,
+    fontSize: 9,
     fontWeight: "700",
     color: "#111111",
+    textAlign: "center",
   },
   benefitPillPeach: {
     backgroundColor: "#FFB899",
@@ -589,29 +592,32 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
   },
   installSteps: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: 14,
+    justifyContent: "space-between",
+    flexWrap: "nowrap",
+    gap: 6,
     marginBottom: 16,
   },
   installStep: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    flexShrink: 1,
+    gap: 6,
   },
   stepNumber: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     textAlign: "center",
     textAlignVertical: "center",
     overflow: "hidden",
-    fontSize: 12,
-    lineHeight: 26,
+    fontSize: 11,
+    lineHeight: 24,
     fontWeight: "800",
     color: "#111111",
+    flexShrink: 0,
   },
   stepNumberMint: {
     backgroundColor: "#8FF0C6",
@@ -624,8 +630,9 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     color: "#A1A1A1",
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "500",
+    flexShrink: 1,
   },
   linkActions: {
     flexDirection: "row",

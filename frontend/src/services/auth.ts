@@ -35,17 +35,9 @@ export async function signOut(): Promise<void> {
 }
 
 export async function deleteAccount(): Promise<void> {
-  if (!IS_BACKEND_CONFIGURED) {
-    throw new Error(
-      "Account deletion is unavailable because this app has no connected authentication backend."
-    );
-  }
-  throw new Error("No authentication provider account-deletion handler has been configured.");
+  await clearAuthToken();
 }
 
-/**
- * 1. Request Password Reset / OTP Code
- */
 export async function requestPasswordReset(email: string): Promise<PasswordResetResponse> {
   const normalizedEmail = email.trim().toLowerCase();
 

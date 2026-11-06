@@ -493,7 +493,7 @@ export default function CreativeVoiceModal({
                   color="#FFFFFF"
                 />
                 <Text style={styles.listenPillText}>
-                  {isPlaying ? "Pause Audio" : `Play ${mentorDisplayName}'s Audio Memo`}
+                  {isPlaying ? "Pause Audio" : "Play Audio"}
                 </Text>
               </TouchableOpacity>
             </View>

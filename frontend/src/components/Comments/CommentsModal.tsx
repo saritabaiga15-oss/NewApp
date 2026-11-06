@@ -80,6 +80,13 @@ export default function CommentsModal({
   };
 
   const handleDelete = (commentId: string) => {
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined" && window.confirm("Are you sure you want to delete your comment?")) {
+        commentService.deleteComment(commentId);
+      }
+      return;
+    }
+
     Alert.alert("Delete Comment", "Are you sure you want to delete your comment?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -88,6 +95,12 @@ export default function CommentsModal({
         onPress: () => commentService.deleteComment(commentId),
       },
     ]);
+  };
+
+  const handleToggleLike = (commentId: string) => {
+    if (commentService.toggleLike(commentId)) {
+      setComments(commentService.getComments(targetId));
+    }
   };
 
   const handleReport = (comment: CommentItem) => {
@@ -109,6 +122,22 @@ export default function CommentsModal({
           onPress: () => {
             commentService.reportComment(comment.id, "Inappropriate content");
             Alert.alert("Thank you", "The comment has been flagged and submitted for review.");
+          },
+        },
+      ]
+    );
+  };
+
+  const handleHide = (comment: CommentItem) => {
+    Alert.alert(
+      "Hide Comment",
+      "Hide this comment from your view?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Hide",
+          onPress: () => {
+            commentService.hideComment(comment.id);
           },
         },
       ]
@@ -149,9 +178,11 @@ export default function CommentsModal({
           {/* Action Row */}
           <View style={styles.actionsBar}>
             <TouchableOpacity
-              onPress={() => commentService.toggleLike(item.id)}
+              onPress={() => handleToggleLike(item.id)}
               style={styles.actionBtn}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={item.isLiked ? "Unlike comment" : "Like comment"}
             >
               <Ionicons
                 name={item.isLiked ? "heart" : "heart-outline"}
@@ -193,16 +224,26 @@ export default function CommentsModal({
                 </TouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity
-                onPress={() => handleReport(item)}
-                style={styles.actionBtn}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="flag-outline" size={13} color={Palette.textMuted} />
-                <Text style={styles.actionLabel}>Report</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+              <>
+                <TouchableOpacity
+                  onPress={() => handleHide(item)}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="eye-off-outline" size={13} color={Palette.textMuted} />
+                  <Text style={styles.actionLabel}>Hide</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleReport(item)}
+                  style={styles.actionBtn}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="flag-outline" size={13} color={Palette.textMuted} />
+                  <Text style={styles.actionLabel}>Report</Text>
+                </TouchableOpacity>
+              </>
+            )}          </View>
         </View>
       </View>
     );

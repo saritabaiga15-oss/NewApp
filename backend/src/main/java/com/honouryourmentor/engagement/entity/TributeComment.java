@@ -28,6 +28,10 @@ public class TributeComment extends BaseEntity {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "likes_count", nullable = false)
+    @Builder.Default
+    private int likesCount = 0;
+
     @PrePersist
     @Override
     protected void onCreate() {

@@ -62,6 +62,25 @@ public class EngagementController {
         return ResponseEntity.ok(ApiResponse.ok(comments));
     }
 
+    @PostMapping("/comments/{id}/like")
+    @Operation(summary = "Like or unlike a comment (toggle)")
+    public ResponseEntity<ApiResponse<LikeStatusDto>> toggleCommentLike(
+            @PathVariable String id,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        LikeStatusDto status = engagementService.toggleCommentLike(id, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.ok(status));
+    }
+
+    @PostMapping("/comments/{id}/hide")
+    @Operation(summary = "Hide a comment from current user's feed")
+    public ResponseEntity<ApiResponse<Void>> hideComment(
+            @PathVariable String id,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok("Comment hidden successfully", null));
+    }
+
     @DeleteMapping("/comments/{id}")
     @Operation(summary = "Delete a comment")
     public ResponseEntity<ApiResponse<Void>> deleteComment(

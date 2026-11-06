@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,6 +23,20 @@ public class UserProfileDto {
     private String location;
     private String birthday;
     private String gender;
-    private java.util.List<String> honouring;
+    private List<String> honouring;
     private boolean setupComplete;
+
+    // Privacy Settings
+    private String profileVisibility;
+    private String defaultTributePrivacy;
+    private String connectionsVisibility;
+    private Boolean activityStatusEnabled;
+
+    // Notification Preferences
+    private Boolean notifLikes;
+    private Boolean notifComments;
+    private Boolean notifFollowers;
+    private Boolean notifMentorConnections;
+    private Boolean notifMentions;
+    private Boolean notifMessages;
 }

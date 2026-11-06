@@ -108,6 +108,20 @@ export default function VoiceRecorderModal({
     }
   };
 
+  const handleDeleteAudio = () => {
+    Alert.alert("Delete Recording", "Are you sure you want to discard this audio recording?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          setRecordedUri(null);
+          setRecordedDuration(0);
+        },
+      },
+    ]);
+  };
+
   const handleSave = () => {
     if (!recordedUri) return;
     onSave({

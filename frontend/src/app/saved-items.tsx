@@ -45,8 +45,6 @@ export default function SavedItemsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sampleHeartSaved, setSampleHeartSaved] = useState(false);
   const [remindersEnabled, setRemindersEnabled] = useState(false);
-  const [sortAscending, setSortAscending] = useState(false);
-
   const syncStories = () => {
     const savedIds = new Set(storyBookmarkService.getBookmarkedStoryIds());
     setStories(getAllStories().filter((story) => savedIds.has(story.id)));
@@ -135,8 +133,8 @@ export default function SavedItemsScreen() {
           return title.includes(query) || mentor.includes(query);
         })
       : pinnedItems;
-    return sortAscending ? [...list].reverse() : list;
-  }, [pinnedItems, query, sortAscending]);
+    return list;
+  }, [pinnedItems, query]);
 
   const filteredLessons = useMemo(() => {
     const list = query
@@ -147,8 +145,8 @@ export default function SavedItemsScreen() {
           );
         })
       : savedLessons;
-    return sortAscending ? [...list].reverse() : list;
-  }, [savedLessons, query, sortAscending]);
+    return list;
+  }, [savedLessons, query]);
 
   const filteredStories = useMemo(() => {
     const list = query
@@ -159,8 +157,8 @@ export default function SavedItemsScreen() {
           );
         })
       : stories;
-    return sortAscending ? [...list].reverse() : list;
-  }, [stories, query, sortAscending]);
+    return list;
+  }, [stories, query]);
 
   const removeBookmark = (story: Story) => {
     Alert.alert("Remove saved story?", story.title, [
@@ -335,19 +333,6 @@ export default function SavedItemsScreen() {
             })}
           </ScrollView>
 
-          <TouchableOpacity
-            style={styles.sortButton}
-            onPress={() => setSortAscending((prev) => !prev)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Sort saved items"
-          >
-            <Ionicons
-              name={sortAscending ? "arrow-up" : "swap-vertical"}
-              size={17}
-              color={Palette.accentSky}
-            />
-          </TouchableOpacity>
         </View>
 
         {loadError ? (
@@ -364,11 +349,6 @@ export default function SavedItemsScreen() {
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeading}>
                   <Text style={styles.sectionTitle}>Pinned memories</Text>
-                  <View style={styles.badgeContainer}>
-                    <Text style={styles.badgeText}>
-                      {filteredPinnedItems.length}
-                    </Text>
-                  </View>
                 </View>
 
                 {filteredPinnedItems.length > 0 ? (
@@ -515,11 +495,6 @@ export default function SavedItemsScreen() {
                   <Text style={styles.sectionTitle}>
                     Saved lessons & quotations
                   </Text>
-                  <View style={styles.badgeContainer}>
-                    <Text style={styles.badgeText}>
-                      {filteredLessons.length + (sampleHeartSaved ? 1 : 0)}
-                    </Text>
-                  </View>
                 </View>
 
                 {filteredLessons.length > 0 ? (
@@ -592,9 +567,6 @@ export default function SavedItemsScreen() {
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeading}>
                   <Text style={styles.sectionTitle}>Saved Discover stories</Text>
-                  <View style={styles.badgeContainer}>
-                    <Text style={styles.badgeText}>{filteredStories.length}</Text>
-                  </View>
                 </View>
 
                 {filteredStories.length > 0 ? (
@@ -974,18 +946,6 @@ const styles = StyleSheet.create({
     color: "#111111",
     fontWeight: "800",
   },
-  sortButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#1A1A1A",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
-  },
-
   // Section Headers
   sectionContainer: {
     marginTop: 18,
@@ -1003,21 +963,6 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     letterSpacing: -0.2,
   },
-  badgeContainer: {
-    minWidth: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Palette.surfaceElevated,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 6,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: Palette.accentSky,
-  },
-
   // Big White Cards
   card: {
     backgroundColor: Palette.surfaceCard,

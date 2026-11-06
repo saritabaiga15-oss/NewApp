@@ -3,8 +3,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Layout, SystemColors } from "@/constants/theme";
-import { useT, type StringKey } from "@/i18n";
 
 export type NavTab =
   | "home"
@@ -24,22 +22,17 @@ interface BottomNavigationProps {
 
 interface TabItem {
   key: NavTab;
-  labelKey: StringKey;
+  label: string;
   icon: keyof typeof Ionicons.glyphMap;
   activeIcon: keyof typeof Ionicons.glyphMap;
-  activeColor: string;
 }
 
-// HIG › Tab bars: filled symbols, single-word labels, one tint for the selection.
-const ACTIVE = SystemColors.blue;
-const INACTIVE = SystemColors.tabInactive;
-
 const FIVE_TABS: TabItem[] = [
-  { key: "home", labelKey: "nav.home", icon: "home-outline", activeIcon: "home", activeColor: ACTIVE },
-  { key: "discover", labelKey: "nav.discover", icon: "compass-outline", activeIcon: "compass", activeColor: ACTIVE },
-  { key: "create", labelKey: "nav.create", icon: "add-circle-outline", activeIcon: "add-circle", activeColor: ACTIVE },
-  { key: "saved", labelKey: "nav.saved", icon: "bookmark-outline", activeIcon: "bookmark", activeColor: ACTIVE },
-  { key: "profile", labelKey: "nav.profile", icon: "person-circle-outline", activeIcon: "person-circle", activeColor: ACTIVE },
+  { key: "home",     label: "Home",     icon: "home-outline",     activeIcon: "home"     },
+  { key: "discover", label: "Discover", icon: "compass-outline",  activeIcon: "compass"  },
+  { key: "create",   label: "Create",   icon: "add",              activeIcon: "add"      },
+  { key: "saved",    label: "Saved",    icon: "bookmark-outline", activeIcon: "bookmark" },
+  { key: "profile",  label: "Profile",  icon: "person-outline",   activeIcon: "person"   },
 ];
 
 export default function BottomNavigation({
@@ -48,68 +41,76 @@ export default function BottomNavigation({
   onCreatePress,
 }: BottomNavigationProps) {
   const insets = useSafeAreaInsets();
-  const t = useT();
 
   const handleTabPress = (tabKey: NavTab) => {
-    if (onTabChange) {
-      onTabChange(tabKey);
-    }
+    if (onTabChange) onTabChange(tabKey);
 
     if (tabKey === "create") {
-      if (onCreatePress) {
-        onCreatePress();
-        return;
-      }
-      if (activeTab !== "create") {
-        router.push("/create");
-      }
+      if (onCreatePress) { onCreatePress(); return; }
+      if (activeTab !== "create") router.push("/create");
       return;
     }
 
-    if (tabKey === "home" && activeTab !== "home") {
-      router.push("/home");
-    } else if (tabKey === "discover" && activeTab !== "discover") {
-      router.push("/discover");
-    } else if (tabKey === "saved" && activeTab !== "saved") {
-      router.push("/saved-items");
-    } else if (tabKey === "profile" && activeTab !== "profile") {
-      router.push("/profile");
-    }
+    if (tabKey === "home"     && activeTab !== "home")     router.push("/home");
+    else if (tabKey === "discover" && activeTab !== "discover") router.push("/discover");
+    else if (tabKey === "saved"    && activeTab !== "saved")    router.push("/saved-items");
+    else if (tabKey === "profile"  && activeTab !== "profile")  router.push("/profile");
   };
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]} accessibilityRole="tablist">
+    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      {/* Thin top divider */}
+      <View style={styles.topBorder} />
+
       <View style={styles.container}>
         {FIVE_TABS.map((tab) => {
           const isActive =
             activeTab === tab.key ||
-            (activeTab === "wall" && tab.key === "home") ||
-            (activeTab === "mentors" && tab.key === "discover") ||
+            (activeTab === "wall"      && tab.key === "home")     ||
+            (activeTab === "mentors"   && tab.key === "discover") ||
             (activeTab === "gratitude" && tab.key === "saved");
 
-          const iconColor = isActive ? tab.activeColor : INACTIVE;
+          const isCreate = tab.key === "create";
 
           return (
             <TouchableOpacity
               key={tab.key}
-              activeOpacity={0.6}
+              activeOpacity={0.7}
               onPress={() => handleTabPress(tab.key)}
-              style={styles.tabButton}
-              accessibilityRole="tab"
-              accessibilityLabel={t(tab.labelKey)}
+              style={[styles.tabButton, isCreate && styles.createTabOuter]}
+              accessibilityRole="button"
+              accessibilityLabel={tab.label}
               accessibilityState={{ selected: isActive }}
             >
-              <Ionicons
-                name={isActive ? tab.activeIcon : tab.icon}
-                size={25}
-                color={iconColor}
-              />
-              <Text
-                style={[styles.tabLabel, { color: iconColor }]}
-                numberOfLines={1}
-              >
-                {t(tab.labelKey)}
-              </Text>
+              {isCreate ? (
+                /* Raised circle Create button */
+                <View style={styles.createCircle}>
+                  <Ionicons name="add" size={28} color="#111111" />
+                </View>
+              ) : (
+                <>
+                  <Ionicons
+                    name={isActive ? tab.activeIcon : tab.icon}
+                    size={22}
+                    color={isActive ? "#111111" : "#9A9A9A"}
+                  />
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      isActive && styles.tabLabelActive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {tab.label}
+                  </Text>
+                </>
+              )}
+              {/* Show label below Create too */}
+              {isCreate && (
+                <Text style={styles.tabLabel} numberOfLines={1}>
+                  {tab.label}
+                </Text>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -124,32 +125,65 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    // Chrome material: near-opaque so content scrolling underneath stays legible.
-    backgroundColor: SystemColors.barMaterial,
+    backgroundColor: "#FFFFFF",
     zIndex: 99,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: SystemColors.separator,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  topBorder: {
+    height: 1,
+    backgroundColor: "#EBEBEB",
   },
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
-    height: 49,
-    width: "100%",
-    maxWidth: 600,
-    alignSelf: "center",
+    alignItems: "flex-end",
+    height: 60,
+    paddingHorizontal: 4,
+    paddingBottom: 4,
+    backgroundColor: "#FFFFFF",
   },
   tabButton: {
     flex: 1,
-    minHeight: Layout.minTouch,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 4,
+    gap: 3,
+  },
+  /* Create button lifts above the bar */
+  createTabOuter: {
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingBottom: 4,
+    gap: 3,
+    transform: [{ translateY: -6 }],
+  },
+  createCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#F0F0F0",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 4,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 4,
   },
   tabLabel: {
-    fontSize: 11,
-    lineHeight: 13,
+    fontSize: 10,
     fontWeight: "500",
-    marginTop: 2,
+    color: "#9A9A9A",
+    letterSpacing: 0.1,
+  },
+  tabLabelActive: {
+    color: "#111111",
+    fontWeight: "700",
   },
 });

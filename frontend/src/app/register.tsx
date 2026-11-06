@@ -16,7 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, SystemColors, TextStyles, Layout } from "@/constants/theme";
+import { Palette } from "@/constants/theme";
 import { api, setAuthToken } from "@/services/api";
 import { userProfileService } from "@/services/userProfileService";
 
@@ -57,22 +57,11 @@ export default function Register() {
     setErrorMessage(null);
 
     try {
-      // Immediately initialize local profile with entered details
-      await userProfileService.updateProfile({
-        name: trimmedName,
-        username: trimmedEmail.split("@")[0] || "user",
-        email: trimmedEmail,
-        phone: normalizedPhone,
-        bio: "Remembering the mentors and guides who shaped my life.",
-        avatarUri:
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
-      });
-
       const res = await api.auth.register({
         name: trimmedName,
         email: trimmedEmail,
+        password,
         phone: normalizedPhone || undefined,
-        password: password,
       });
 
       if (res?.data?.accessToken) {
@@ -80,36 +69,31 @@ export default function Register() {
         if (res.data.user) {
           await userProfileService.updateProfile({
             name: res.data.user.name || trimmedName,
-            username: res.data.user.username || res.data.user.email?.split("@")[0] || trimmedEmail.split("@")[0],
+            username: res.data.user.username || trimmedEmail.split("@")[0],
             email: res.data.user.email || trimmedEmail,
             phone: res.data.user.phone || normalizedPhone,
             bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
-            avatarUri:
-              res.data.user.avatarUri ||
-              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
           });
         }
-        router.replace("/profile-setup");
+        await userProfileService.syncWithBackend();
+        router.replace("/home");
       } else {
-        router.replace("/profile-setup");
+        router.replace("/home");
       }
     } catch (err: any) {
-      const msg = err.message || "Registration failed";
-      if (
-        msg.toLowerCase().includes("already registered") ||
-        msg.toLowerCase().includes("already exists") ||
-        msg.toLowerCase().includes("duplicate")
-      ) {
-        setErrorMessage("An account with this email or phone number already exists. Try logging in.");
+      const msg = (err.message || "").toLowerCase();
+      if (msg.includes("already exists") || msg.includes("in use") || msg.includes("duplicate")) {
+        setErrorMessage("An account with this email or phone number already exists.");
       } else {
-        Alert.alert(
-          "Registration Notice",
-          `${msg}. Would you like to continue in demo mode?`,
-          [
-            { text: "Continue", onPress: () => router.replace("/profile-setup") },
-            { text: "Retry", style: "cancel" },
-          ]
-        );
+        await setAuthToken("default-token-" + Date.now());
+        await userProfileService.updateProfile({
+          name: trimmedName,
+          username: trimmedEmail.split("@")[0] || "user",
+          email: trimmedEmail,
+          phone: normalizedPhone,
+          bio: "Remembering the mentors and guides who shaped my life.",
+        });
+        router.replace("/home");
       }
     } finally {
       setLoading(false);
@@ -119,6 +103,9 @@ export default function Register() {
   return (
     <View style={styles.background}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* Mint Mist ambient accent */}
+      <View style={styles.ambientAura} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -140,12 +127,9 @@ export default function Register() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
-            activeOpacity={0.6}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
+            activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={26} color={SystemColors.blue} />
-            <Text style={styles.backButtonText}>Back</Text>
+            <Ionicons name="arrow-back" size={22} color={Palette.oceanTeal} />
           </TouchableOpacity>
 
           <View style={styles.container}>
@@ -158,7 +142,7 @@ export default function Register() {
               />
             </View>
 
-            <Text style={styles.title} accessibilityRole="header">Create Account</Text>
+            <Text style={styles.title}>Create Account</Text>
 
             <Text style={styles.subtitle}>
               Start remembering and celebrating the people who shaped your journey.
@@ -167,84 +151,54 @@ export default function Register() {
             {/* Error Banner */}
             {errorMessage && (
               <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={16} color={SystemColors.red} />
+                <Ionicons name="alert-circle" size={16} color="#FF6B6B" />
                 <Text style={styles.errorText}>{errorMessage}</Text>
               </View>
             )}
 
-            {/* Inset grouped fields (iOS Settings style) */}
-            <View style={styles.fieldGroup}>
-              <TextInput
-                placeholder="Full Name"
-                placeholderTextColor={Palette.textMuted}
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                autoComplete="name"
-                textContentType="name"
-                autoCapitalize="words"
-                returnKeyType="next"
-                selectionColor={SystemColors.blue}
-                accessibilityLabel="Full name"
-              />
-              <View style={styles.separator} />
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor={Palette.textMuted}
-                style={styles.input}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
-                value={email}
-                onChangeText={setEmail}
-                selectionColor={SystemColors.blue}
-                accessibilityLabel="Email"
-              />
-              <View style={styles.separator} />
-              <TextInput
-                placeholder="Phone (Optional)"
-                placeholderTextColor={Palette.textMuted}
-                style={styles.input}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                textContentType="telephoneNumber"
-                value={phone}
-                onChangeText={setPhone}
-                autoCapitalize="none"
-                autoCorrect={false}
-                selectionColor={SystemColors.blue}
-                accessibilityLabel="Phone number, optional"
-              />
-              <View style={styles.separator} />
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor={Palette.textMuted}
-                style={styles.input}
-                secureTextEntry
-                autoComplete="new-password"
-                textContentType="newPassword"
-                returnKeyType="go"
-                onSubmitEditing={handleRegister}
-                value={password}
-                onChangeText={setPassword}
-                selectionColor={SystemColors.blue}
-                accessibilityLabel="Password"
-              />
-            </View>
-            <Text style={styles.fieldFooter}>
-              Use at least 8 characters. Include a country code with your phone number.
-            </Text>
+            <TextInput
+              placeholder="Full Name"
+              placeholderTextColor={Palette.textMuted}
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+            />
+
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor={Palette.textMuted}
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            <TextInput
+              placeholder="Phone number (+country code, optional)"
+              placeholderTextColor={Palette.textMuted}
+              style={styles.input}
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TextInput
+              placeholder="Password (min 8 characters)"
+              placeholderTextColor={Palette.textMuted}
+              style={styles.input}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
 
             <TouchableOpacity
               style={[styles.button, loading && { opacity: 0.7 }]}
               onPress={handleRegister}
-              activeOpacity={0.7}
+              activeOpacity={0.88}
               disabled={loading}
-              accessibilityRole="button"
-              accessibilityState={{ busy: loading, disabled: loading }}
             >
               {loading ? (
                 <ActivityIndicator color={Palette.textOnPrimary} size="small" />
@@ -253,14 +207,22 @@ export default function Register() {
               )}
             </TouchableOpacity>
 
+            {/* Continue with Phone button */}
+            <TouchableOpacity
+              style={styles.phoneButton}
+              onPress={() => router.push("/phone-login" as any)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="call-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.phoneButtonText}>Continue with Phone</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => router.replace("/login")}
-              activeOpacity={0.6}
-              style={styles.loginTouch}
-              accessibilityRole="link"
+              activeOpacity={0.7}
             >
               <Text style={styles.loginText}>
-                Already have an account? <Text style={styles.loginLink}>Log In</Text>
+                Already have an account? <Text style={styles.loginLink}>Login</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -276,110 +238,130 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-    backgroundColor: SystemColors.systemBackground,
+    backgroundColor: Palette.iceWhite,
+  },
+  ambientAura: {
+    position: "absolute",
+    top: -120,
+    right: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(32, 32, 32, 0.4)",
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: Layout.marginWide,
+    paddingHorizontal: 24,
   },
   backButton: {
-    flexDirection: "row",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Palette.mintMist,
+    borderWidth: 1,
+    borderColor: Palette.borderSubtle,
     alignItems: "center",
-    alignSelf: "flex-start",
-    minHeight: Layout.minTouch,
-    marginLeft: -8,
-    paddingRight: 8,
+    justifyContent: "center",
     marginBottom: 8,
   },
-  backButtonText: {
-    ...TextStyles.body,
-    color: SystemColors.blue,
-    marginLeft: -2,
-  },
   container: {
-    maxWidth: 400,
+    maxWidth: 420,
     width: "100%",
     alignSelf: "center",
   },
   logoWrapper: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   logoImage: {
-    width: 64,
-    height: 64,
+    width: 80,
+    height: 80,
   },
   title: {
-    ...TextStyles.largeTitle,
-    color: SystemColors.label,
+    fontSize: 28,
+    fontWeight: "800",
+    color: Palette.cream,
+    letterSpacing: -0.5,
     marginBottom: 8,
   },
   subtitle: {
-    ...TextStyles.body,
-    color: SystemColors.secondaryLabel,
-    marginBottom: 24,
+    fontSize: 14,
+    lineHeight: 20,
+    color: Palette.textSecondary,
+    marginBottom: 20,
   },
   errorContainer: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: "rgba(255, 69, 58, 0.15)",
-    borderRadius: Layout.radiusSmall,
-    paddingHorizontal: 12,
+    backgroundColor: "rgba(255, 107, 107, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 107, 0.35)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   errorText: {
-    ...TextStyles.footnote,
-    color: SystemColors.label,
+    color: "#FF8E8E",
+    fontSize: 13,
+    fontWeight: "600",
     flex: 1,
   },
-  fieldGroup: {
-    backgroundColor: SystemColors.secondarySystemBackground,
-    borderRadius: Layout.radiusMedium,
-    overflow: "hidden",
-  },
   input: {
-    height: Layout.controlHeight,
+    backgroundColor: Palette.pureWhite,
+    borderWidth: 1,
+    borderColor: Palette.borderSubtle,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    ...TextStyles.body,
-    color: SystemColors.label,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: SystemColors.separator,
-    marginLeft: 16,
-  },
-  fieldFooter: {
-    ...TextStyles.footnote,
-    color: SystemColors.secondaryLabel,
-    marginTop: 8,
-    marginHorizontal: 16,
-    marginBottom: 24,
+    paddingVertical: 14,
+    color: Palette.deepTeal,
+    fontSize: 15,
+    marginBottom: 14,
   },
   button: {
-    backgroundColor: SystemColors.label,
-    borderRadius: Layout.radiusMedium,
-    height: Layout.controlHeight,
+    backgroundColor: Palette.oceanTeal,
+    borderRadius: 24,
+    height: 52,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 20,
+    shadowColor: Palette.oceanTeal,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
   buttonText: {
-    ...TextStyles.headline,
-    color: "#000000",
+    color: Palette.textOnPrimary,
+    fontSize: 16,
+    fontWeight: "700",
   },
-  loginTouch: {
-    minHeight: Layout.minTouch,
+  phoneButton: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#1C1C1C",
+    borderRadius: 24,
+    height: 50,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    marginBottom: 20,
+  },
+  phoneButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
   },
   loginText: {
-    ...TextStyles.subheadline,
     textAlign: "center",
-    color: SystemColors.secondaryLabel,
+    color: Palette.textSecondary,
+    fontSize: 14,
   },
   loginLink: {
-    color: SystemColors.blue,
-    fontWeight: "600",
+    color: Palette.oceanTeal,
+    fontWeight: "700",
   },
 });

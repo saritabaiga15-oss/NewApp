@@ -364,19 +364,8 @@ export default function CreationStudioScreen({
 
       // Saved to the backend by memoryService.addMemory (uploads media first).
 
-      const alertMsg = mentorEmail.trim() && sendDedicationEmail
-        ? `Your post has been published and dedicated! We sent an email notification to ${mentorEmail.trim()} with the website link so your mentor can view it.`
-        : isSharedOnFeed
-        ? "Your post has been published and shared to your community feed & Memory Wall!"
-        : "Your post is now saved in your collection.";
-
-      Alert.alert("Published with Care", alertMsg, [
-        { text: "Keep creating", style: "cancel", onPress: () => router.replace("/create") },
-        {
-          text: isSharedOnFeed ? "View on Memory Wall" : "View Keepsake",
-          onPress: () => router.replace(isSharedOnFeed ? "/memory-wall" : { pathname: "/memory-detail/[id]", params: { id: savedId } }),
-        },
-      ]);
+      // Saved and dedication email dispatched — automatically close to Memory Wall
+      router.replace("/memory-wall");
     } catch (error) {
       suppressAutosave.current = false;
       console.error("Unable to save creation:", error);

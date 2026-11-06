@@ -2,11 +2,7 @@ import { Palette } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
 
-interface DiscoverHeaderProps {
-  storyCount?: number;
-}
-
-export default function DiscoverHeader({ storyCount }: DiscoverHeaderProps) {
+export default function DiscoverHeader() {
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
@@ -14,11 +10,6 @@ export default function DiscoverHeader({ storyCount }: DiscoverHeaderProps) {
           <Ionicons name="people-outline" size={13} color={Palette.turquoise} />
           <Text style={styles.badgeText}>BECAUSE OF YOU</Text>
         </View>
-        {storyCount !== undefined && (
-          <View style={styles.countPill}>
-            <Text style={styles.countText}>{storyCount} Stories</Text>
-          </View>
-        )}
       </View>
 
       <Text style={styles.heading}>Discover</Text>
@@ -36,7 +27,6 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     marginBottom: 8,
   },
   badgeWrap: {
@@ -56,19 +46,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: Palette.oceanTeal,
     letterSpacing: 1,
-  },
-  countPill: {
-    backgroundColor: Palette.pureWhite,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Palette.borderSubtle,
-  },
-  countText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: Palette.textSecondary,
   },
   heading: {
     fontSize: 32,

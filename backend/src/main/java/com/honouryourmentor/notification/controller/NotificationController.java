@@ -39,4 +39,32 @@ public class NotificationController {
         notificationService.markAsRead(id, currentUser.getId());
         return ResponseEntity.ok(ApiResponse.ok("Notification marked as read", null));
     }
+
+    @PutMapping("/mark-all-read")
+    @Operation(summary = "Mark all notifications as read")
+    public ResponseEntity<ApiResponse<Void>> markAllAsRead(
+            @AuthenticationPrincipal User currentUser
+    ) {
+        notificationService.markAllAsRead(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.ok("All notifications marked as read", null));
+    }
+
+    @PostMapping("/mark-all-read")
+    @Operation(summary = "Mark all notifications as read (POST alternative)")
+    public ResponseEntity<ApiResponse<Void>> markAllAsReadPost(
+            @AuthenticationPrincipal User currentUser
+    ) {
+        notificationService.markAllAsRead(currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.ok("All notifications marked as read", null));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete an individual notification")
+    public ResponseEntity<ApiResponse<Void>> deleteNotification(
+            @PathVariable String id,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        notificationService.deleteNotification(id, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.ok("Notification deleted successfully", null));
+    }
 }

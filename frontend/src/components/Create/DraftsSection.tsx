@@ -33,11 +33,6 @@ export default function DraftsSection({
           </Text>
         </View>
 
-        {drafts.length > 0 && (
-          <View style={styles.draftsCountBadge}>
-            <Text style={styles.draftsCountText}>{drafts.length}</Text>
-          </View>
-        )}
       </View>
 
       {/* Conditional: Empty State vs Saved Drafts */}
@@ -245,20 +240,6 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     marginTop: 2,
   },
-  draftsCountBadge: {
-    backgroundColor: Palette.mintMist,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.25)",
-  },
-  draftsCountText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: Palette.deepTeal,
-  },
-
   // Thoughtful Empty State
   emptyContainer: {
     backgroundColor: Palette.pureWhite,

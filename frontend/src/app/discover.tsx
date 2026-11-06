@@ -299,7 +299,7 @@ export default function DiscoverScreen() {
           {/* ======================================================== */}
           {/* 1. DISCOVER HEADER                                       */}
           {/* ======================================================== */}
-          <DiscoverHeader storyCount={filteredStories.length + (isFeaturedStoryMatching ? 1 : 0)} />
+          <DiscoverHeader />
 
           {/* ======================================================== */}
           {/* 1. SEARCH BAR                                            */}
@@ -374,11 +374,6 @@ export default function DiscoverScreen() {
                   Small moments can leave a lifelong mark.
                 </Text>
               </View>
-              {filteredStories.length > 0 && (
-                <View style={styles.storyCountBadge}>
-                  <Text style={styles.storyCountText}>{filteredStories.length}</Text>
-                </View>
-              )}
             </View>
 
             {filteredStories.length === 0 ? (
@@ -510,19 +505,6 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: Palette.textSecondary,
     marginTop: 3,
-  },
-  storyCountBadge: {
-    backgroundColor: Palette.mintMist,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(236, 143, 62, 0.25)",
-  },
-  storyCountText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: Palette.oceanTeal,
   },
   storyList: {
     marginTop: 4,
