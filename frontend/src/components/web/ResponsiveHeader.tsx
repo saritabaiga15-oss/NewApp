@@ -249,23 +249,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
-<<<<<<< HEAD:frontend/src/components/web/ResponsiveHeader.tsx
-=======
     borderWidth: 1,
     borderColor: "#2D2D2D",
-  },
-  qrButtonText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
   bellBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#171717",
+    backgroundColor: SystemColors.tertiarySystemFill,
     borderWidth: 1,
-    borderColor: "#2D2D2D",
+    borderColor: SystemColors.opaqueSeparator,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
@@ -279,11 +272,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Palette.accentPink,
     borderWidth: 1.5,
-    borderColor: "#171717",
+    borderColor: SystemColors.systemBackground,
   },
   profileBtn: {
     padding: 2,
->>>>>>> fc704cefe978c178779182dc953eb4dec4ce85d3:src/components/web/ResponsiveHeader.tsx
   },
   qrButtonText: { fontSize: 12, fontWeight: "700", color: SystemColors.label },
   iconBtn: { padding: 4 },
