@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
@@ -17,11 +17,9 @@ export default function TributeWallCard({
   onPinPress,
 }: TributeWallCardProps) {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(item)}
-      activeOpacity={0.88}
-      style={styles.card}
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.88 }]}
       accessibilityLabel={`Appreciation card for ${item.mentorName}`}
     >
       {/* Photo background */}
@@ -79,7 +77,7 @@ export default function TributeWallCard({
         </Text>
         <Text style={styles.date}>{item.createdAt}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

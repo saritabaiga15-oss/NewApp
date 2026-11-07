@@ -2,6 +2,7 @@ import React from "react";
 import {
   Animated,
   Image,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -100,16 +101,15 @@ export default function MentorCard({
         },
       ]}
     >
-      <TouchableOpacity
-        activeOpacity={0.92}
+      <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        accessibilityRole="button"
         accessibilityLabel={`Open ${mentor.name}'s mentor profile`}
-        style={[
+        style={({ pressed }) => [
           styles.card,
           isSelected && styles.cardSelected,
+          pressed && { opacity: 0.92 },
         ]}
       >
         {/* ──────────────────────────────────────
@@ -169,15 +169,11 @@ export default function MentorCard({
             Natural-color portrait
         ────────────────────────────────────── */}
         <View style={styles.avatarWrap}>
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={onPress}
+          <View
             style={[
               styles.avatarRing,
               isSelected && styles.avatarRingSelected,
             ]}
-            accessibilityRole="button"
-            accessibilityLabel={`${mentor.name}'s photograph`}
           >
             {avatarUri ? (
               <Image
@@ -190,7 +186,7 @@ export default function MentorCard({
                 <Text style={styles.avatarInitials}>{initials}</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* ──────────────────────────────────────
@@ -198,11 +194,9 @@ export default function MentorCard({
         ────────────────────────────────────── */}
         <View style={styles.body}>
           {/* Name — Bright white elegant italic serif */}
-          <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
-            <Text style={styles.name} numberOfLines={1}>
-              {mentor.name}
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.name} numberOfLines={1}>
+            {mentor.name}
+          </Text>
 
           {/* Role — Soft light grey uppercase caption */}
           <Text style={styles.role}>{mentor.role.toUpperCase()}</Text>
@@ -250,17 +244,13 @@ export default function MentorCard({
           </View>
 
           {/* Action Button — Subtle dark surface with colourful heart icon */}
-          <TouchableOpacity
-            onPress={onPress}
-            activeOpacity={0.85}
-            style={styles.ctaBtn}
-          >
+          <View style={styles.ctaBtn}>
             <Ionicons name="heart" size={13} color={Palette.accentPink} />
             <Text style={styles.ctaText}>Send Thanks</Text>
             <Ionicons name="chevron-forward" size={12} color={Palette.accentSky} />
-          </TouchableOpacity>
+          </View>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 }

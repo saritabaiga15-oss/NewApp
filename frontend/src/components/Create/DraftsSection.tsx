@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -77,12 +78,10 @@ export default function DraftsSection({
             const typeConfig = getTypeBadgeConfig(draft.type);
 
             return (
-              <TouchableOpacity
+              <Pressable
                 key={draft.id}
-                activeOpacity={0.8}
                 onPress={() => onResumeDraft(draft)}
-                style={styles.draftCard}
-                accessibilityRole="button"
+                style={({ pressed }) => [styles.draftCard, pressed && { opacity: 0.8 }]}
                 accessibilityLabel={`Resume draft: ${draft.title}`}
               >
                 {/* Left Type Indicator Line */}
@@ -165,7 +164,7 @@ export default function DraftsSection({
                     )}
                   </View>
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>

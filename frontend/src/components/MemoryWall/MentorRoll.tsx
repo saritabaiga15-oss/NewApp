@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Alert,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -75,12 +76,10 @@ export default function MentorRoll({
             "Guiding with patience and unwavering belief.";
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={mentor.id}
               onPress={() => onMentorPress(mentor)}
-              activeOpacity={0.92}
-              style={styles.card}
-              accessibilityRole="button"
+              style={({ pressed }) => [styles.card, pressed && { opacity: 0.92 }]}
               accessibilityLabel={`${mentor.name} profile card`}
             >
               {/* Header Top Accent Bar */}
@@ -180,7 +179,7 @@ export default function MentorRoll({
               <Text style={styles.lastThankedText}>
                 {mentor.lastThanked || "Last thanked recently"}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
 

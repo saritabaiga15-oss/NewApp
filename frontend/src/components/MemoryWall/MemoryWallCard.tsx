@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Image,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,11 +23,9 @@ export default function MemoryWallCard({
   onPinPress,
 }: MemoryWallCardProps) {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(item)}
-      activeOpacity={0.88}
-      style={styles.card}
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.88 }]}
       accessibilityLabel={item.title}
     >
       {/* Left color stripe */}
@@ -75,7 +74,7 @@ export default function MemoryWallCard({
       {item.imageUri && (
         <Image source={{ uri: item.imageUri }} style={styles.thumb} />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

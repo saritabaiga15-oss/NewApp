@@ -5,6 +5,7 @@ import {
   FlatList,
   Image,
   Platform,
+  Pressable,
   RefreshControl,
   SafeAreaView,
   StatusBar,
@@ -399,11 +400,14 @@ export default function NotificationsScreen() {
             {section.data.map((notif) => {
               const iconCfg = getActivityIcon(notif.type);
               return (
-                <TouchableOpacity
+                <Pressable
                   key={notif.id}
-                  style={[styles.notifCard, !notif.isRead && styles.notifCardUnread]}
+                  style={({ pressed }) => [
+                    styles.notifCard,
+                    !notif.isRead && styles.notifCardUnread,
+                    pressed && { opacity: 0.75 },
+                  ]}
                   onPress={() => handleOpenNotification(notif)}
-                  activeOpacity={0.75}
                 >
                   {/* Left: Avatar with badge icon overlay */}
                   <View style={styles.avatarWrap}>
@@ -450,7 +454,7 @@ export default function NotificationsScreen() {
                       <Ionicons name="trash-outline" size={14} color="rgba(255, 255, 255, 0.3)" />
                     </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>

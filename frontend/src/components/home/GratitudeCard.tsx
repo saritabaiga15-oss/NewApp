@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Alert,
   Image,
+  Pressable,
   Share,
   StyleSheet,
   Text,
@@ -52,10 +53,9 @@ export default function GratitudeCard({ post, onPress }: GratitudeCardProps) {
 
   return (
     <>
-      <TouchableOpacity
-        activeOpacity={0.92}
+      <Pressable
         onPress={onPress}
-        style={styles.container}
+        style={({ pressed }) => [styles.container, pressed && { opacity: 0.92 }]}
       >
         <View style={styles.cardSurface}>
           {/* Author & Mentor Header */}
@@ -121,7 +121,7 @@ export default function GratitudeCard({ post, onPress }: GratitudeCardProps) {
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
       <CommentsModal
         visible={isCommentsOpen}

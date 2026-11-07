@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Image,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -77,11 +78,9 @@ export default function MemoryCard({
   const meta = getTypeMeta();
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
+    <Pressable
       onPress={onPress}
-      style={styles.cardContainer}
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.cardContainer, pressed && { opacity: 0.9 }]}
       accessibilityLabel={`${memory.title} for ${memory.mentorName}`}
     >
       <View style={styles.cardSurface}>
@@ -168,7 +167,7 @@ export default function MemoryCard({
           </TouchableOpacity>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

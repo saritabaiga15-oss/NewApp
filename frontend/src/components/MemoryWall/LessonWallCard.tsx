@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
 import { WallLesson } from "@/types/memoryWall";
@@ -16,11 +16,9 @@ export default function LessonWallCard({
   onPinPress,
 }: LessonWallCardProps) {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(item)}
-      activeOpacity={0.88}
-      style={styles.card}
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.88 }]}
       accessibilityLabel={item.lessonTitle}
     >
       {/* Quote mark decoration */}
@@ -66,7 +64,7 @@ export default function LessonWallCard({
         <View style={styles.dash} />
         <Text style={styles.mentorName}>{item.mentorName}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

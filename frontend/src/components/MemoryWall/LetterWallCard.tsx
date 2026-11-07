@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
 import { WallLetter } from "@/types/memoryWall";
@@ -25,11 +25,9 @@ export default function LetterWallCard({
   const mood = MOOD_CONFIG[item.mood] ?? { icon: "mail-outline", color: Palette.textSecondary };
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(item)}
-      activeOpacity={0.88}
-      style={styles.card}
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.88 }]}
       accessibilityLabel={item.title}
     >
       {/* Decorative envelope flap */}
@@ -72,7 +70,7 @@ export default function LetterWallCard({
         <Text style={styles.dot}>·</Text>
         <Text style={styles.footerText}>{item.createdAt}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

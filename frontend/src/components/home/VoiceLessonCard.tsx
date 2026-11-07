@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import { AppFonts, Palette } from "@/constants/theme";
+import { formatClock, useDemoAudio } from "@/services/demoAudio";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { AppFonts, Palette } from "@/constants/theme";
-import { formatClock, useDemoAudio } from "@/services/demoAudio";
 
 export interface VoiceLessonItem {
   id: string;
@@ -50,15 +51,14 @@ export default function VoiceLessonCard({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.88}
+    <Pressable
       onPress={onPress}
-      accessibilityRole="button"
       accessibilityLabel={`${item.title} by ${item.mentorName}`}
-      style={[
+      style={({ pressed }) => [
         styles.container,
         {
           width: cardWidth ?? 290,
+          opacity: pressed ? 0.88 : 1,
         },
       ]}
     >
@@ -171,7 +171,7 @@ export default function VoiceLessonCard({
           </TouchableOpacity>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

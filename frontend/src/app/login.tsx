@@ -18,7 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppFonts, Palette } from "@/constants/theme";
 import { api, setAuthToken } from "@/services/api";
 import { userProfileService } from "@/services/userProfileService";
-import { GoogleLogo, AppleLogo, FacebookLogo } from "@/components/SocialLogos";
+import { GoogleLogo } from "@/components/SocialLogos";
 
 export default function Login() {
   const insets = useSafeAreaInsets();
@@ -344,7 +344,7 @@ export default function Login() {
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Real Social Logos (Google, Apple, Facebook) */}
+            {/* Real Social Logos (Google) */}
             <View style={styles.socialRow}>
               <TouchableOpacity
                 onPress={() => handleSocialLogin("Google")}
@@ -354,26 +354,6 @@ export default function Login() {
                 accessibilityLabel="Sign in with Google"
               >
                 <GoogleLogo size={22} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => handleSocialLogin("Apple")}
-                activeOpacity={0.8}
-                style={styles.socialBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Sign in with Apple"
-              >
-                <AppleLogo size={22} color="#FFFFFF" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => handleSocialLogin("Facebook")}
-                activeOpacity={0.8}
-                style={styles.socialBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Sign in with Facebook"
-              >
-                <FacebookLogo size={22} />
               </TouchableOpacity>
             </View>
 

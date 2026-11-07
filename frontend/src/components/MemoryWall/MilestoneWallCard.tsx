@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/constants/theme";
@@ -28,11 +28,9 @@ export default function MilestoneWallCard({
   const iconName = MILESTONE_ICONS[item.type] ?? "flag-outline";
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(item)}
-      activeOpacity={0.88}
-      style={styles.card}
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.88 }]}
       accessibilityLabel={item.title}
     >
       {/* Accent gradient strip at top */}
@@ -84,7 +82,7 @@ export default function MilestoneWallCard({
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

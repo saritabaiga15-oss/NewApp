@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -44,15 +45,14 @@ export default function MilestoneDedicationCard({
   const iconColor = BADGE_COLORS[item.badgeIcon] || "#F59E0B";
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.88}
+    <Pressable
       onPress={onPress}
-      accessibilityRole="button"
       accessibilityLabel={`${item.title}, dedicated to ${item.mentorName}`}
-      style={[
+      style={({ pressed }) => [
         styles.container,
         {
           width: cardWidth ?? 270,
+          opacity: pressed ? 0.88 : 1,
         },
       ]}
     >
@@ -86,7 +86,7 @@ export default function MilestoneDedicationCard({
           &ldquo;{item.dedicationQuote}&rdquo;
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
