@@ -39,7 +39,8 @@ import VoiceRecorderModal, {
 import { memoryService } from "@/services/memoryService";
 import { userProfileService } from "@/services/userProfileService";
 import type { UserProfile } from "@/services/userProfileService";
-import { getAuthToken } from "@/services/api";
+import { api, getAuthToken } from "@/services/api";
+import { signOut } from "@/services/auth";
 import type { WallItem, WallMemory } from "@/types/memoryWall";
 import { useResponsive } from "@/hooks/useResponsive";
 import { useQrModal } from "@/context/QrModalContext";
@@ -486,17 +487,38 @@ export default function HomeScreen() {
   const [reflectionInput, setReflectionInput] = useState("");
   const [hasSubmittedReflection, setHasSubmittedReflection] = useState(false);
 
-  // Auth guard: If user has no active token, redirect to /login
+  // Auth guard: If user has no active token or invalid token, redirect to /login
   React.useEffect(() => {
+    let isMounted = true;
     getAuthToken()
-      .then((token) => {
+      .then(async (token) => {
         if (!token) {
-          router.replace("/login");
+          if (isMounted) router.replace("/login");
+          return;
+        }
+        // Validate session with backend
+        try {
+          const me = await api.auth.me();
+          if (!me?.data && isMounted) {
+            await signOut();
+            router.replace("/login");
+          }
+        } catch (err: any) {
+          const msg = (err?.message || "").toLowerCase();
+          if (msg.includes("401") || msg.includes("unauthorized") || msg.includes("forbidden") || msg.includes("403")) {
+            if (isMounted) {
+              await signOut();
+              router.replace("/login");
+            }
+          }
         }
       })
       .catch(() => {
-        router.replace("/login");
+        if (isMounted) router.replace("/login");
       });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   React.useEffect(

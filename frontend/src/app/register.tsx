@@ -85,15 +85,7 @@ export default function Register() {
       if (msg.includes("already exists") || msg.includes("in use") || msg.includes("duplicate")) {
         setErrorMessage("An account with this email or phone number already exists.");
       } else {
-        await setAuthToken("default-token-" + Date.now());
-        await userProfileService.updateProfile({
-          name: trimmedName,
-          username: trimmedEmail.split("@")[0] || "user",
-          email: trimmedEmail,
-          phone: normalizedPhone,
-          bio: "Remembering the mentors and guides who shaped my life.",
-        });
-        router.replace("/home");
+        setErrorMessage(err.message || "Unable to create account. Please try again.");
       }
     } finally {
       setLoading(false);

@@ -81,19 +81,7 @@ export default function Login() {
       ) {
         setErrorMessage("Invalid email or password. Please try again.");
       } else {
-        // Fallback for demo or offline mode
-        const userName = trimmedEmail.includes("@")
-          ? trimmedEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-          : trimmedEmail;
-
-        await setAuthToken("default-token-" + Date.now());
-        await userProfileService.updateProfile({
-          name: userName,
-          username: trimmedEmail.split("@")[0] || "mentor_student",
-          email: trimmedEmail.includes("@") ? trimmedEmail : `${trimmedEmail}@example.com`,
-          bio: "Remembering the mentors and guides who shaped my life.",
-        });
-        router.replace("/home");
+        setErrorMessage(err.message || "Unable to sign in. Please check your credentials or server connection.");
       }
     } finally {
       setLoading(false);
