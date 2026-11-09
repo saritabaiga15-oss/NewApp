@@ -25,6 +25,7 @@ import BottomNavigation from "@/components/home/BottomNavigation";
 import { creationDraftService } from "@/services/creationDraftService";
 import { memoryService } from "@/services/memoryService";
 import { userProfileService } from "@/services/userProfileService";
+import VoiceRecorderModal from "@/components/home/VoiceRecorderModal";
 import type { CreationDraft, CreationFormState } from "@/types/create";
 
 type StudioType = "memory" | "lesson" | "letter";
@@ -114,6 +115,9 @@ export default function CreationStudioScreen({
     return pName && pName !== "Sarita Baiga" ? pName : "";
   });
   const [photoUri, setPhotoUri] = useState("");
+  const [audioUri, setAudioUri] = useState("");
+  const [audioDuration, setAudioDuration] = useState<number | undefined>(undefined);
+  const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
   const [layoutStyle, setLayoutStyle] = useState(type === "letter" ? "ivory" : "botanical");
   const [decorations, setDecorations] = useState<string[]>([]);
   const [mentorEmail, setMentorEmail] = useState("");
@@ -134,10 +138,12 @@ export default function CreationStudioScreen({
       closing,
       signature,
       photoUri,
+      audioUri,
+      recipientEmail: mentorEmail,
       layoutStyle,
       decorations,
     }),
-    [type, mentorName, relationship, title, body, quote, dateOrYear, greeting, closing, signature, photoUri, layoutStyle, decorations]
+    [type, mentorName, relationship, title, body, quote, dateOrYear, greeting, closing, signature, photoUri, audioUri, mentorEmail, layoutStyle, decorations]
   );
 
   const loadDraft = useCallback((saved: CreationDraft) => {
@@ -155,6 +161,8 @@ export default function CreationStudioScreen({
         setSignature(fd.signature);
       }
       setPhotoUri(fd.photoUri ?? "");
+      setAudioUri(fd.audioUri ?? "");
+      if (fd.recipientEmail) setMentorEmail(fd.recipientEmail);
       setLayoutStyle(fd.layoutStyle ?? (saved.type === "letter" ? "ivory" : "botanical"));
       setDecorations(fd.decorations ?? []);
     } else {
@@ -306,6 +314,7 @@ export default function CreationStudioScreen({
             emotion: "Gratitude",
             emotionColor: Palette.accentMint,
             imageUri: photoUri || undefined,
+            audioUri: audioUri || undefined,
             quote: quote.trim() || undefined,
             momentToRemember: dateOrYear.trim() || undefined,
             createdAt,
@@ -323,6 +332,7 @@ export default function CreationStudioScreen({
             title: title.trim() || `A Letter to ${mentorName.trim()}`,
             preview: body.trim().slice(0, 180),
             letterBody: body.trim(),
+            audioUri: audioUri || undefined,
             salutation: greeting.trim() || `Dear ${mentorName.trim()},`,
             signoff: closing.trim(),
             signature: effectiveSig,
@@ -347,6 +357,7 @@ export default function CreationStudioScreen({
             quote: quote.trim() || body.trim(),
             story: body.trim(),
             imageUri: photoUri || undefined,
+            audioUri: audioUri || undefined,
             layoutStyle,
             decorations,
             category: "Note",
@@ -532,6 +543,47 @@ export default function CreationStudioScreen({
             />
           )}
 
+          {/* Voice Note Attachment Section */}
+          <View style={styles.audioSectionCard}>
+            <View style={styles.dedicationHeader}>
+              <Ionicons name="mic-outline" size={18} color="#FF9F0A" />
+              <Text style={styles.dedicationTitle}>Voice Note (Optional)</Text>
+            </View>
+            <Text style={styles.dedicationSubtitle}>
+              Record a personal spoken message or reflection to accompany your keepsake.
+            </Text>
+
+            {audioUri ? (
+              <View style={styles.audioAttachedRow}>
+                <View style={styles.audioAttachedInfo}>
+                  <Ionicons name="volume-medium" size={20} color="#FF9F0A" />
+                  <Text style={styles.audioAttachedText} numberOfLines={1}>
+                    Voice note attached {audioDuration ? `(${Math.round(audioDuration)}s)` : "(ready)"}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setAudioUri("");
+                    setAudioDuration(undefined);
+                  }}
+                  style={styles.audioRemoveBtn}
+                >
+                  <Ionicons name="trash-outline" size={16} color="#FF6961" />
+                  <Text style={styles.audioRemoveText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setIsVoiceModalVisible(true)}
+                style={styles.recordVoiceBtn}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="mic" size={18} color="#FF9F0A" />
+                <Text style={styles.recordVoiceBtnText}>Record Spoken Note</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
           {/* Dedication & Feed Sharing Section */}
           <View style={styles.dedicationCard}>
             <View style={styles.dedicationHeader}>
@@ -618,6 +670,15 @@ export default function CreationStudioScreen({
         photoUri={photoUri}
         layoutStyle={layoutStyle}
         decorations={decorations}
+      />
+      <VoiceRecorderModal
+        visible={isVoiceModalVisible}
+        onClose={() => setIsVoiceModalVisible(false)}
+        onSave={(recording) => {
+          setAudioUri(recording.uri);
+          setAudioDuration(recording.durationSeconds);
+          setIsVoiceModalVisible(false);
+        }}
       />
     </SafeAreaView>
   );
@@ -1600,6 +1661,14 @@ const styles = StyleSheet.create({
   removePhoto: { position: "absolute", right: 9, top: 9, width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" },
   photoButton: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, backgroundColor: "#171717", borderRadius: 14, borderWidth: 1, borderColor: "#303030" },
   photoButtonText: { flex: 1, color: "#FFFFFF", fontSize: 13, fontWeight: "700", marginLeft: 10 },
+  audioSectionCard: { backgroundColor: "#151515", borderRadius: 16, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: "#272727" },
+  audioAttachedRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#1F1F1F", padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "#333333" },
+  audioAttachedInfo: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+  audioAttachedText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600", flex: 1 },
+  audioRemoveBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4 },
+  audioRemoveText: { color: "#FF6961", fontSize: 12, fontWeight: "600" },
+  recordVoiceBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "rgba(255, 159, 10, 0.12)", borderWidth: 1, borderColor: "rgba(255, 159, 10, 0.3)", borderRadius: 12, paddingVertical: 12 },
+  recordVoiceBtnText: { color: "#FF9F0A", fontSize: 13, fontWeight: "700" },
   dedicationCard: { backgroundColor: "#151515", borderRadius: 16, padding: 18, marginBottom: 20, borderWidth: 1, borderColor: "#272727" },
   dedicationHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
   dedicationTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },

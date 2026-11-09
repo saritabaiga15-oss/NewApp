@@ -67,6 +67,7 @@ public class SecurityConfig {
                         ).permitAll()
                         // Public read access for tributes feed and media files + public tribute creation
                         .requestMatchers(HttpMethod.GET, "/api/v1/tributes/public-feed").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tributes/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/tributes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/feed/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/media/files/**").permitAll()

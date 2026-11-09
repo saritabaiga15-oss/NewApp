@@ -53,6 +53,7 @@ export default function TributeDesignScreen() {
     relationship?: string;
     story?: string;
     photoUri?: string;
+    recipientEmail?: string;
   }>();
 
   const storedPayload = tributeDraftService.getPayload();
@@ -64,6 +65,12 @@ export default function TributeDesignScreen() {
   const [tributeId] = useState(
     () => params.id || `tribute-${Date.now()}`
   );
+
+  const recipientEmail =
+    existingDesign?.recipientEmail ||
+    existingPayload?.recipientEmail ||
+    params.recipientEmail ||
+    "";
 
   // Design Studio States
   const [mentorName] = useState(
@@ -154,6 +161,7 @@ export default function TributeDesignScreen() {
     () => ({
       id: tributeId,
       mentorName,
+      recipientEmail: recipientEmail || undefined,
       relationship,
       photoUri,
       isCustomPhoto,

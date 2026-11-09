@@ -39,7 +39,7 @@ function isStringMap(value: unknown): value is Record<string, string> {
 }
 
 /** Converts a backend TributeDto into a wall item. */
-function dtoToWallItem(dto: any): WallItem {
+export function dtoToWallItem(dto: any): WallItem {
   const storyText = dto.story || dto.excerpt || dto.quote || "";
   return {
     kind: (dto.kind as any) || "tribute",
@@ -320,6 +320,26 @@ class MemoryService {
   public getMemoryById(id: string): WallItem | undefined {
     this.syncKeepsakes();
     return this.items.find((i) => i.id === id);
+  }
+
+  public async fetchMemoryById(id: string, token?: string): Promise<WallItem | undefined> {
+    const local = this.getMemoryById(id);
+    if (local) return local;
+    try {
+      const res = await api.tributes.getById(id, token);
+      if (res?.data) {
+        const item = dtoToWallItem(res.data);
+        const exists = this.items.some((i) => i.id === item.id);
+        if (!exists) {
+          this.items.unshift(item);
+          this.notify();
+        }
+        return item;
+      }
+    } catch {
+      // offline fallback
+    }
+    return undefined;
   }
 
   public getMemoriesByMentor(mentorIdOrName: string): WallItem[] {

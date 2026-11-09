@@ -1,10 +1,10 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TributeDesignState,
   TributeDraft,
   TributePayload,
   TributeRelationship,
 } from "@/types/create";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "./api";
 
 let currentPayload: TributePayload | null = null;
@@ -120,6 +120,9 @@ export const tributeDraftService = {
         title: tribute.customTitle || `In Honour of ${tribute.mentorName}`,
         relationship: tribute.relationship,
         photoUri: tribute.photoUri,
+        audioUri: tribute.audioUri,
+        recipientEmail: tribute.recipientEmail?.trim() || undefined,
+        sendDedicationEmail: !!tribute.recipientEmail?.trim(),
         quote: tribute.quote,
         story: tribute.story,
         templateId: tribute.templateId,
@@ -246,10 +249,10 @@ export const tributeDraftService = {
     const draft = tributeDrafts.find((item) => item.id === id);
     return draft
       ? {
-          ...draft,
-          payload: { ...draft.payload },
-          designState: draft.designState ? copyDesign(draft.designState) : null,
-        }
+        ...draft,
+        payload: { ...draft.payload },
+        designState: draft.designState ? copyDesign(draft.designState) : null,
+      }
       : undefined;
   },
 

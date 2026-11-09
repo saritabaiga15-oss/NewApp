@@ -55,6 +55,8 @@ export interface CreationFormState {
   closing?: string;
   signature?: string;
   photoUri?: string;
+  audioUri?: string;
+  recipientEmail?: string;
   layoutStyle?: string;
   decorations?: string[];
 }
@@ -89,8 +91,10 @@ export interface InspirationCardItem {
 export interface TributePayload {
   id: string;
   mentorName: string;
+  recipientEmail?: string;
   relationship: TributeRelationship;
   photoUri: string | null;
+  audioUri?: string;
   isCustomPhoto: boolean;
   story: string;
   inspirationPrompt?: string;
@@ -136,8 +140,10 @@ export type TributeDecorationId =
 export interface TributeDesignState {
   id: string;
   mentorName: string;
+  recipientEmail?: string;
   relationship: TributeRelationship;
   photoUri: string;
+  audioUri?: string;
   isCustomPhoto: boolean;
   story: string;
   quote: string;

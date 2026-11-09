@@ -16,6 +16,7 @@ public interface TributeRepository extends JpaRepository<Tribute, String>, JpaSp
     List<Tribute> findByMentorIdOrderByCreatedAtDesc(String mentorId);
     Page<Tribute> findByPrivacyOrderByCreatedAtDesc(String privacy, Pageable pageable);
     Optional<Tribute> findByIdAndUserId(String id, String userId);
+    Optional<Tribute> findByViewToken(String viewToken);
     List<Tribute> findByUserIdAndIsPinnedTrue(String userId);
     int countByMentorId(String mentorId);
     int countByMentorNameIgnoreCase(String mentorName);

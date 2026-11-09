@@ -66,10 +66,11 @@ public class TributeController {
     @Operation(summary = "Get tribute or memory by ID")
     public ResponseEntity<ApiResponse<TributeDto>> getTributeById(
             @PathVariable String id,
+            @RequestParam(required = false) String token,
             @AuthenticationPrincipal User currentUser
     ) {
         String currentUserId = currentUser != null ? currentUser.getId() : null;
-        TributeDto tribute = tributeService.getTributeById(id, currentUserId);
+        TributeDto tribute = tributeService.getTributeById(id, currentUserId, token);
         return ResponseEntity.ok(ApiResponse.ok(tribute));
     }
 

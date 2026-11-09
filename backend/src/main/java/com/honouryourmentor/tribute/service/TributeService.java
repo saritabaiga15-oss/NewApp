@@ -86,6 +86,7 @@ public class TributeService {
                 .salutation(SanitizationUtil.sanitize(request.getSalutation()))
                 .signoff(SanitizationUtil.sanitize(request.getSignoff()))
                 .signature(SanitizationUtil.sanitize(request.getSignature()))
+                .recipientEmail(request.getRecipientEmail() != null ? request.getRecipientEmail().trim() : null)
                 .privacy(request.getPrivacy() != null ? request.getPrivacy().toUpperCase() : "PUBLIC")
                 .isPinned(request.isPinned())
                 .isShared(request.isShared())
@@ -149,7 +150,8 @@ public class TributeService {
                     saved.getTitle(),
                     saved.getKind(),
                     excerpt,
-                    saved.getId()
+                    saved.getId(),
+                    saved.getViewToken()
             );
         }
 
@@ -158,11 +160,17 @@ public class TributeService {
 
     @Transactional(readOnly = true)
     public TributeDto getTributeById(String id, String currentUserId) {
+        return getTributeById(id, currentUserId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public TributeDto getTributeById(String id, String currentUserId, String token) {
         Tribute tribute = tributeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tribute not found with id: " + id));
 
-        // Object-Level Authorization: Protect private tributes
-        if ("PRIVATE".equalsIgnoreCase(tribute.getPrivacy())) {
+        // Object-Level Authorization: Protect private tributes unless matching token is supplied
+        boolean tokenValid = token != null && !token.isBlank() && token.equals(tribute.getViewToken());
+        if (!tokenValid && "PRIVATE".equalsIgnoreCase(tribute.getPrivacy())) {
             if (currentUserId == null || !tribute.getUserId().equals(currentUserId)) {
                 throw new UnauthorizedException("This tribute is private and can only be viewed by its author");
             }
@@ -339,6 +347,8 @@ public class TributeService {
                 .salutation(tribute.getSalutation())
                 .signoff(tribute.getSignoff())
                 .signature(tribute.getSignature())
+                .recipientEmail(tribute.getRecipientEmail())
+                .viewToken(tribute.getViewToken())
                 .privacy(tribute.getPrivacy())
                 .isPinned(tribute.isPinned())
                 .isShared(tribute.isShared())

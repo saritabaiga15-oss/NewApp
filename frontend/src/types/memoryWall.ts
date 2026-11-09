@@ -95,6 +95,8 @@ export interface WallLetter {
   quote?: string;
   imageUri?: string;
   additionalImages?: string[];
+  audioUri?: string;
+  audioDuration?: number;
   lessonCarried?: string;
   momentToRemember?: string;
   achievements?: string[];
@@ -113,12 +115,14 @@ export interface WallLesson {
   category: string;
   story?: string;
   imageUri?: string;
+  additionalImages?: string[];
+  audioUri?: string;
+  audioDuration?: number;
   layoutStyle?: string;
   decorations?: string[];
   lessonCarried?: string;
   momentToRemember?: string;
   achievements?: string[];
-  additionalImages?: string[];
   createdAt: string;
   isPinned?: boolean;
 }

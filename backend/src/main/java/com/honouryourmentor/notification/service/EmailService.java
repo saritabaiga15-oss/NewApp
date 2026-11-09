@@ -1,5 +1,7 @@
 package com.honouryourmentor.notification.service;
 
+import com.honouryourmentor.notification.entity.EmailDeliveryLog;
+import com.honouryourmentor.notification.repository.EmailDeliveryLogRepository;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class EmailService {
 
     @Autowired(required = false)
     private JavaMailSender mailSender;
+
+    @Autowired(required = false)
+    private EmailDeliveryLogRepository emailDeliveryLogRepository;
 
     @Value("${app.mail.from:info@onodem.com}")
     private String fromEmail;
@@ -165,14 +170,22 @@ public class EmailService {
      */
     @Async("mailTaskExecutor")
     public void sendDedicationEmail(String toEmail, String mentorName, String senderName, String tributeTitle, String tributeKind, String excerpt, String tributeId) {
+        sendDedicationEmail(toEmail, mentorName, senderName, tributeTitle, tributeKind, excerpt, tributeId, null);
+    }
+
+    @Async("mailTaskExecutor")
+    public void sendDedicationEmail(String toEmail, String mentorName, String senderName, String tributeTitle, String tributeKind, String excerpt, String tributeId, String viewToken) {
         String greeting = (mentorName != null && !mentorName.isBlank()) ? mentorName.trim() : "Mentor";
         String author = (senderName != null && !senderName.isBlank()) ? senderName.trim() : "Someone grateful";
         String kindDisplay = (tributeKind != null && !tributeKind.isBlank()) ? tributeKind.substring(0, 1).toUpperCase() + tributeKind.substring(1) : "Tribute";
-        String subject = "✨ " + author + " has dedicated a " + kindDisplay + " to you on Honour Your Mentor";
+        String subject = "✨ " + author + " has appreciated you on Onodem";
 
         String postLink = appUrl + "/memory-wall";
         if (tributeId != null && !tributeId.isBlank()) {
             postLink = appUrl + "/memory-detail/" + tributeId;
+            if (viewToken != null && !viewToken.isBlank()) {
+                postLink += "?token=" + viewToken;
+            }
         }
 
         String excerptBlock = "";
@@ -190,26 +203,33 @@ public class EmailService {
         }
 
         String htmlContent = buildEmailTemplate(
-                "A Tribute Has Been Dedicated to You",
-                author + " wrote words of honour and gratitude in your name",
+                "You Have Received an Appreciation on Onodem",
+                author + " wrote words of honour and gratitude to celebrate you",
                 """
-                <p style="font-size: 15px; color: #E4E4E7; line-height: 1.6; margin-bottom: 16px;">
-                    Dear <strong style="color: #FFFFFF;">%s</strong>,
+                <p style="font-size: 16px; color: #E4E4E7; line-height: 1.6; margin-bottom: 16px;">
+                    Hi <strong style="color: #FFFFFF;">%s</strong>,
                 </p>
-                <p style="font-size: 15px; color: #E4E4E7; line-height: 1.6; margin-bottom: 16px;">
-                    <strong style="color: #FFFFFF;">%s</strong> has created and dedicated a special <strong>%s</strong> to you on <em>Honour Your Mentor</em>.
+                <p style="font-size: 16px; color: #E4E4E7; line-height: 1.6; margin-bottom: 16px;">
+                    <strong style="color: #FFFFFF;">%s</strong> has appreciated you on the <strong>Onodem</strong> website.
+                </p>
+                <p style="font-size: 15px; color: #D4D4D8; line-height: 1.6; margin-bottom: 20px;">
+                    They shared words of honour and gratitude to celebrate the positive impact and difference you made in their life.
                 </p>
                 %s
                 <p style="font-size: 14px; color: #A1A1AA; line-height: 1.6; margin-bottom: 26px;">
-                    Your guidance, lessons, and presence made a lasting difference. You can read the full dedication, view attached photos and letters, and leave your thoughts on our memory wall.
+                    Click below to open and discover your personal appreciation keepsake, read the words, and view photos and voice notes.
                 </p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="%s" style="display: inline-block; background-color: #FFFFFF; color: #09090B; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 32px; border-radius: 10px; letter-spacing: -0.2px;">Read Your Dedicated Tribute</a>
+                    <a href="%s" style="display: inline-block; background-color: #FFFFFF; color: #09090B; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 34px; border-radius: 10px; letter-spacing: -0.2px;">Click and Check It Out</a>
                 </div>
-                """.formatted(escapeHtml(greeting), escapeHtml(author), escapeHtml(kindDisplay.toLowerCase()), excerptBlock, postLink)
+                """.formatted(escapeHtml(greeting), escapeHtml(author), excerptBlock, postLink)
         );
 
-        sendEmail(toEmail, subject, htmlContent);
+        sendEmail(toEmail, subject, htmlContent, "APPRECIATION_DEDICATION");
+    }
+
+    private void sendEmail(String toEmail, String subject, String htmlBody) {
+        sendEmail(toEmail, subject, htmlBody, "TRANSACTIONAL");
     }
 
     /**
@@ -219,9 +239,10 @@ public class EmailService {
      *   Tier 3: GoDaddy Shared Hosting Relay (relay-hosting.secureserver.net:25 without auth)
      *   Tier 4: Structured backup logging for audit & immediate recovery
      */
-    private void sendEmail(String toEmail, String subject, String htmlBody) {
+    private void sendEmail(String toEmail, String subject, String htmlBody, String emailType) {
         if (!mailEnabled) {
             log.info("[EMAIL DISABLED] Would send from {} to {}: {}", fromEmail, toEmail, subject);
+            recordDeliveryLog(toEmail, subject, emailType, "LOGGED", "Email disabled via configuration");
             return;
         }
 
@@ -238,6 +259,7 @@ public class EmailService {
 
                 mailSender.send(message);
                 log.info("[EMAIL SENT - PRIMARY] Successfully sent automated email from {} to {} | Subject: {}", fromEmail, toEmail, subject);
+                recordDeliveryLog(toEmail, subject, emailType, "SENT", null);
                 return;
             } catch (Exception ex) {
                 log.warn("[EMAIL PRIMARY FAILED] Could not dispatch email from {} to {} via primary SMTP: {}. Attempting host relay fallbacks...", fromEmail, toEmail, ex.getMessage());
@@ -246,12 +268,32 @@ public class EmailService {
 
         // Tier 2 & 3: Host Relay Fallback (GoDaddy local Exim on 127.0.0.1:25 or relay-hosting.secureserver.net:25)
         if (tryHostRelayFallback(toEmail, subject, htmlBody)) {
+            recordDeliveryLog(toEmail, subject, emailType, "SENT_RELAY", null);
             return;
         }
 
         // Tier 4: Backup log so no OTP or token is ever lost
         log.error("[EMAIL ERROR] All SMTP delivery routes failed for email to {}. Stored in backup log.", toEmail);
         log.info("[EMAIL BACKUP LOG] To: {} | Subject: {}\n{}", toEmail, subject, htmlBody);
+        recordDeliveryLog(toEmail, subject, emailType, "FAILED", "All SMTP routes failed; logged to system audit");
+    }
+
+    private void recordDeliveryLog(String recipient, String subject, String emailType, String status, String error) {
+        if (emailDeliveryLogRepository != null) {
+            try {
+                EmailDeliveryLog entry = EmailDeliveryLog.builder()
+                        .recipient(recipient)
+                        .subject(subject)
+                        .emailType(emailType)
+                        .status(status)
+                        .errorMessage(error)
+                        .sentAt(java.time.Instant.now())
+                        .build();
+                emailDeliveryLogRepository.save(entry);
+            } catch (Exception e) {
+                log.debug("Could not record EmailDeliveryLog: {}", e.getMessage());
+            }
+        }
     }
 
     private boolean tryHostRelayFallback(String toEmail, String subject, String htmlBody) {

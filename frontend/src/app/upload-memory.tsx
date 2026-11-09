@@ -77,6 +77,7 @@ export default function UploadMemoryScreen() {
   const [media, setMedia] = useState<PickedMedia[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [mentorName, setMentorName] = useState("");
+  const [mentorEmail, setMentorEmail] = useState("");
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [picking, setPicking] = useState(false);
@@ -208,6 +209,9 @@ export default function UploadMemoryScreen() {
         emotion: "Grateful",
         emotionColor: SystemColors.blue,
         createdAt: now.toISOString(),
+      }, {
+        recipientEmail: mentorEmail.trim() || undefined,
+        sendDedicationEmail: !!mentorEmail.trim(),
       });
       router.replace({ pathname: "/memory-detail/[id]", params: { id } });
     } catch {
@@ -430,6 +434,18 @@ export default function UploadMemoryScreen() {
                 })}
               </ScrollView>
             )}
+
+            <Text style={styles.fieldLabel}>Recipient's Email (Optional)</Text>
+            <TextInput
+              value={mentorEmail}
+              onChangeText={setMentorEmail}
+              placeholder="mentor@example.com — we'll send them an appreciation link"
+              placeholderTextColor={SystemColors.placeholderText}
+              style={styles.field}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              accessibilityLabel="Recipient's Email"
+            />
 
             <Text style={styles.fieldLabel}>Title</Text>
             <TextInput

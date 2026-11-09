@@ -1,10 +1,12 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Alert,
   Dimensions,
   Image,
   Modal,
-  
+
   ScrollView,
   Share,
   StatusBar,
@@ -15,17 +17,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 
 // Design System Tokens
 import { AppFonts, BottomTabInset, Palette } from "@/constants/theme";
 
 // Shared Navigation
-import BottomNavigation from "@/components/home/BottomNavigation";
-import AudioPlaybackControls from "@/components/home/AudioPlaybackControls";
-import MemoryVideo from "@/components/MemoryVideo";
 import DemoWaveformPlayer from "@/components/DemoWaveformPlayer";
+import AudioPlaybackControls from "@/components/home/AudioPlaybackControls";
+import BottomNavigation from "@/components/home/BottomNavigation";
+import MemoryVideo from "@/components/MemoryVideo";
 
 
 // Types & Services
@@ -42,11 +42,12 @@ function isSampleVoiceMemory(item: WallItem): boolean {
 }
 
 export default function MemoryDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, token } = useLocalSearchParams<{ id: string; token?: string }>();
 
   const [item, setItem] = useState<WallItem | undefined>(() =>
     id ? memoryService.getMemoryById(id) : undefined
   );
+  const [loading, setLoading] = useState<boolean>(!item && !!id);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -57,18 +58,30 @@ export default function MemoryDetailScreen() {
   const [editStory, setEditStory] = useState("");
   const [editLesson, setEditLesson] = useState("");
 
-  // Subscribe to service updates
+  // Subscribe to service updates & remote token fetch
   React.useEffect(() => {
     if (!id) return;
     const sync = () => {
-      setItem(memoryService.getMemoryById(id));
+      const local = memoryService.getMemoryById(id);
+      if (local) setItem(local);
     };
     sync();
+
+    if (!item) {
+      setLoading(true);
+      memoryService
+        .fetchMemoryById(id, token)
+        .then((fetched) => {
+          if (fetched) setItem(fetched);
+        })
+        .finally(() => setLoading(false));
+    }
+
     const unsubscribe = memoryService.subscribe(sync);
     return () => {
       unsubscribe();
     };
-  }, [id]);
+  }, [id, token]);
 
   // Derive title, story, and image unconditionally
   const displayTitle = useMemo(() => {
@@ -492,8 +505,8 @@ export default function MemoryDetailScreen() {
               {item.kind === "letter"
                 ? "The Letter"
                 : item.kind === "lesson"
-                ? item.category === "Note" ? "The Note" : "The Reflection"
-                : "The Story"}
+                  ? item.category === "Note" ? "The Note" : "The Reflection"
+                  : "The Story"}
             </Text>
             <View style={styles.sectionLine} />
           </View>

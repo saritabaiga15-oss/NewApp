@@ -164,7 +164,8 @@ export const api = {
     myTributes: () => apiRequest("/tributes/my-tributes"),
     publicFeed: (page = 0, size = 20) =>
       apiRequest(`/tributes/public-feed?page=${page}&size=${size}`),
-    getById: (id: string) => apiRequest(`/tributes/${id}`),
+    getById: (id: string, token?: string) =>
+      apiRequest(token ? `/tributes/${id}?token=${encodeURIComponent(token)}` : `/tributes/${id}`),
     create: (data: any) =>
       apiRequest("/tributes", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: any) =>

@@ -1,12 +1,12 @@
 package com.honouryourmentor.tribute.dto;
 
+import java.time.Instant;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
-import java.util.List;
 
 @Data
 @Builder
@@ -39,6 +39,8 @@ public class TributeDto {
     private String salutation;
     private String signoff;
     private String signature;
+    private String recipientEmail;
+    private String viewToken;
     private String privacy;
     private boolean isPinned;
     private boolean isShared;

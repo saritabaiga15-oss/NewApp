@@ -6,6 +6,10 @@
  * "Who are you celebrating?" → "Their story" with prompt chips → pinned
  * "Continue to Design". The tab bar is hidden: this is a focused writing task.
  */
+import { persistImageUri } from "@/utils/persistMedia";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -22,10 +26,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import { persistImageUri } from "@/utils/persistMedia";
 
 // Design System
 import { AppFonts, Layout, Palette, SystemColors, TextStyles } from "@/constants/theme";
@@ -33,13 +33,13 @@ import { AppFonts, Layout, Palette, SystemColors, TextStyles } from "@/constants
 import AppreciationCardPreview from "@/components/CreateTribute/AppreciationCardPreview";
 
 // Types, Data & Services
-import { TributePayload, TributeRelationship } from "@/types/create";
 import {
   DEFAULT_SAMPLE_PORTRAIT,
   INSPIRATION_STORY_CARDS,
   TRIBUTE_RELATIONSHIPS,
 } from "@/data/tributeDetailsData";
 import { tributeDraftService } from "@/services/tributeDraftService";
+import { TributePayload, TributeRelationship } from "@/types/create";
 
 const CONTENT_MAX_WIDTH = 640;
 const STORY_MAX = 2000;
@@ -71,10 +71,13 @@ export default function CreateTributeScreen() {
   const [relationship, setRelationship] = useState<TributeRelationship>(
     toTributeRelationship(savedDraft?.payload.relationship || params.relationship)
   );
+  const [recipientEmail, setRecipientEmail] = useState(
+    savedDraft?.payload.recipientEmail || ""
+  );
   const [story, setStory] = useState(
     savedDraft?.payload.story ||
-      params.story ||
-      (params.promptQuestion ? `${params.promptQuestion}\n\n` : "")
+    params.story ||
+    (params.promptQuestion ? `${params.promptQuestion}\n\n` : "")
   );
 
   // Photo state. The sample portrait from older drafts counts as "no photo" in the preview.
@@ -187,13 +190,14 @@ export default function CreateTributeScreen() {
   const buildPayload = React.useCallback((): TributePayload => ({
     id: tributeId,
     mentorName: mentorName.trim(),
+    recipientEmail: recipientEmail.trim() || undefined,
     relationship,
     photoUri: photoUri || DEFAULT_SAMPLE_PORTRAIT,
     isCustomPhoto,
     story: story.trim(),
     inspirationPrompt: activePromptText || undefined,
     createdAt: createdAtRef.current,
-  }), [tributeId, mentorName, relationship, photoUri, isCustomPhoto, story, activePromptText]);
+  }), [tributeId, mentorName, recipientEmail, relationship, photoUri, isCustomPhoto, story, activePromptText]);
 
   React.useEffect(() => {
     if (!isHydrated) return;
@@ -286,6 +290,7 @@ export default function CreateTributeScreen() {
         relationship: payload.relationship,
         photoUri: payload.photoUri || undefined,
         story: payload.story,
+        recipientEmail: payload.recipientEmail,
       },
     });
   };
@@ -404,6 +409,17 @@ export default function CreateTributeScreen() {
                   );
                 })}
               </ScrollView>
+
+              <TextInput
+                value={recipientEmail}
+                onChangeText={setRecipientEmail}
+                placeholder="Recipient's Email (Optional — we'll send them an appreciation link)"
+                placeholderTextColor={SystemColors.placeholderText}
+                style={[styles.field, { marginTop: 10 }]}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                accessibilityLabel="Recipient email"
+              />
 
               {/* 3. Story */}
               <Text style={styles.sectionTitle} accessibilityRole="header">

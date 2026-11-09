@@ -91,6 +91,12 @@ public class Tribute extends BaseEntity {
     @Column(name = "signature", length = 120)
     private String signature;
 
+    @Column(name = "recipient_email", length = 160)
+    private String recipientEmail;
+
+    @Column(name = "view_token", length = 64)
+    private String viewToken;
+
     @Column(name = "privacy", nullable = false, length = 20)
     @Builder.Default
     private String privacy = "PUBLIC"; // PUBLIC, PRIVATE
@@ -121,6 +127,9 @@ public class Tribute extends BaseEntity {
         super.onCreate();
         if (this.id == null || this.id.isBlank()) {
             this.id = "trib_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        }
+        if (this.viewToken == null || this.viewToken.isBlank()) {
+            this.viewToken = UUID.randomUUID().toString().replace("-", "");
         }
     }
 }
