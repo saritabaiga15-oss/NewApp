@@ -18,7 +18,7 @@ import { useReduceMotion } from "@/hooks/useReduceMotion";
 
 // HIG › Onboarding: show a splash "just long enough for people to absorb the
 // information at a glance". Tap anywhere to skip.
-const SPLASH_DURATION = Platform.OS === "web" ? 1000 : 1500;
+const SPLASH_DURATION = Platform.OS === "web" ? 300 : 1500;
 
 export default function SplashScreen() {
   const insets = useSafeAreaInsets();
@@ -40,7 +40,25 @@ export default function SplashScreen() {
   }, []);
 
   useEffect(() => {
-    // Resume immediately when already signed in.
+    // Web: immediately transition to the target route without artificial splash delay
+    if (Platform.OS === "web") {
+      getAuthToken()
+        .then((token) => {
+          if (!hasNavigated.current) {
+            hasNavigated.current = true;
+            router.replace(token ? "/home" : "/onboarding");
+          }
+        })
+        .catch(() => {
+          if (!hasNavigated.current) {
+            hasNavigated.current = true;
+            router.replace("/onboarding");
+          }
+        });
+      return;
+    }
+
+    // Native mobile: smooth splash animation while runtime warms up
     getAuthToken()
       .then((token) => {
         if (token && !hasNavigated.current) {

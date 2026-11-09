@@ -495,6 +495,10 @@ export default function MentorProfileScreen() {
     if (!mentor) return;
     router.push({
       pathname: "/create-tribute",
+      params: {
+        mentorName: mentor.name,
+        relationship: mentor.relationship,
+      },
     });
   };
 

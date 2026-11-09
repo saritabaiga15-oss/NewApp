@@ -22,8 +22,14 @@ export default function TributeWallCard({
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.88 }]}
       accessibilityLabel={`Appreciation card for ${item.mentorName}`}
     >
-      {/* Photo background */}
-      <Image source={{ uri: item.photoUri }} style={styles.photo} />
+      {/* Photo background or elegant fallback */}
+      {item.photoUri ? (
+        <Image source={{ uri: item.photoUri }} style={styles.photo} />
+      ) : (
+        <View style={[styles.photo, styles.photoFallback]}>
+          <Ionicons name="sparkles" size={32} color={Palette.accentPink} style={{ opacity: 0.3 }} />
+        </View>
+      )}
 
       {/* Bottom gradient overlay */}
       <LinearGradient
@@ -73,7 +79,7 @@ export default function TributeWallCard({
           {item.relationship}
         </Text>
         <Text style={styles.quote} numberOfLines={2}>
-          {`"${item.quote}"`}
+          {item.quote ? `“${item.quote}”` : item.story ? `“${item.story}”` : ""}
         </Text>
         <Text style={styles.date}>{item.createdAt}</Text>
       </View>
@@ -88,7 +94,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     height: 260,
-    backgroundColor: Palette.deepTeal,
+    backgroundColor: "#161618",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.28,
@@ -101,6 +107,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+  },
+  photoFallback: {
+    backgroundColor: "#1C1C1E",
+    alignItems: "center",
+    justifyContent: "center",
   },
   topRow: {
     position: "absolute",

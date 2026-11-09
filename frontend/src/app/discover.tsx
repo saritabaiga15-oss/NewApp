@@ -301,9 +301,7 @@ export default function DiscoverScreen() {
           {/* ======================================================== */}
           <DiscoverHeader />
 
-          {/* ======================================================== */}
-          {/* 1. SEARCH BAR                                            */}
-          {/* ======================================================== */}
+          {/* Search Bar */}
           <SearchBar
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -311,6 +309,30 @@ export default function DiscoverScreen() {
             isFiltered={hasActiveFilters}
             onFilterPress={handleFilterPress}
           />
+
+          {/* Share Your Story Callout Banner */}
+          <View style={styles.shareStoryBanner}>
+            <View style={styles.shareStoryLeft}>
+              <View style={styles.shareStoryBadge}>
+                <Ionicons name="sparkles" size={11} color={Palette.accentPink} />
+                <Text style={styles.shareStoryBadgeText}>YOUR STORY</Text>
+              </View>
+              <Text style={styles.shareStoryTitle}>Have someone who shaped your life?</Text>
+              <Text style={styles.shareStorySub}>
+                Write a tribute or personal story to honour their lasting impact.
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.shareStoryBtn}
+              onPress={() => router.push("/create-tribute")}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Write your story"
+            >
+              <Ionicons name="pencil" size={14} color="#000000" />
+              <Text style={styles.shareStoryBtnText}>Write Story</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Active Filter Indicators */}
           {hasActiveFilters && (
@@ -555,5 +577,59 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: "800",
     color: Palette.pureWhite,
+  },
+  shareStoryBanner: {
+    marginHorizontal: 20,
+    marginTop: 14,
+    marginBottom: 6,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: Palette.pureWhite,
+    borderWidth: 1,
+    borderColor: "rgba(255, 55, 95, 0.25)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  shareStoryLeft: {
+    flex: 1,
+  },
+  shareStoryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: 4,
+  },
+  shareStoryBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: Palette.accentPink,
+    letterSpacing: 0.5,
+  },
+  shareStoryTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Palette.textPrimary,
+    marginBottom: 2,
+  },
+  shareStorySub: {
+    fontSize: 11,
+    color: Palette.textSecondary,
+    lineHeight: 15,
+  },
+  shareStoryBtn: {
+    backgroundColor: Palette.accentPink,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  shareStoryBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#000000",
   },
 });

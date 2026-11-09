@@ -51,7 +51,7 @@ const MENTORS_DATA: MentorData[] = [
     id: "m1",
     name: "Mrs. Anita Sharma",
     role: "Literature Teacher",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=360&auto=format&fit=crop&q=75",
     quote: "Believe in your voice before asking the world to listen.",
     memoriesCount: 14,
     yearsKnown: "3 years together",
@@ -65,7 +65,7 @@ const MENTORS_DATA: MentorData[] = [
     id: "m2",
     name: "Dr. David Mitchell",
     role: "Research Advisor",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=360&auto=format&fit=crop&q=75",
     quote: "True mastery is quiet patience with difficult problems.",
     memoriesCount: 9,
     yearsKnown: "2 years together",
@@ -79,7 +79,7 @@ const MENTORS_DATA: MentorData[] = [
     id: "m3",
     name: "Vikram Rao",
     role: "Engineering Director",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=360&auto=format&fit=crop&q=75",
     quote: "Build things that outlive your tenure and elevate people.",
     memoriesCount: 18,
     yearsKnown: "6 years together",
@@ -93,7 +93,7 @@ const MENTORS_DATA: MentorData[] = [
     id: "m4",
     name: "Elena Rostova",
     role: "Art & Design Coach",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=360&auto=format&fit=crop&q=75",
     quote: "Do not fear the blank page; it is waiting for your courage.",
     memoriesCount: 11,
     yearsKnown: "5 years together",
@@ -107,7 +107,7 @@ const MENTORS_DATA: MentorData[] = [
     id: "m5",
     name: "Priya Nair",
     role: "Design Lead",
-    avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&auto=format&fit=crop&q=80",
+    avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=360&auto=format&fit=crop&q=75",
     quote: "Trust your taste and ship the idea anyway.",
     memoriesCount: 7,
     yearsKnown: "4 years together",
@@ -128,7 +128,7 @@ const MEMORIES_DATA: MemoryData[] = [
     mentorName: "Mrs. Anita Sharma",
     date: "Sep 2018",
     content: "You handed me your own annotated anthology of poems and said, 'You belong in every room you enter.'",
-    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&auto=format&fit=crop&q=75",
     likes: 42,
     tags: ["college", "guidance"],
   },
@@ -264,11 +264,11 @@ const GRATITUDE_POSTS: GratitudePostData[] = [
   {
     id: "gp1",
     authorName: "Rohan Varma",
-    authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+    authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=75",
     mentorName: "Coach Armstrong",
     location: "Bangalore, India",
     message: "10 years ago today, you paid for my running shoes when my family could not. Today I finished my first ultra-marathon.",
-    image: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=600&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=400&auto=format&fit=crop&q=75",
     likes: 248,
     commentsCount: 34,
     timeAgo: "2h ago",
@@ -276,7 +276,7 @@ const GRATITUDE_POSTS: GratitudePostData[] = [
   {
     id: "gp2",
     authorName: "Maya Lin",
-    authorAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
+    authorAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=75",
     mentorName: "Prof. Kenneth Clark",
     location: "London, UK",
     message: "Thank you for teaching me that architecture isn't about stone, but about how humans breathe inside space.",
@@ -293,13 +293,13 @@ const ACHIEVEMENTS_DATA: AchievementData[] = [
     badgeType: "graduation",
     title: "Master of Science in AI",
     mentorName: "Dr. David Mitchell",
-    mentorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    mentorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=75",
     mentorRole: "Research Advisor",
     date: "June 2024",
     location: "Stanford Memorial Auditorium",
     category: "Academic Milestone",
     highlightStat: "Honors with Distinction",
-    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=420&auto=format&fit=crop&q=75",
     story: "Wrote the dedication page to you, who spent Sunday mornings showing me how to write clear equations and never let me settle for half-baked thinking.",
     variant: "cinematic",
   },
@@ -308,13 +308,13 @@ const ACHIEVEMENTS_DATA: AchievementData[] = [
     badgeType: "award",
     title: "Best Debut Author Award",
     mentorName: "Mrs. Anita Sharma",
-    mentorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+    mentorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=75",
     mentorRole: "Literature Teacher",
     date: "March 2024",
     location: "National Book Guild Gala",
     category: "Literary Honor",
     highlightStat: "1st Place Gold Medal",
-    image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=420&auto=format&fit=crop&q=75",
     story: "Every word in that novel passed through the standards you taught in room 204. You made me believe my voice was worth preserving.",
     variant: "editorial",
   },
@@ -323,13 +323,13 @@ const ACHIEVEMENTS_DATA: AchievementData[] = [
     badgeType: "job",
     title: "Promoted to Principal Engineer",
     mentorName: "Vikram Rao",
-    mentorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+    mentorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=75",
     mentorRole: "Engineering Director",
     date: "January 2024",
     location: "Cloud Systems Summit",
     category: "Leadership Breakthrough",
     highlightStat: "Tech Lead & Architect",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=420&auto=format&fit=crop&q=75",
     story: "Remembering how you told me leadership is not a podium, but a shield for your team. This milestone belongs to your patient mentorship.",
     variant: "luxe",
   },
@@ -338,13 +338,13 @@ const ACHIEVEMENTS_DATA: AchievementData[] = [
     badgeType: "certificate",
     title: "Design Fellowship Grant",
     mentorName: "Elena Rostova",
-    mentorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    mentorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=75",
     mentorRole: "Art & Design Coach",
     date: "November 2023",
     location: "Metropolitan Design Institute",
     category: "Creative Grant",
     highlightStat: "Fellowship Winner",
-    image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=420&auto=format&fit=crop&q=75",
     story: "When I was terrified of blank canvases, you placed the brush in my hand. Today our exhibition opened to hundreds of young artists.",
     variant: "polaroid",
   },
@@ -353,13 +353,13 @@ const ACHIEVEMENTS_DATA: AchievementData[] = [
     badgeType: "competition",
     title: "Global AI Hackathon Champion",
     mentorName: "Dr. David Mitchell",
-    mentorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+    mentorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=75",
     mentorRole: "Research Advisor",
     date: "August 2023",
     location: "TechHub International, SF",
     category: "Innovation Victory",
     highlightStat: "Grand Prize Winner",
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=420&auto=format&fit=crop&q=75",
     story: "We stayed up until dawn debugging the model. Your quiet reassurance that resilience beats talent carried our team to victory.",
     variant: "showcase",
   },
@@ -463,6 +463,64 @@ function toWallItem(memory: MemoryData): WallItem {
     emotion: memory.type === "gratitude" ? "Gratitude" : "Remembered",
     emotionColor: Palette.turquoise,
     quote: memory.type === "gratitude" ? memory.content : undefined,
+  };
+}
+
+function wallItemToMemoryData(item: WallItem): MemoryData {
+  let type: MemoryData["type"] = "gratitude";
+  let image: string | undefined = undefined;
+  let audioUri: string | undefined = undefined;
+  let audioDuration: string | undefined = undefined;
+  let content = "";
+  let title = item.mentorName ? `Tribute to ${item.mentorName}` : "My Story";
+
+  if (item.kind === "tribute") {
+    type = "tribute";
+    title = item.title || `In Honour of ${item.mentorName}`;
+    content = item.story || item.quote || "";
+    image = item.photoUri;
+  } else if (item.kind === "memory") {
+    type = item.audioUri ? "voice" : item.imageUri ? "photo" : "gratitude";
+    title = item.title || `Memory with ${item.mentorName}`;
+    content = item.story || item.excerpt || item.quote || "";
+    image = item.imageUri;
+    audioUri = item.audioUri;
+    if (item.audioDuration) audioDuration = formatAudioDuration(item.audioDuration);
+  } else if (item.kind === "letter") {
+    type = "gratitude";
+    title = item.title || `Letter to ${item.mentorName}`;
+    content = item.letterBody || item.preview || "";
+    image = item.imageUri;
+    audioUri = item.audioUri;
+  } else if (item.kind === "lesson") {
+    type = "lesson";
+    title = item.lessonTitle || `Lesson from ${item.mentorName}`;
+    content = item.story || item.quote || "";
+    image = item.imageUri;
+    audioUri = item.audioUri;
+  } else if (item.kind === "milestone") {
+    type = "achievement";
+    title = item.title || "Milestone";
+    content = item.description || item.story || "";
+  }
+
+  const parsedDate = Date.parse(item.createdAt);
+  const dateStr = !Number.isNaN(parsedDate)
+    ? new Date(parsedDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    : "Recent";
+
+  return {
+    id: item.id,
+    type,
+    title,
+    mentorName: item.mentorName || "My Mentor",
+    date: dateStr,
+    content: content || "A heartfelt tribute dedicated to guidance and wisdom.",
+    image,
+    audioUri,
+    audioDuration,
+    likes: (item as any).likes ?? 1,
+    tags: ["community", item.relationship ? item.relationship.toLowerCase() : "mentor"],
   };
 }
 
@@ -660,10 +718,24 @@ export default function HomeScreen() {
     setHasSubmittedReflection(true);
   };
 
+  const allMemories = useMemo<MemoryData[]>(() => {
+    // Map user's actual created/saved stories, tributes, and memories first
+    const userMemories = wallItems.map(wallItemToMemoryData);
+    const seenIds = new Set<string>();
+    const combined: MemoryData[] = [];
+    for (const m of [...userMemories, ...MEMORIES_DATA]) {
+      if (!seenIds.has(m.id)) {
+        seenIds.add(m.id);
+        combined.push(m);
+      }
+    }
+    return combined;
+  }, [wallItems]);
+
   const filteredMemories = useMemo(() => {
-    if (selectedTag === "all") return MEMORIES_DATA;
-    return MEMORIES_DATA.filter((m) => m.type === selectedTag);
-  }, [selectedTag]);
+    if (selectedTag === "all") return allMemories;
+    return allMemories.filter((m) => m.type === selectedTag);
+  }, [allMemories, selectedTag]);
 
   const filteredMentors = useMemo(() => {
     const query = homeSearch.trim().toLowerCase();
@@ -867,20 +939,39 @@ export default function HomeScreen() {
                 <Text style={styles.featuredStoryMentor} numberOfLines={1}>
                   {featuredMentor.name} · {featuredMentor.role}
                 </Text>
-                <TouchableOpacity
-                  style={styles.watchStoryButton}
-                  activeOpacity={0.85}
-                  onPress={() => handleOpenMentor(featuredMentor)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Watch ${featuredMentor.name}'s story`}
-                >
-                  <Text style={styles.watchStoryText}>Watch story</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color={Palette.textOnPrimary}
-                  />
-                </TouchableOpacity>
+                <View style={styles.featuredStoryButtonsRow}>
+                  <TouchableOpacity
+                    style={styles.watchStoryButton}
+                    activeOpacity={0.85}
+                    onPress={() => handleOpenMentor(featuredMentor)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Watch ${featuredMentor.name}'s story`}
+                  >
+                    <Text style={styles.watchStoryText}>Watch story</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={Palette.textOnPrimary}
+                    />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.writeStoryHeroButton}
+                    activeOpacity={0.85}
+                    onPress={() => router.push({
+                      pathname: "/create-tribute",
+                      params: {
+                        mentorName: featuredMentor.name,
+                        relationship: featuredMentor.role,
+                      }
+                    })}
+                    accessibilityRole="button"
+                    accessibilityLabel="Write a story"
+                  >
+                    <Ionicons name="pencil-outline" size={14} color="#FFFFFF" />
+                    <Text style={styles.writeStoryHeroText}>Write story</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           )}
@@ -938,6 +1029,13 @@ export default function HomeScreen() {
                 label="Add Mentor"
                 color={Palette.accentSky}
                 onPress={() => router.push("/create-mentor")}
+              />
+              <QuickAction
+                icon="book"
+                label="Write Story"
+                color={Palette.accentPink}
+                badge="✦"
+                onPress={() => router.push("/create-tribute")}
               />
               <QuickAction
                 icon="add-circle"
@@ -1465,6 +1563,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Palette.textSecondary,
   },
+  featuredStoryButtonsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 13,
+  },
   watchStoryButton: {
     minHeight: 39,
     flexDirection: "row",
@@ -1472,7 +1576,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingHorizontal: 16,
-    marginTop: 13,
     borderRadius: 22,
     backgroundColor: Palette.textPrimary,
   },
@@ -1480,6 +1583,23 @@ const styles = StyleSheet.create({
     color: Palette.textOnPrimary,
     fontSize: 11,
     fontWeight: "800",
+  },
+  writeStoryHeroButton: {
+    minHeight: 39,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  writeStoryHeroText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "700",
   },
   mentorSectionHeader: {
     flexDirection: "row",

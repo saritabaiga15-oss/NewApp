@@ -3,6 +3,17 @@ import { Palette } from "@/constants/theme";
 
 export const CREATION_OPTIONS: CreationOptionItem[] = [
   {
+    id: "story",
+    title: "Write a Story",
+    subtitle: "Share their legacy.",
+    purpose: "Write a memorable story about a mentor, guide, or turning point that shaped your life.",
+    icon: "book-outline",
+    accentColor: Palette.accentPink,
+    secondaryColor: Palette.accentPeach,
+    badgeLabel: "STORY",
+    vibe: "Personal Journey & Impact",
+  },
+  {
     id: "tribute",
     title: "Write a Tribute",
     subtitle: "Celebrate someone special.",

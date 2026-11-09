@@ -537,6 +537,25 @@ export default function StoryDetailScreen() {
           </View>
         </View>
 
+        {/* Write Your Story Callout Banner */}
+        <View style={styles.writeYourStoryCard}>
+          <Ionicons name="sparkles" size={24} color={Palette.accentPink} style={{ marginBottom: 8 }} />
+          <Text style={styles.writeYourStoryTitle}>Inspired by this story?</Text>
+          <Text style={styles.writeYourStorySubtitle}>
+            Share a memory or tribute to someone who believed in you when it mattered most.
+          </Text>
+          <TouchableOpacity
+            style={styles.writeYourStoryButton}
+            onPress={() => router.push("/create-tribute")}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Write your story"
+          >
+            <Ionicons name="pencil" size={16} color="#000000" />
+            <Text style={styles.writeYourStoryButtonText}>Write Your Story</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Extra Bottom Padding for floating nav bar */}
         <View style={{ height: 110 }} />
       </ScrollView>
@@ -1369,5 +1388,50 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Palette.textSecondary,
     textAlign: "center",
+  },
+  writeYourStoryCard: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 8,
+    padding: 22,
+    borderRadius: 20,
+    backgroundColor: Palette.pureWhite,
+    borderWidth: 1,
+    borderColor: "rgba(255, 55, 95, 0.25)",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  writeYourStoryTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: Palette.deepTeal,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  writeYourStorySubtitle: {
+    fontSize: 13,
+    color: Palette.textSecondary,
+    textAlign: "center",
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  writeYourStoryButton: {
+    backgroundColor: Palette.accentPink,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  writeYourStoryButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#000000",
   },
 });

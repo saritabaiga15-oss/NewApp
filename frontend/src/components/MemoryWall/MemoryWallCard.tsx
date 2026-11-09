@@ -58,7 +58,7 @@ export default function MemoryWallCard({
           {item.mentorName}
         </Text>
         <Text style={styles.excerpt} numberOfLines={3}>
-          {item.excerpt}
+          {item.excerpt || item.story || item.quote}
         </Text>
 
         {/* Emotion tag */}

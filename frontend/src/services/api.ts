@@ -75,18 +75,27 @@ export async function apiRequest<T = any>(
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  // 7-second timeout to prevent indefinite hangs on cold-start or slow networks
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-  const json = await response.json().catch(() => ({}));
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      signal: options.signal || controller.signal,
+    });
 
-  if (!response.ok) {
-    throw new Error(json.message || `Request failed with status ${response.status}`);
+    const json = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(json.message || `Request failed with status ${response.status}`);
+    }
+
+    return json;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return json;
 }
 
 export const api = {

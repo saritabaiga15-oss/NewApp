@@ -18,7 +18,7 @@ export const WALL_MENTOR_PROFILES: WallMentorProfile[] = [
     trait: "Patient guide",
     traitIcon: "flask-outline",
     avatarUri:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=360&auto=format&fit=crop&q=75",
     description:
       "My high school literature teacher who stayed hours after the bell to teach me that words have weight and that silence is where thinking begins.",
     meaningfulQuote:
@@ -37,7 +37,7 @@ export const WALL_MENTOR_PROFILES: WallMentorProfile[] = [
     trait: "Showed me direction",
     traitIcon: "compass-outline",
     avatarUri:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=360&auto=format&fit=crop&q=75",
     description:
       "Graduate advisor whose sunlit Thursday office discussions demolished my superficial assumptions and built genuine intellectual courage.",
     meaningfulQuote:
@@ -56,7 +56,7 @@ export const WALL_MENTOR_PROFILES: WallMentorProfile[] = [
     trait: "Master craftsman",
     traitIcon: "construct-outline",
     avatarUri:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=360&auto=format&fit=crop&q=75",
     description:
       "Senior director who shielded the team through turbulence and taught me that craftsmanship and human empathy belong together in engineering.",
     meaningfulQuote:
@@ -75,7 +75,7 @@ export const WALL_MENTOR_PROFILES: WallMentorProfile[] = [
     trait: "Creative clarity",
     traitIcon: "sparkles-outline",
     avatarUri:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=360&auto=format&fit=crop&q=75",
     description:
       "Design director who cured my terror of blank canvases and pushed me to trust my unique eye.",
     meaningfulQuote:
@@ -94,7 +94,7 @@ export const WALL_MENTOR_PROFILES: WallMentorProfile[] = [
     trait: "Gentle wisdom",
     traitIcon: "heart-outline",
     avatarUri:
-      "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=360&auto=format&fit=crop&q=75",
     description:
       "Lifelong mentor and dear friend whose calm perspective steered me through early career doubts and creative crossroads.",
     meaningfulQuote:

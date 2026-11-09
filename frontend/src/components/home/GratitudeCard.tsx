@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import CommentsModal from "@/components/Comments/CommentsModal";
+import { AppFonts, Palette } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
   Alert,
   Image,
@@ -9,9 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { AppFonts, Palette } from "@/constants/theme";
-import CommentsModal from "@/components/Comments/CommentsModal";
 
 export interface GratitudePostData {
   id: string;

@@ -40,6 +40,7 @@ function isCreationType(value: string | undefined): value is CreationType {
   return (
     value === "tribute" ||
     value === "appreciation" ||
+    value === "story" ||
     value === "note" ||
     value === "letter" ||
     value === "memo" ||
@@ -61,7 +62,7 @@ function navigateToCreation(
   params: CreationRouteParams,
   replace = false
 ) {
-  if (type === "tribute" || type === "appreciation") {
+  if (type === "tribute" || type === "appreciation" || type === "story") {
     const href = { pathname: "/create-tribute" as const, params };
     if (replace) router.replace(href);
     else router.push(href);

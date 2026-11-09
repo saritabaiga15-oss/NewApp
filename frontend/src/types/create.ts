@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 export type CreationType =
   | "tribute"
   | "appreciation"
+  | "story"
   | "note"
   | "letter"
   | "memo"

@@ -34,6 +34,10 @@ export default function Root({ children }: PropsWithChildren) {
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
+        {/* Preconnect to external image and CDN domains for instant DNS + TLS handshakes */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <meta httpEquiv="x-dns-prefetch-control" content="on" />
         <style
           dangerouslySetInnerHTML={{
             __html: `

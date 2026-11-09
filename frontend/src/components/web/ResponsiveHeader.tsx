@@ -17,6 +17,7 @@ const NAV_LINKS: { labelKey: StringKey; path: string; icon: keyof typeof Ionicon
   { labelKey: "nav.memoryWall", path: "/memory-wall", icon: "images-outline" },
   { labelKey: "nav.discover", path: "/discover", icon: "compass-outline" },
   { labelKey: "nav.create", path: "/create", icon: "add-circle-outline" },
+  { labelKey: "nav.saved", path: "/saved-items", icon: "bookmark-outline" },
 ];
 
 export default function ResponsiveHeader({ onOpenQrModal }: ResponsiveHeaderProps) {

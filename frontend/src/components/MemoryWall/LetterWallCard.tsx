@@ -60,7 +60,7 @@ export default function LetterWallCard({
 
       {/* Preview */}
       <Text style={styles.preview} numberOfLines={3}>
-        {item.preview}
+        {item.preview || item.letterBody}
       </Text>
 
       {/* Footer */}
