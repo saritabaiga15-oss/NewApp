@@ -1,5 +1,5 @@
-import { CreationOptionItem, InspirationPrompt } from "@/types/create";
 import { Palette } from "@/constants/theme";
+import { CreationOptionItem, InspirationPrompt } from "@/types/create";
 
 export const CREATION_OPTIONS: CreationOptionItem[] = [
   {

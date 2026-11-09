@@ -25,6 +25,7 @@ import BottomNavigation from "@/components/home/BottomNavigation";
 // Types & Services
 import { TributeDesignState } from "@/types/create";
 import { tributeDraftService } from "@/services/tributeDraftService";
+import { memoryService } from "@/services/memoryService";
 import { DEFAULT_SAMPLE_PORTRAIT } from "@/data/tributeDetailsData";
 
 export default function TributePreviewScreen() {
@@ -103,8 +104,30 @@ export default function TributePreviewScreen() {
     setIsSaving(true);
     try {
       await tributeDraftService.saveCompletedTribute(design);
+      memoryService.addMemory(
+        {
+          kind: "tribute",
+          id: design.id,
+          mentorName: design.mentorName,
+          relationship: design.relationship,
+          title: design.customTitle || `In Honour of ${design.mentorName}`,
+          story: design.story,
+          quote: design.quote,
+          photoUri: design.photoUri || "",
+          audioUri: design.audioUri,
+          year: String(new Date().getFullYear()),
+          emotion: "Gratitude",
+          createdAt: new Date().toISOString(),
+          isPinned: false,
+        } as any,
+        {
+          recipientEmail: design.recipientEmail?.trim() || undefined,
+          sendDedicationEmail: !!design.recipientEmail?.trim(),
+          privacy: "PUBLIC",
+        }
+      );
       setIsSaved(true);
-      showToast("Appreciation card saved to your collection!");
+      showToast("Appreciation card saved to your wall!");
       // Saved & dedication email dispatched — immediately close to Memory Wall
       router.replace("/memory-wall");
     } catch (error) {
@@ -139,6 +162,28 @@ export default function TributePreviewScreen() {
     setIsSaving(true);
     try {
       await tributeDraftService.saveCompletedTribute(design);
+      memoryService.addMemory(
+        {
+          kind: "tribute",
+          id: design.id,
+          mentorName: design.mentorName,
+          relationship: design.relationship,
+          title: design.customTitle || `In Honour of ${design.mentorName}`,
+          story: design.story,
+          quote: design.quote,
+          photoUri: design.photoUri || "",
+          audioUri: design.audioUri,
+          year: String(new Date().getFullYear()),
+          emotion: "Gratitude",
+          createdAt: new Date().toISOString(),
+          isPinned: false,
+        } as any,
+        {
+          recipientEmail: design.recipientEmail?.trim() || undefined,
+          sendDedicationEmail: !!design.recipientEmail?.trim(),
+          privacy: "PUBLIC",
+        }
+      );
       setIsSaved(true);
       showToast("Added to Memory Wall!");
       // Saved & dedication email dispatched — immediately close to Memory Wall

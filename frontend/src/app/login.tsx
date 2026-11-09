@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { AppFonts, Palette } from "@/constants/theme";
-import { api, setAuthToken } from "@/services/api";
+import { api, getAuthToken, setAuthToken } from "@/services/api";
+import { signOut } from "@/services/auth";
 import { userProfileService } from "@/services/userProfileService";
 import { GoogleLogo } from "@/components/SocialLogos";
 
@@ -35,6 +36,27 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Active Session Detection (prevents stuck session confusion)
+  const [activeUser, setActiveUser] = useState<{ name: string; username: string; email?: string } | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const token = await getAuthToken();
+        if (token) {
+          const profile = await userProfileService.getProfile();
+          if (profile && (profile.name || profile.username)) {
+            setActiveUser({
+              name: profile.name || "User",
+              username: profile.username || "user",
+              email: profile.email || "",
+            });
+          }
+        }
+      } catch {}
+    })();
+  }, []);
 
   // Email Login Handler
   const handleEmailLogin = async () => {
@@ -93,20 +115,48 @@ export default function Login() {
     router.push("/phone-login" as any);
   };
 
-  // Instant Default Social Login Handler
-  const handleSocialLogin = async (provider: string) => {
+  // Google Sign-In with backend authentication
+  const handleGoogleLogin = async (customEmail?: string) => {
+    let targetEmail = customEmail;
+    if (!targetEmail && Platform.OS === "web" && typeof window !== "undefined") {
+      const entered = window.prompt("Enter your Google email address to sign in:");
+      if (!entered || !entered.trim()) return;
+      targetEmail = entered.trim();
+    }
+    if (!targetEmail) return;
+    targetEmail = targetEmail.trim().toLowerCase();
+
     setLoading(true);
     setErrorMessage(null);
+
     try {
-      await setAuthToken(`default-token-${provider.toLowerCase()}-` + Date.now());
-      await userProfileService.updateProfile({
-        name: `${provider} User`,
-        username: `${provider.toLowerCase()}_user`,
-        bio: "Remembering the mentors and guides who shaped my life.",
+      const res = await api.auth.googleLogin({
+        email: targetEmail,
+        name: targetEmail.split("@")[0],
+        avatarUri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
       });
-      router.replace("/home");
-    } catch {
-      router.replace("/home");
+
+      if (res?.data?.accessToken) {
+        await setAuthToken(res.data.accessToken, res.data.refreshToken);
+        if (res.data.user) {
+          await userProfileService.updateProfile({
+            name: res.data.user.name || targetEmail.split("@")[0],
+            username: res.data.user.username || targetEmail.split("@")[0],
+            email: res.data.user.email || targetEmail,
+            phone: res.data.user.phone || "",
+            bio: res.data.user.bio || "Remembering the mentors and guides who shaped my life.",
+            avatarUri:
+              res.data.user.avatarUri ||
+              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+          });
+        }
+        await userProfileService.syncWithBackend();
+        router.replace("/home");
+      } else {
+        router.replace("/home");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Google sign-in failed. Please check your server connection.");
     } finally {
       setLoading(false);
     }
@@ -153,6 +203,42 @@ export default function Login() {
 
             {/* Subtitle */}
             <Text style={styles.subtitle}>Sign in to honour those who shaped you</Text>
+
+            {/* Active Session Notice if already logged in */}
+            {activeUser && (
+              <View style={styles.activeSessionCard}>
+                <View style={styles.activeSessionTop}>
+                  <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.activeSessionTitle}>
+                      Currently signed in as <Text style={{ fontWeight: "700", color: "#FFFFFF" }}>{activeUser.name}</Text>
+                    </Text>
+                    <Text style={styles.activeSessionSubtitle}>
+                      @{activeUser.username} {activeUser.email ? `• ${activeUser.email}` : ""}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.activeSessionBtns}>
+                  <TouchableOpacity
+                    style={styles.activeSessionContinueBtn}
+                    onPress={() => router.replace("/home")}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.activeSessionContinueText}>Go to Dashboard →</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.activeSessionSignOutBtn}
+                    onPress={async () => {
+                      await signOut();
+                      setActiveUser(null);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.activeSessionSignOutText}>Sign Out / Switch</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Form Container */}
@@ -328,20 +414,22 @@ export default function Login() {
             {/* Divider "Or continue with" */}
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
+              <Text style={styles.dividerText}>or continue with Google</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Real Social Logos (Google) */}
-            <View style={styles.socialRow}>
+            {/* Google Sign-In with backend authentication */}
+            <View style={styles.socialSection}>
               <TouchableOpacity
-                onPress={() => handleSocialLogin("Google")}
-                activeOpacity={0.8}
-                style={styles.socialBtn}
+                onPress={() => handleGoogleLogin()}
+                activeOpacity={0.84}
+                style={styles.googleFullBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Sign in with Google"
+                accessibilityLabel="Continue with Google"
+                disabled={loading}
               >
-                <GoogleLogo size={22} />
+                <GoogleLogo size={20} />
+                <Text style={styles.googleFullBtnText}>Continue with Google</Text>
               </TouchableOpacity>
             </View>
 
@@ -605,6 +693,45 @@ const styles = StyleSheet.create({
   },
 
   /* Social Logins */
+  socialSection: {
+    alignItems: "center",
+    marginBottom: 22,
+    gap: 10,
+  },
+  googleFullBtn: {
+    width: "100%",
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#18181B",
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.16)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleFullBtnText: {
+    color: "#FFFFFF",
+    fontSize: 14.5,
+    fontWeight: "700",
+    fontFamily: AppFonts.body,
+  },
+  googleOtherBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  googleOtherBtnText: {
+    color: Palette.textSecondary,
+    fontSize: 13,
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
   socialRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -626,6 +753,66 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 4,
     elevation: 2,
+  },
+
+  /* Active Session Card */
+  activeSessionCard: {
+    width: "100%",
+    maxWidth: 390,
+    backgroundColor: "#131316",
+    borderWidth: 1,
+    borderColor: "rgba(34, 197, 94, 0.35)",
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 16,
+    marginBottom: 6,
+  },
+  activeSessionTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  activeSessionTitle: {
+    color: "#D1D5DB",
+    fontSize: 13.5,
+    fontWeight: "500",
+  },
+  activeSessionSubtitle: {
+    color: "#9CA3AF",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  activeSessionBtns: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  activeSessionContinueBtn: {
+    flex: 1.2,
+    backgroundColor: "rgba(34, 197, 94, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(34, 197, 94, 0.4)",
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  activeSessionContinueText: {
+    color: "#4ADE80",
+    fontSize: 12.5,
+    fontWeight: "700",
+  },
+  activeSessionSignOutBtn: {
+    flex: 1,
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.35)",
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  activeSessionSignOutText: {
+    color: "#F87171",
+    fontSize: 12.5,
+    fontWeight: "700",
   },
 
   /* Register link row */

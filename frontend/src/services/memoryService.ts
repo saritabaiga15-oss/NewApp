@@ -483,7 +483,12 @@ class MemoryService {
     if (mentor && !this.mentors.some((profile) => profile.id === mentor.id)) {
       this.mentors.push(mentor);
     }
-    const newItem = { ...item, mentorId: item.mentorId || mentor?.id } as WallItem;
+    const newItem = {
+      ...item,
+      mentorId: item.mentorId || mentor?.id,
+      recipientEmail: meta?.recipientEmail || (item as any).recipientEmail,
+      sendDedicationEmail: meta?.sendDedicationEmail ?? (item as any).sendDedicationEmail ?? true,
+    } as unknown as WallItem;
     if (existingIndex >= 0) {
       this.items[existingIndex] = newItem;
     } else {
@@ -644,8 +649,8 @@ class MemoryService {
         salutation: anyItem.salutation || meta?.salutation,
         signoff: anyItem.signoff || meta?.signoff,
         signature: anyItem.signature || meta?.signature,
-        recipientEmail: meta?.recipientEmail,
-        sendDedicationEmail: meta?.sendDedicationEmail,
+        recipientEmail: meta?.recipientEmail || anyItem.recipientEmail,
+        sendDedicationEmail: meta?.sendDedicationEmail ?? anyItem.sendDedicationEmail ?? !!(meta?.recipientEmail || anyItem.recipientEmail),
         lessonCarried: anyItem.lessonCarried || "",
         momentToRemember: anyItem.momentToRemember || "",
         year: anyItem.year,

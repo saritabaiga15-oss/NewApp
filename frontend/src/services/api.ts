@@ -105,6 +105,14 @@ export const api = {
       apiRequest("/auth/register", { method: "POST", body: JSON.stringify(data) }),
     login: (data: { emailOrUsername: string; password: string }) =>
       apiRequest("/auth/login", { method: "POST", body: JSON.stringify(data) }),
+    googleLogin: (data: { email: string; name?: string; avatarUri?: string; idToken?: string }) =>
+      apiRequest<{ accessToken: string; refreshToken?: string; user?: any; isNewUser?: boolean; message?: string }>(
+        "/auth/google",
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        }
+      ),
     me: () => apiRequest("/auth/me"),
     forgotPassword: (email: string) =>
       apiRequest("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
